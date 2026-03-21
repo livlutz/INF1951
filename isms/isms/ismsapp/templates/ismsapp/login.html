@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISMS - Acesso ao Sistema</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'css/ismsapp/login.css' %}" rel="stylesheet">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Icon -->
+            <div class="icon-wrapper">
+                <i class="fas fa-lock"></i>
+            </div>
+
+            <!-- Title and Subtitle -->
+            <h1>ISMS</h1>
+            <p class="subtitle">Acesso ao Sistema</p>
+
+            <!-- Error Messages -->
+            {% if formulario.non_field_errors %}
+                <div class="form-errors">
+                    {% for error in formulario.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Login Form -->
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Username Field -->
+                <div class="form-group">
+                    <label for="id_username">Nome de Usuário</label>
+                    <div class="form-group-wrapper">
+                        <i class="fas fa-user form-group-icon"></i>
+                        {{ formulario.username }}
+                    </div>
+                    {% if formulario.username.errors %}
+                        {% for error in formulario.username.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Password Field -->
+                <div class="form-group">
+                    <label for="id_password">Senha</label>
+                    <div class="form-group-wrapper">
+                        <i class="fas fa-lock form-group-icon"></i>
+                        {{ formulario.password }}
+                        <button type="button" class="password-toggle" id="passwordToggle">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    {% if formulario.password.errors %}
+                        {% for error in formulario.password.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="login-btn">Entrar</button>
+            </form>
+
+            <!-- Signup Link -->
+            <div class="signup-link">
+                Não possui uma conta? <a href="{% url 'signup' %}">Criar Conta</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/ismsapp/login.js' %}"></script>
+</body>
+</html>

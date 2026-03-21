@@ -3,6 +3,7 @@ from django.views.generic.base import View
 from django.http.response import HttpResponseRedirect
 from django.urls.base import reverse_lazy
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from .forms import SignUpForm, LoginForm
@@ -59,9 +60,15 @@ class UserLoginView(View):
     def post(self, request, *args, **kwargs):
         formulario = self.form_class(request.POST)
         if formulario.is_valid():
-            username = formulario.cleaned_data.get("username")
+            email = formulario.cleaned_data.get("email")
             password = formulario.cleaned_data.get("password")
-            usuario = authenticate(request, username=username, password=password)
+
+            # Authenticate by email: first get user by email, then check password
+            try:
+                usuario = User.objects.get(email=email)
+                usuario = authenticate(request, username=usuario.username, password=password)
+            except User.DoesNotExist:
+                usuario = None
 
             if usuario is not None:
                 login(request, usuario)
@@ -69,7 +76,7 @@ class UserLoginView(View):
             else:
                 contexto = {
                     "formulario": formulario,
-                    "erro": "Usuário ou senha inválidos."
+                    "erro": "Email ou senha inválidos."
                 }
                 return render(request, self.template_name, contexto)
 

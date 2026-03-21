@@ -77,16 +77,15 @@ class SignUpForm(forms.Form):
 class LoginForm(forms.Form):
     """Login form for existing users.
 
-    This form includes fields for username and password.
+    This form includes fields for email and password.
     """
-    username = forms.CharField(
-        max_length=150,
-        widget=forms.TextInput(attrs={
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
             "class": "form-control",
-            "placeholder": "Nome de usuário"
+            "placeholder": "Email"
         })
     )
-    
+
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={
             "class": "form-control",

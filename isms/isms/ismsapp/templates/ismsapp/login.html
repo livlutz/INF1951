@@ -34,15 +34,15 @@
             <form method="post">
                 {% csrf_token %}
 
-                <!-- Username Field -->
+                <!-- Email Field -->
                 <div class="form-group">
-                    <label for="id_username">Nome de Usuário</label>
+                    <label for="id_email">Email</label>
                     <div class="form-group-wrapper">
-                        <i class="fas fa-user form-group-icon"></i>
-                        {{ formulario.username }}
+                        <i class="fas fa-envelope form-group-icon"></i>
+                        {{ formulario.email }}
                     </div>
-                    {% if formulario.username.errors %}
-                        {% for error in formulario.username.errors %}
+                    {% if formulario.email.errors %}
+                        {% for error in formulario.email.errors %}
                             <span class="error-message">{{ error }}</span>
                         {% endfor %}
                     {% endif %}

@@ -21,5 +21,9 @@ from django.urls import path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", views.home, name="home"),
+    path("", views.HomeView.as_view(), name="home"),
+    path("signup/", views.UserSignUpView.as_view(), name="signup"),
+    path("login/", views.UserLoginView.as_view(), name="login"),
+    path("logout/", views.UserLogoutView.as_view(), name="logout"),
+    path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
 ]

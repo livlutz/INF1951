@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Consequencia(models.Model):
     """
@@ -531,3 +532,37 @@ class Risco(models.Model):
 
     def __str__(self):
         return f"Risco #{self.pk} – {self.get_tipo_display()} ({self.ativo})"
+
+#user classes
+
+class UserProfile(models.Model):
+    """
+    Extended user profile to support role-based access control.
+    Associates each Django user with one of the 3 system actors.
+    """
+
+    class Actor(models.TextChoices):
+        SISTEMA_ADMIN = "admin", "Administrador do sistema"
+        AUDITOR = "auditor", "Auditor de Segurança da Informação"
+        ANALISTA = "analista", "Analista de Segurança"
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+
+    actor_type = models.CharField(
+        max_length=20,
+        choices=Actor.choices,
+        help_text="Tipo de usuario que define as permissões e funcionalidades disponíveis",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Perfil de Usuário"
+        verbose_name_plural = "Perfis de Usuários"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.get_actor_type_display()}"
+
+    @property
+    def is_administrador(self):
+        return self.actor_type == self.Actor.SISTEMA_ADMIN

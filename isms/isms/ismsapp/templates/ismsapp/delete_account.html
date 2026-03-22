@@ -1,0 +1,102 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Deletar Conta{% endblock %}
+
+{% block extra_css %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'css/ismsapp/delete_account.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <div class="delete-container">
+        <div class="delete-card">
+            <!-- Warning Icon -->
+            <div class="icon-wrapper warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+
+            <!-- Title -->
+            <h1>Deletar Conta</h1>
+            <p class="subtitle">Esta ação é permanente</p>
+
+            <!-- Warning Message -->
+            <div class="warning-message">
+                <p>
+                    <strong>Atenção!</strong> Você está prestes a deletar sua conta. Esta ação é <strong>irreversível</strong> e resultará na perda permanente de:
+                </p>
+                <ul>
+                    <li>Seus dados pessoais</li>
+                    <li>Suas informações de perfil</li>
+                    <li>Todos os seus acessos ao sistema</li>
+                </ul>
+                <p class="warning-final">
+                    Uma vez deletada, sua conta não poderá ser recuperada.
+                </p>
+            </div>
+
+            <!-- Confirmation Message -->
+            <div class="confirmation-message">
+                <p>Se você tem certeza de que deseja deletar sua conta, preencha o formulário abaixo:</p>
+            </div>
+
+            <!-- Delete Form -->
+            <form method="post" class="delete-form">
+                {% csrf_token %}
+
+                <!-- Username Confirmation -->
+                <div class="form-group">
+                    <label for="username">Confirm seu username:</label>
+                    <input
+                        type="text"
+                        id="username"
+                        class="form-control"
+                        placeholder="{{ usuario.username }}"
+                        required
+                        aria-required="true"
+                    >
+                    <small class="form-text">Digite exatamente: <strong>{{ usuario.username }}</strong></small>
+                </div>
+
+                <!-- Acknowledgement Checkbox -->
+                <div class="form-group checkbox-group">
+                    <div class="form-check">
+                        <input
+                            type="checkbox"
+                            id="acknowledge"
+                            class="form-check-input"
+                            required
+                            aria-required="true"
+                        >
+                        <label class="form-check-label" for="acknowledge">
+                            Entendo que esta ação é permanente e não poderá ser desfeita.
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button type="submit" class="btn-delete" id="deleteBtn" disabled>
+                        <i class="fas fa-trash-alt"></i> Deletar Minha Conta
+                    </button>
+                    <a href="{% url 'profile' %}" class="btn-cancel">
+                        <i class="fas fa-arrow-left"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+
+            <!-- Help Text -->
+            <div class="help-text">
+                <p>
+                    Se você não deseja deletar sua conta, <a href="{% url 'profile' %}">volte ao seu perfil</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/ismsapp/delete_account.js' %}"></script>
+{% endblock %}

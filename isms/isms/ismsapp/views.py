@@ -85,11 +85,54 @@ class UserLoginView(View):
 
 
 class UserLogoutView(View):
-    """Logout view for users to end their session."""
+    """Logout view for users to end their session.
+
+    Displays a logout confirmation page that redirects to home after 5 seconds.
+    """
+    template_name = "ismsapp/logout.html"
 
     def get(self, request, *args, **kwargs):
         logout(request)
-        return HttpResponseRedirect(reverse_lazy("home"))
+        return render(request, self.template_name)
+
+class UserProfileView(View):
+    """User profile view - displays user's profile information.
+
+    Requires user to be logged in. Shows user details and actor type.
+    """
+    template_name = "ismsapp/profile.html"
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        try:
+            profile = request.user.profile
+            actor_tipo = profile.get_actor_type_display()
+        except UserProfile.DoesNotExist:
+            actor_tipo = "Sem papel atribuído"
+
+        contexto = {
+            "usuario": request.user,
+            "actor_tipo": actor_tipo,
+        }
+        return render(request, self.template_name, contexto)
+
+class UserDeleteView(View):
+    """User account deletion view - allows users to delete their account.
+
+    Requires user to be logged in. Deletes user and associated profile, then redirects to home.
+    """
+    template_name = "ismsapp/delete_account.html"
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        logout(request)  # Log out the user before deleting the account
+        user.delete()  # This will also delete the associated UserProfile due to on_delete=models.CASCADE
+        return redirect("home")
 
 
 class DashboardView(View):

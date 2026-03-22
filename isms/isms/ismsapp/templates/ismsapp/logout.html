@@ -1,0 +1,46 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}ISMS - Logout{% endblock %}
+
+{% block extra_css %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'css/ismsapp/logout.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <div class="logout-container">
+        <div class="logout-card">
+            <!-- Icon -->
+            <div class="icon-wrapper success">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+
+            <!-- Title and Subtitle -->
+            <h1>ISMS</h1>
+            <p class="subtitle">Logout</p>
+
+            <!-- Success Message -->
+            <div class="logout-message">
+                <p>Logout com sucesso.</p>
+            </div>
+
+            <!-- Redirect Info -->
+            <p class="redirect-info">Redirecionando para a página inicial</p>
+
+            <!-- Buttons -->
+            <div class="logout-actions">
+                <a href="{% url 'home' %}" class="logout-btn home-btn">
+                    <i class="fas fa-home"></i> Homepage
+                </a>
+                <a href="{% url 'login' %}" class="logout-btn login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+            </div>
+
+            <!-- Footer -->
+            <p class="footer-text">Se você não for redirecionado, <a href="{% url 'home' %}">clique aqui</a>.</p>
+        </div>
+    </div>
+{% endblock %}

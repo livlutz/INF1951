@@ -25,9 +25,9 @@
                 {% if user.is_authenticated %}
                     <!-- User is logged in -->
                     <div class="nav-user">
-                        <span class="username">Welcome, {{ user.username }}</span>
-                        <a href="{% url 'dashboard' %}" class="nav-button profile-button">
-                            Profile
+                        <span class="username">Olá, {{ user.username }}</span>
+                        <a href="{% url 'profile' %}" class="nav-button profile-button">
+                            Perfil
                         </a>
                         <a href="{% url 'logout' %}" class="nav-button logout-button">
                             Logout
@@ -40,7 +40,7 @@
                             Login
                         </a>
                         <a href="{% url 'signup' %}" class="nav-button signup-button">
-                            Sign Up
+                            Cadastro
                         </a>
                     </div>
                 {% endif %}

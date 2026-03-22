@@ -25,7 +25,6 @@ urlpatterns = [
     path("signup/", views.UserSignUpView.as_view(), name="signup"),
     path("login/", views.UserLoginView.as_view(), name="login"),
     path("logout/", views.UserLogoutView.as_view(), name="logout"),
-    path("profile/", views.UserProfileView.as_view(), name="profile"),
-    path("profile/delete/", views.UserAccountDeleteView.as_view(), name="delete_account"),
+    path("profile/", views.UserProfileView.as_view(), name="profile"),    path("profile/edit/", views.UserUpdateView.as_view(), name="edit_profile"),    path("profile/delete/", views.UserAccountDeleteView.as_view(), name="delete_account"),
     path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
 ]

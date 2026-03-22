@@ -92,3 +92,37 @@ class LoginForm(forms.Form):
             "placeholder": "Senha"
         })
     )
+
+
+class UserProfileUpdateForm(forms.Form):
+    """Form for users to update their profile information.
+
+    This form allows users to update their email address.
+    """
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            "class": "form-control",
+            "placeholder": "Email"
+        })
+    )
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+
+        # Check if email is already taken by another user
+        if email != self.user.email:
+            if User.objects.filter(email=email).exists():
+                raise forms.ValidationError("Este email já está registrado.")
+
+        return email
+
+    def save(self):
+        """Update the user's email address."""
+        self.user.email = self.cleaned_data["email"]
+        self.user.save()
+        return self.user

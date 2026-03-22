@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from .forms import SignUpForm, LoginForm
+from .forms import SignUpForm, LoginForm, UserProfileUpdateForm
 from .models import UserProfile
 
 class HomeView(View):
@@ -134,6 +134,43 @@ class UserDeleteView(View):
         user.delete()  # This will also delete the associated UserProfile due to on_delete=models.CASCADE
         return redirect("home")
 
+class UserUpdateView(View):
+    """User profile update view - allows users to update their profile information.
+
+    Requires user to be logged in. Allows updating email address.
+    GET: Displays the update form with current user information
+    POST: Processes form data and updates the user's email
+    """
+    form_class = UserProfileUpdateForm
+    template_name = "ismsapp/edit_profile.html"
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        formulario = self.form_class(initial={"email": request.user.email}, user=request.user)
+        contexto = {
+            "formulario": formulario,
+            "usuario": request.user,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        formulario = self.form_class(request.POST, user=request.user)
+        if formulario.is_valid():
+            formulario.save()
+            mensagem_sucesso = "Perfil atualizado com sucesso!"
+            contexto = {
+                "formulario": formulario,
+                "usuario": request.user,
+                "sucesso": mensagem_sucesso,
+            }
+            return render(request, self.template_name, contexto)
+        else:
+            contexto = {
+                "formulario": formulario,
+                "usuario": request.user,
+            }
+            return render(request, self.template_name, contexto)
 
 class DashboardView(View):
     """Dashboard view - displays role-specific dashboard for authenticated users.

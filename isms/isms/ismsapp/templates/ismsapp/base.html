@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ISMS{% endblock %}</title>
+
+    <!-- Header CSS -->
+    <link rel="stylesheet" href="{% static 'css/ismsapp/header.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Header Navigation -->
+    <header class="isms-header">
+        <div class="header-container">
+            <!-- Logo/Title -->
+            <a href="{% url 'home' %}" class="header-logo">
+                <span class="logo-text">ISMS</span>
+            </a>
+
+            <!-- Navigation -->
+            <nav class="header-nav">
+                {% if user.is_authenticated %}
+                    <!-- User is logged in -->
+                    <div class="nav-user">
+                        <span class="username">Welcome, {{ user.username }}</span>
+                        <a href="{% url 'dashboard' %}" class="nav-button profile-button">
+                            Profile
+                        </a>
+                        <a href="{% url 'logout' %}" class="nav-button logout-button">
+                            Logout
+                        </a>
+                    </div>
+                {% else %}
+                    <!-- User is not logged in -->
+                    <div class="nav-auth">
+                        <a href="{% url 'login' %}" class="nav-button login-button">
+                            Login
+                        </a>
+                        <a href="{% url 'signup' %}" class="nav-button signup-button">
+                            Sign Up
+                        </a>
+                    </div>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

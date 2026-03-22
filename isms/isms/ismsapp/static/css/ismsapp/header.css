@@ -1,6 +1,6 @@
 /* Header Styles */
 .isms-header {
-    background-color: #2c3e50;
+    background-color: #000000;
     color: white;
     padding: 1rem 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -31,13 +31,13 @@
     font-size: 1.8rem;
     font-weight: 700;
     letter-spacing: 2px;
-    color: #3498db;
+    color: #9333ea;
     text-transform: uppercase;
     transition: color 0.3s ease;
 }
 
 .header-logo:hover .logo-text {
-    color: #5dade2;
+    color: #a855f7;
 }
 
 /* Navigation */
@@ -57,8 +57,10 @@
 /* Username */
 .username {
     font-size: 0.95rem;
-    color: #ecf0f1;
+    color: #ffffff;
     font-weight: 500;
+    padding: 0;
+    background-color: transparent;
 }
 
 /* Navigation Buttons */
@@ -77,37 +79,37 @@
 /* Login Button */
 .login-button {
     background-color: transparent;
-    color: #3498db;
-    border: 2px solid #3498db;
+    color: #b366ff;
+    border: 2px solid #b366ff;
 }
 
 .login-button:hover {
-    background-color: #3498db;
+    background-color: #b366ff;
     color: white;
 }
 
 /* Sign Up Button */
 .signup-button {
-    background-color: #3498db;
+    background-color: #b366ff;
     color: white;
-    border: 2px solid #3498db;
+    border: 2px solid #b366ff;
 }
 
 .signup-button:hover {
-    background-color: #2980b9;
-    border-color: #2980b9;
+    background-color: #a355e8;
+    border-color: #a355e8;
 }
 
 /* Profile Button */
 .profile-button {
-    background-color: #27ae60;
+    background-color: #9333ea;
     color: white;
-    border: 2px solid #27ae60;
+    border: 2px solid #9333ea;
 }
 
 .profile-button:hover {
-    background-color: #229954;
-    border-color: #229954;
+    background-color: #a855f7;
+    border-color: #a855f7;
 }
 
 /* Logout Button */

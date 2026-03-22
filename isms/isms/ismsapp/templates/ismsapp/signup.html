@@ -37,6 +37,7 @@
                 <div class="form-group">
                     <label for="id_username">Nome de Usuário</label>
                     {{ formulario.username }}
+                    <small class="form-text">Seu username não pode ser alterado após criar a conta.</small>
                     {% if formulario.username.errors %}
                         {% for error in formulario.username.errors %}
                             <span class="error-message">{{ error }}</span>

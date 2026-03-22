@@ -127,8 +127,8 @@
 .form-control {
     width: 100%;
     padding: 0.8rem;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.25);
     border-radius: 6px;
     color: #ffffff;
     font-size: 0.95rem;
@@ -237,15 +237,15 @@
 
 .btn-cancel {
     background: transparent;
-    color: #3498db;
-    border: 2px solid #3498db;
+    color: #b366ff;
+    border: 2px solid #b366ff;
 }
 
 .btn-cancel:hover {
-    background: #3498db;
+    background: #b366ff;
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+    box-shadow: 0 10px 25px rgba(179, 102, 255, 0.3);
     text-decoration: none;
 }
 
@@ -259,14 +259,14 @@
 }
 
 .help-text a {
-    color: #3498db;
+    color: #b366ff;
     text-decoration: none;
     font-weight: 600;
     transition: color 0.3s ease;
 }
 
 .help-text a:hover {
-    color: #5dade2;
+    color: #a355e8;
 }
 
 /* Responsive Design */

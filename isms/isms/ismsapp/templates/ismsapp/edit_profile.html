@@ -12,15 +12,10 @@
 {% block content %}
     <div class="edit-profile-container">
         <div class="edit-profile-card">
-            <!-- Header -->
             <div class="profile-header">
-                <div class="header-content">
-                    <h1><i class="fas fa-user-edit"></i> Editar Perfil</h1>
-                    <p class="subtitle">Atualize suas informações pessoais</p>
-                </div>
+                <h1 class="profile-title">Editar Perfil</h1>
             </div>
 
-            <!-- Content -->
             <div class="profile-content">
                 <!-- Success Message -->
                 {% if sucesso %}
@@ -38,37 +33,25 @@
                     </div>
                 {% endif %}
 
-                <!-- Edit Form -->
                 <form method="post" class="edit-form">
                     {% csrf_token %}
 
-                    <!-- Current Username (Read-only) -->
-                    <div class="form-section">
-                        <h2><i class="fas fa-user"></i> Informações da Conta</h2>
-
-                        <div class="form-group">
-                            <label for="username">Username (não pode ser alterado):</label>
+                    <div class="form-fields">
+                        <!-- Username -->
+                        <div class="form-field">
+                            <label><i class="fas fa-user"></i> USERNAME</label>
                             <input
                                 type="text"
-                                id="username"
                                 class="form-control"
                                 value="{{ usuario.username }}"
                                 disabled
                             >
-                            <small class="form-text">Seu username não pode ser alterado após a criar a conta.</small>
                         </div>
-                    </div>
 
-                    <!-- Email Field -->
-                    <div class="form-section">
-                        <h2><i class="fas fa-envelope"></i> Email</h2>
-
-                        <div class="form-group">
-                            <label for="id_email">Novo Email:</label>
-                            <div class="form-group-wrapper">
-                                <i class="fas fa-envelope form-group-icon"></i>
-                                {{ formulario.email }}
-                            </div>
+                        <!-- Email -->
+                        <div class="form-field">
+                            <label><i class="fas fa-envelope"></i> EMAIL</label>
+                            {{ formulario.email }}
                             {% if formulario.email.errors %}
                                 {% for error in formulario.email.errors %}
                                     <span class="error-message">
@@ -76,16 +59,15 @@
                                     </span>
                                 {% endfor %}
                             {% endif %}
-                            <small class="form-text">Você receberá um email de confirmação após fazer as alterações.</small>
                         </div>
                     </div>
 
-                    <!-- Submit Buttons -->
-                    <div class="form-section button-section">
-                        <button type="submit" class="btn-update">
+                    <!-- Buttons -->
+                    <div class="action-buttons">
+                        <button type="submit" class="btn-action primary">
                             <i class="fas fa-save"></i> Salvar Alterações
                         </button>
-                        <a href="{% url 'profile' %}" class="btn-cancel">
+                        <a href="{% url 'profile' %}" class="btn-action secondary">
                             <i class="fas fa-times"></i> Cancelar
                         </a>
                     </div>

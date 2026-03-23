@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from .forms import SignUpForm, LoginForm, UserProfileUpdateForm
+from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm
 from .models import UserProfile
 
 class HomeView(View):
@@ -191,4 +191,48 @@ class DashboardView(View):
             "usuario": request.user,
             "actor_tipo": actor_tipo,
         }
+        return render(request, self.template_name, contexto)
+
+
+class UserPasswordChange(View):
+    """User password change view - allows users to change their password.
+
+    Requires user to be logged in. Validates current password and new password confirmation.
+    GET: Displays the password change form
+    POST: Processes form data and updates the user's password
+    """
+    form_class = UserPasswordChangeForm
+    template_name = "ismsapp/password_change.html"
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        formulario = self.form_class(user=request.user)
+        contexto = {
+            "formulario": formulario,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        formulario = self.form_class(request.POST, user=request.user)
+        if formulario.is_valid():
+            formulario.save()
+            return HttpResponseRedirect(reverse_lazy("password_change_done"))
+        else:
+            contexto = {
+                "formulario": formulario,
+            }
+            return render(request, self.template_name, contexto)
+
+
+class UserPasswordChangeDone(View):
+    """User password change done view - displays success message after password change.
+
+    Requires user to be logged in. Shows confirmation that password has been changed.
+    """
+    template_name = "ismsapp/password_change_done.html"
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        contexto = {}
         return render(request, self.template_name, contexto)

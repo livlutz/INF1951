@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import PasswordChangeView
+from django.urls import reverse_lazy
 
 class Consequencia(models.Model):
     """
@@ -566,3 +569,18 @@ class UserProfile(models.Model):
     @property
     def is_administrador(self):
         return self.actor_type == self.Actor.SISTEMA_ADMIN
+
+class UserPasswordChange(LoginRequiredMixin, PasswordChangeView):
+    """
+    View to allow users to change their own password.
+    Accessible from the user profile page.
+    """
+    template_name = "registration/password_change_form.html"
+    success_url = reverse_lazy("password_change_done")
+
+class UserPasswordChangeDone(LoginRequiredMixin, PasswordChangeView):
+    """
+    View to confirm that the user's password has been successfully changed.
+    Displays a success message and provides a link back to the profile page.
+    """
+    template_name = "registration/password_change_done.html"

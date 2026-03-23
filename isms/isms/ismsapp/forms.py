@@ -126,3 +126,64 @@ class UserProfileUpdateForm(forms.Form):
         self.user.email = self.cleaned_data["email"]
         self.user.save()
         return self.user
+
+
+class UserPasswordChangeForm(forms.Form):
+    """Form for users to change their password.
+
+    This form includes fields for current password and new password confirmation.
+    Validates that the current password is correct and new passwords match.
+    """
+    old_password = forms.CharField(
+        label="Senha Atual",
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control",
+            "placeholder": "Senha Atual"
+        })
+    )
+
+    new_password1 = forms.CharField(
+        label="Nova Senha",
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control",
+            "placeholder": "Nova Senha"
+        })
+    )
+
+    new_password2 = forms.CharField(
+        label="Confirmar Nova Senha",
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control",
+            "placeholder": "Confirmar Nova Senha"
+        })
+    )
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+    def clean_old_password(self):
+        """Validate that the old password is correct."""
+        old_password = self.cleaned_data.get("old_password")
+
+        if not self.user.check_password(old_password):
+            raise forms.ValidationError("Senha atual incorreta.")
+
+        return old_password
+
+    def clean(self):
+        """Validate that new passwords match."""
+        cleaned_data = super().clean()
+        new_password1 = cleaned_data.get("new_password1")
+        new_password2 = cleaned_data.get("new_password2")
+
+        if new_password1 and new_password2 and new_password1 != new_password2:
+            raise forms.ValidationError("As novas senhas não correspondem.")
+
+        return cleaned_data
+
+    def save(self):
+        """Update the user's password."""
+        self.user.set_password(self.cleaned_data["new_password1"])
+        self.user.save()
+        return self.user

@@ -127,45 +127,5 @@
     </form>
 </div>
 
-<script>
-function atualizarPeso(dimensao) {
-    const mapDimensoes = {
-        'conf': { pesosLabels: ['Muito Baixo', 'Baixo', 'Médio', 'Alto', 'Muito Alto'], elementId: 'peso-conf' },
-        'int': { pesosLabels: ['Muito Baixo', 'Baixo', 'Médio', 'Alto', 'Muito Alto'], elementId: 'peso-int' },
-        'disp': { pesosLabels: ['Muito Baixo', 'Baixo', 'Médio', 'Alto', 'Muito Alto'], elementId: 'peso-disp' },
-        'priv': { pesosLabels: ['Muito Baixo', 'Baixo', 'Médio', 'Alto', 'Muito Alto'], elementId: 'peso-priv' }
-    };
-
-    const checked = document.querySelector(`input[name="${dimensao === 'conf' ? 'confidencialidade' : dimensao === 'int' ? 'integridade' : dimensao === 'disp' ? 'disponibilidade' : 'privacidade'}']:checked`);
-    if (checked) {
-        const valor = parseInt(checked.value);
-        const labelMapa = {
-            1: 'Muito Baixo',
-            2: 'Baixo',
-            3: 'Médio',
-            4: 'Alto',
-            5: 'Muito Alto'
-        };
-        const elemento = document.getElementById(mapDimensoes[dimensao].elementId);
-        if (elemento) {
-            elemento.textContent = `Peso ${valor}`;
-        }
-    }
-}
-
-function carregarAtivoSelecionado() {
-    const select = document.getElementById('ativo-select');
-    if (select.value) {
-        window.location.href = `?ativo_id=${select.value}`;
-    }
-}
-
-// Initialize labels on page load
-document.addEventListener('DOMContentLoaded', function() {
-    atualizarPeso('conf');
-    atualizarPeso('int');
-    atualizarPeso('disp');
-    atualizarPeso('priv');
-});
-</script>
+<script src="{% static 'js/ismsapp/criacao_criterios_valoracao_ativos.js' %}"></script>
 {% endblock %}

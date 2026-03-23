@@ -1,5 +1,9 @@
 /* Criação de Critérios de Valoração dos Ativos - Styling */
 
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 .criterios-container {
     max-width: 900px;
     margin: 40px auto;

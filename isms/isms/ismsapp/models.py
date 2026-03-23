@@ -1,8 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.views import PasswordChangeView
-from django.urls import reverse_lazy
 
 class Consequencia(models.Model):
     """
@@ -232,6 +229,53 @@ class Controle(models.Model):
     def __str__(self):
         return f"Controle #{self.pk} → {self.tratamento}"
 
+class CategoriaAtivo(models.Model):
+    """
+    Representa uma categoria de ativo utilizada pela organização (UC-01 / RF-01).
+
+    As categorias classificam os ativos em dois grandes grupos:
+    primários (aqueles que possuem valor direto para o negócio, como
+    informações e serviços) e de suporte (aqueles que sustentam os
+    ativos primários, como hardware e software).
+
+    Apenas Administradores do Sistema e Auditores de Segurança da
+    Informação podem cadastrar novas categorias.
+    """
+
+    class Tipo(models.TextChoices):
+        """Classificação do ativo conforme sua relação com o negócio."""
+        PRIMARIO = "primario", "Primário"
+        SUPORTE  = "suporte",  "De Suporte"
+
+    nome = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text="Nome da categoria. Deve ser único no sistema.",
+    )
+    tipo = models.CharField(
+        max_length=10,
+        choices=Tipo.choices,
+        help_text=(
+            "Tipo do ativo: 'Primário' para ativos com valor direto ao negócio "
+            "(ex.: informações, serviços); 'De Suporte' para infraestrutura que "
+            "sustenta os ativos primários (ex.: hardware, software, pessoas)."
+        ),
+    )
+    descricao = models.TextField(
+        help_text="Descrição detalhada da categoria e dos ativos que ela engloba.",
+    )
+    criado_em = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Data e hora em que a categoria foi registrada no sistema.",
+    )
+
+    class Meta:
+        verbose_name        = "Categoria de Ativo"
+        verbose_name_plural = "Categorias de Ativos"
+        ordering            = ["tipo", "nome"]
+
+    def __str__(self):
+        return f"{self.nome} ({self.get_tipo_display()})"
 
 class Ativo(models.Model):
     """
@@ -569,18 +613,3 @@ class UserProfile(models.Model):
     @property
     def is_administrador(self):
         return self.actor_type == self.Actor.SISTEMA_ADMIN
-
-class UserPasswordChange(LoginRequiredMixin, PasswordChangeView):
-    """
-    View to allow users to change their own password.
-    Accessible from the user profile page.
-    """
-    template_name = "registration/password_change_form.html"
-    success_url = reverse_lazy("password_change_done")
-
-class UserPasswordChangeDone(LoginRequiredMixin, PasswordChangeView):
-    """
-    View to confirm that the user's password has been successfully changed.
-    Displays a success message and provides a link back to the profile page.
-    """
-    template_name = "registration/password_change_done.html"

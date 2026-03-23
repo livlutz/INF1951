@@ -224,7 +224,6 @@ class UserPasswordChange(View):
             }
             return render(request, self.template_name, contexto)
 
-
 class UserPasswordChangeDone(View):
     """User password change done view - displays success message after password change.
 
@@ -236,3 +235,13 @@ class UserPasswordChangeDone(View):
     def get(self, request, *args, **kwargs):
         contexto = {}
         return render(request, self.template_name, contexto)
+
+class CadastroCategoriaAtivoView(View):
+    """View para cadastro de categoria de ativo.
+
+    Esta view permite que os usuários cadastrados como Administrador do sistema
+    ou Auditor de Segurança da Informação cadastrem novas categorias de ativos.
+    Requer que o usuário esteja autenticado.
+    """
+    template_name = "ismsapp/cadastro_categoria_ativo.html"
+

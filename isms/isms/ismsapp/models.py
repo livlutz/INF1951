@@ -288,10 +288,39 @@ class Ativo(models.Model):
     used during risk scoring.
     """
 
-    """Human-readable label for this asset, which can be used to group similar items (e.g. 'Sistema de TI', 'Documento', 'Processo')."""
-    categoria = models.CharField(
-        max_length = 200,
-        help_text = "Categoria ou tipo que classifica este ativo (ex.: 'Sistema de TI', 'Documento', 'Processo').",
+    """Name/identifier of the asset (e.g., 'Servidor de Banco de Dados Prod-01')."""
+    nome = models.CharField(
+        max_length=255,
+        default="Ativo",
+        help_text="Nome único ou identificador do ativo (ex.: 'Servidor de Banco de Dados Prod-01').",
+    )
+
+    """Foreign key to the asset category that classifies this asset."""
+    categoria = models.ForeignKey(
+        CategoriaAtivo,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="ativos",
+        help_text="Categoria que classifica este ativo.",
+    )
+
+    """Person or department responsible for this asset."""
+    responsavel = models.CharField(
+        max_length=200,
+        default="Responsável",
+        help_text="Nome ou departamento responsável por este ativo.",
+    )
+
+    """Detailed description of the asset's purpose and characteristics."""
+    descricao = models.TextField(
+        blank=True,
+        help_text="Descrição detalhada da finalidade e características do ativo.",
+    )
+
+    """Interdependencies - other assets required for this asset to function."""
+    interdependencias = models.TextField(
+        blank=True,
+        help_text="Ativos necessários para o funcionamento deste ativo.",
     )
 
     """Numeric score for the Confidentiality dimension, indicating how sensitive the asset's information is. Higher values mean greater damage if data is disclosed without authorization."""
@@ -349,7 +378,7 @@ class Ativo(models.Model):
         verbose_name_plural = "Ativos"
 
     def __str__(self):
-        return f"[{self.pk}] {self.categoria}"
+        return f"{self.nome}"
 
 class Ameaca(models.Model):
     """

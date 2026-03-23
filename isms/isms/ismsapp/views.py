@@ -6,14 +6,21 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm, CadastroCategoriaAtivoForm
+from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm, CadastroCategoriaAtivoForm, CadastroAtivoForm, CriacaoCriteriosValoracaoAtivosForm
 from .models import UserProfile
 
 class HomeView(View):
-    """Home page view - displays landing page."""
+    """Home page view - displays landing page.
+
+    If user is already logged in, redirects to dashboard instead.
+    """
     template_name = "ismsapp/home.html"
 
     def get(self, request, *args, **kwargs):
+        # Redirect authenticated users to dashboard
+        if request.user.is_authenticated:
+            return redirect('dashboard')
+
         contexto = {}
         return render(request, self.template_name, contexto)
 
@@ -315,7 +322,7 @@ class DashboardView(View):
             "pode_auditar_e_revisar": pode_auditar_e_revisar,
             "pode_gerenciar_auditorias": pode_gerenciar_auditorias,
         }
-        
+
         return render(request, self.template_name, contexto)
 
 class UserPasswordChange(View):
@@ -416,4 +423,167 @@ class CadastroCategoriaAtivoView(View):
         contexto = {'form': form}
         return render(request, self.template_name, contexto)
 
+class CadastroAtivoView(View):
+    """View para cadastro de ativo.
+
+    Esta view permite que os usuários cadastrados como Administrador do sistema
+    ou Auditor de Segurança da Informação cadastrem novos ativos.
+    Requer que o usuário esteja autenticado e tenha permissão apropriada.
+
+    Usuarios autorizados:
+    - Administrador do sistema (SISTEMA_ADMIN)
+    - Auditor de Segurança (AUDITOR)
+    """
+    form_class = CadastroAtivoForm
+    template_name = "ismsapp/cadastro_ativo.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to register assets.
+
+        Only Administrador do sistema and Auditor de Segurança are allowed
+        to register assets.
+        """
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        # Only System Admin and Information Security Auditor can register assets
+        allowed_actors = [
+            UserProfile.Actor.SISTEMA_ADMIN,
+            UserProfile.Actor.AUDITOR
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        form = self.form_class()
+        contexto = {'form': form}
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')
+
+        contexto = {'form': form}
+        return render(request, self.template_name, contexto)
+
+class CriacaoCriteriosValoracaoAtivosView(View):
+    """View para criação de critérios de valoração dos ativos.
+
+    Esta view permite que os usuários cadastrados como Administrador do sistema
+    ou Auditor de Segurança da Informação definam os pesos CIDP (Confidencialidade,
+    Integridade, Disponibilidade, Privacidade) para um ativo específico.
+    Requer que o usuário esteja autenticado e tenha permissão apropriada.
+
+    Usuarios autorizados:
+    - Administrador do sistema (SISTEMA_ADMIN)
+    - Auditor de Segurança (AUDITOR)
+    """
+    form_class = CriacaoCriteriosValoracaoAtivosForm
+    template_name = "ismsapp/criacao_criterios_valoracao_ativos.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to create asset valuation criteria.
+
+        Only Administrador do sistema and Auditor de Segurança are allowed.
+        """
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        # Only System Admin and Information Security Auditor can create criteria
+        allowed_actors = [
+            UserProfile.Actor.SISTEMA_ADMIN,
+            UserProfile.Actor.AUDITOR
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, ativo_id=None, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Ativo
+
+        # Get all assets for selection
+        ativos = Ativo.objects.all()
+
+        # If ativo_id is provided, load that specific asset
+        ativo = None
+        form = None
+        if ativo_id:
+            try:
+                ativo = Ativo.objects.get(id=ativo_id)
+                form = self.form_class(instance=ativo)
+            except Ativo.DoesNotExist:
+                pass
+
+        if not form:
+            form = self.form_class()
+
+        contexto = {
+            'form': form,
+            'ativos': ativos,
+            'ativo_selecionado': ativo,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Ativo
+
+        ativo_id = request.POST.get('ativo_id')
+        if not ativo_id:
+            # If no ativo selected, show form again with error
+            form = self.form_class()
+            ativos = Ativo.objects.all()
+            contexto = {
+                'form': form,
+                'ativos': ativos,
+                'erro': 'Por favor, selecione um ativo.',
+            }
+            return render(request, self.template_name, contexto)
+
+        try:
+            ativo = Ativo.objects.get(id=ativo_id)
+        except Ativo.DoesNotExist:
+            form = self.form_class()
+            ativos = Ativo.objects.all()
+            contexto = {
+                'form': form,
+                'ativos': ativos,
+                'erro': 'Ativo não encontrado.',
+            }
+            return render(request, self.template_name, contexto)
+
+        form = self.form_class(request.POST, instance=ativo)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')
+
+        ativos = Ativo.objects.all()
+        contexto = {
+            'form': form,
+            'ativos': ativos,
+            'ativo_selecionado': ativo,
+        }
+        return render(request, self.template_name, contexto)
 

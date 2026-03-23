@@ -1,0 +1,102 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Cadastro de Ativos{% endblock %}
+
+{% block extra_css %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'css/ismsapp/cadastro_ativo.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <div class="cadastro-container">
+        <div class="cadastro-card">
+            <!-- Title and Subtitle -->
+            <div class="cadastro-header">
+                <h1>Cadastro de Ativos</h1>
+            </div>
+
+            <!-- Error Messages -->
+            {% if form.non_field_errors %}
+                <div class="form-errors">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Form -->
+            <form method="post" class="cadastro-form">
+                {% csrf_token %}
+
+                <!-- Nome do Ativo Field -->
+                <div class="form-group">
+                    <label for="{{ form.nome.id_for_label }}">Nome do Ativo</label>
+                    {{ form.nome }}
+                    {% if form.nome.errors %}
+                        {% for error in form.nome.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Row with Categoria and Responsável -->
+                <div class="form-row">
+                    <!-- Categoria Field -->
+                    <div class="form-group">
+                        <label for="{{ form.categoria.id_for_label }}">Categoria</label>
+                        {{ form.categoria }}
+                        {% if form.categoria.errors %}
+                            {% for error in form.categoria.errors %}
+                                <span class="error-message">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Responsável Field -->
+                    <div class="form-group">
+                        <label for="{{ form.responsavel.id_for_label }}">Responsável</label>
+                        {{ form.responsavel }}
+                        {% if form.responsavel.errors %}
+                            {% for error in form.responsavel.errors %}
+                                <span class="error-message">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Descrição Field -->
+                <div class="form-group">
+                    <label for="{{ form.descricao.id_for_label }}">Descrição</label>
+                    {{ form.descricao }}
+                    {% if form.descricao.errors %}
+                        {% for error in form.descricao.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Interdependências Field -->
+                <div class="form-group">
+                    <label for="{{ form.interdependencias.id_for_label }}">Interdependências</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-link"></i>
+                        {{ form.interdependencias }}
+                    </div>
+                    {% if form.interdependencias.errors %}
+                        {% for error in form.interdependencias.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Buttons -->
+                <div class="form-buttons">
+                    <a href="{% url 'dashboard' %}" class="btn btn-cancel">Cancelar</a>
+                    <button type="submit" class="btn btn-confirm">Confirmar Cadastro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

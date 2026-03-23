@@ -1,0 +1,171 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Criação de Critérios de Valoração de Ativos{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/ismsapp/criacao_criterios_valoracao_ativos.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="criterios-container">
+    <!-- Header -->
+    <div class="criterios-header">
+        <h1>Criação de Critérios de Valoração de Ativos</h1>
+        <p class="subtitle">1 - Muito Baixo &nbsp;&nbsp;&nbsp;&nbsp; 2 - Baixo &nbsp;&nbsp;&nbsp;&nbsp; 3 - Médio &nbsp;&nbsp;&nbsp;&nbsp; 4 - Alto &nbsp;&nbsp;&nbsp;&nbsp; 5 - Muito Alto</p>
+    </div>
+
+    <!-- Main Form -->
+    <form method="post" class="criterios-form">
+        {% csrf_token %}
+
+        <!-- Asset Selection Section -->
+        <div class="asset-selection-section">
+            <label for="ativo-select" class="section-label">Selecione o Ativo</label>
+            <select id="ativo-select" name="ativo_id" class="form-control ativo-select" required onchange="carregarAtivoSelecionado()">
+                <option value="">-- Selecione um ativo --</option>
+                {% for ativo in ativos %}
+                    <option value="{{ ativo.id }}" {% if ativo_selecionado.id == ativo.id %}selected{% endif %}>
+                        {{ ativo.nome }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% if erro %}
+                <div class="error-message">{{ erro }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Confidencialidade Section -->
+        <div class="criterio-section">
+            <div class="section-header">
+                <i class="fas fa-lock"></i>
+                <span>Confidencialidade</span>
+                <span class="peso-label" id="peso-conf">Peso {{ form.confidencialidade.value|default:"1" }}</span>
+            </div>
+
+            <div class="rating-container">
+                {% for i in "12345" %}
+                    <input type="radio" id="conf-{{ i }}" name="confidencialidade" value="{{ i }}"
+                           {% if form.confidencialidade.value == i %}checked{% endif %}
+                           onchange="atualizarPeso('conf')">
+                    <label for="conf-{{ i }}" class="rating-label">{{ i }}</label>
+                {% endfor %}
+            </div>
+            {% if form.confidencialidade.errors %}
+                <div class="error-message">{{ form.confidencialidade.errors }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Integridade Section -->
+        <div class="criterio-section">
+            <div class="section-header">
+                <i class="fas fa-shield-alt"></i>
+                <span>Integridade</span>
+                <span class="peso-label" id="peso-int">Peso {{ form.integridade.value|default:"1" }}</span>
+            </div>
+
+            <div class="rating-container">
+                {% for i in "12345" %}
+                    <input type="radio" id="int-{{ i }}" name="integridade" value="{{ i }}"
+                           {% if form.integridade.value == i %}checked{% endif %}
+                           onchange="atualizarPeso('int')">
+                    <label for="int-{{ i }}" class="rating-label">{{ i }}</label>
+                {% endfor %}
+            </div>
+            {% if form.integridade.errors %}
+                <div class="error-message">{{ form.integridade.errors }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Disponibilidade Section -->
+        <div class="criterio-section">
+            <div class="section-header">
+                <i class="fas fa-server"></i>
+                <span>Disponibilidade</span>
+                <span class="peso-label" id="peso-disp">Peso {{ form.disponibilidade.value|default:"1" }}</span>
+            </div>
+
+            <div class="rating-container">
+                {% for i in "12345" %}
+                    <input type="radio" id="disp-{{ i }}" name="disponibilidade" value="{{ i }}"
+                           {% if form.disponibilidade.value == i %}checked{% endif %}
+                           onchange="atualizarPeso('disp')">
+                    <label for="disp-{{ i }}" class="rating-label">{{ i }}</label>
+                {% endfor %}
+            </div>
+            {% if form.disponibilidade.errors %}
+                <div class="error-message">{{ form.disponibilidade.errors }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Privacidade Section -->
+        <div class="criterio-section">
+            <div class="section-header">
+                <i class="fas fa-user-secret"></i>
+                <span>Privacidade</span>
+                <span class="peso-label" id="peso-priv">Peso {{ form.privacidade.value|default:"1" }}</span>
+            </div>
+
+            <div class="rating-container">
+                {% for i in "12345" %}
+                    <input type="radio" id="priv-{{ i }}" name="privacidade" value="{{ i }}"
+                           {% if form.privacidade.value == i %}checked{% endif %}
+                           onchange="atualizarPeso('priv')">
+                    <label for="priv-{{ i }}" class="rating-label">{{ i }}</label>
+                {% endfor %}
+            </div>
+            {% if form.privacidade.errors %}
+                <div class="error-message">{{ form.privacidade.errors }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <a href="{% url 'dashboard' %}" class="btn btn-cancel">Cancelar</a>
+            <button type="submit" class="btn btn-confirm">Confirmar Criação</button>
+        </div>
+    </form>
+</div>
+
+<script>
+function atualizarPeso(dimensao) {
+    const mapDimensoes = {
+        'conf': { pesosLabels: ['Muito Baixo', 'Baixo', 'Médio', 'Alto', 'Muito Alto'], elementId: 'peso-conf' },
+        'int': { pesosLabels: ['Muito Baixo', 'Baixo', 'Médio', 'Alto', 'Muito Alto'], elementId: 'peso-int' },
+        'disp': { pesosLabels: ['Muito Baixo', 'Baixo', 'Médio', 'Alto', 'Muito Alto'], elementId: 'peso-disp' },
+        'priv': { pesosLabels: ['Muito Baixo', 'Baixo', 'Médio', 'Alto', 'Muito Alto'], elementId: 'peso-priv' }
+    };
+
+    const checked = document.querySelector(`input[name="${dimensao === 'conf' ? 'confidencialidade' : dimensao === 'int' ? 'integridade' : dimensao === 'disp' ? 'disponibilidade' : 'privacidade'}']:checked`);
+    if (checked) {
+        const valor = parseInt(checked.value);
+        const labelMapa = {
+            1: 'Muito Baixo',
+            2: 'Baixo',
+            3: 'Médio',
+            4: 'Alto',
+            5: 'Muito Alto'
+        };
+        const elemento = document.getElementById(mapDimensoes[dimensao].elementId);
+        if (elemento) {
+            elemento.textContent = `Peso ${valor}`;
+        }
+    }
+}
+
+function carregarAtivoSelecionado() {
+    const select = document.getElementById('ativo-select');
+    if (select.value) {
+        window.location.href = `?ativo_id=${select.value}`;
+    }
+}
+
+// Initialize labels on page load
+document.addEventListener('DOMContentLoaded', function() {
+    atualizarPeso('conf');
+    atualizarPeso('int');
+    atualizarPeso('disp');
+    atualizarPeso('priv');
+});
+</script>
+{% endblock %}

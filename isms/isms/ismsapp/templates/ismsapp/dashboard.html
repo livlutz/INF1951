@@ -32,5 +32,38 @@
             </a>
             {% endif %}
 
+            <!-- Cadastro de Ativos - Only for Authorized Users -->
+            {% if pode_cadastrar_ativos %}
+            <a href="{% url 'cadastro_ativo' %}" class="dashboard-card-link">
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-desktop"></i>
+                    </div>
+                    <h3>Ativos</h3>
+                    <p>Cadastre e gerencie ativos</p>
+                    <div class="card-footer">
+                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+
+            <!-- Criação de Critérios de Valoração de Ativos - Only for Authorized Users -->
+            {% if pode_criar_criterios_de_valoracao_dos_ativos %}
+            <a href="{% url 'criacao_criterios_valoracao_ativos' %}" class="dashboard-card-link">
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3>Critérios de Valoração</h3>
+                    <p>Crie e gerencie critérios de valoração de ativos</p>
+                    <div class="card-footer">
+                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+
+        </div>
     </div>
 {% endblock %}

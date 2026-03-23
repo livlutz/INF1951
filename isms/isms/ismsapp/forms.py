@@ -219,3 +219,98 @@ class CadastroCategoriaAtivoForm(forms.ModelForm):
             })
         }
 
+
+class CadastroAtivoForm(forms.ModelForm):
+    """Form for registering assets.
+
+    This form allows authorized users to register new assets in the system
+    with their basic information (name, category, responsible person, description,
+    and interdependencies).
+    """
+
+    class Meta:
+        from .models import Ativo
+        model = Ativo
+        fields = ['nome', 'categoria', 'responsavel', 'descricao', 'interdependencias']
+        labels = {
+            'nome': 'Nome do Ativo',
+            'categoria': 'Categoria',
+            'responsavel': 'Responsável',
+            'descricao': 'Descrição',
+            'interdependencias': 'Interdependências'
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex: Servidor de Banco de Dados Prod-01',
+                'maxlength': '255'
+            }),
+            'categoria': forms.Select(attrs={
+                'class': 'form-control',
+            }),
+            'responsavel': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nome ou Departamento',
+                'maxlength': '200'
+            }),
+            'descricao': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descreva brevemente a finalidade e as características do ativo...',
+                'rows': 5
+            }),
+            'interdependencias': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Indique ativos necessários para o funcionamento'
+            })
+        }
+
+
+class CriacaoCriteriosValoracaoAtivosForm(forms.ModelForm):
+    """Form for creating/setting valuation criteria (CIDP weights) for assets.
+
+    This form allows authorized users to define the importance/weight of each
+    CIDP dimension (Confidentiality, Integrity, Availability, Privacy) for a
+    specific asset on a scale of 1-5.
+    """
+
+    class Meta:
+        from .models import Ativo
+        model = Ativo
+        fields = ['confidencialidade', 'integridade', 'disponibilidade', 'privacidade']
+        labels = {
+            'confidencialidade': 'Confidencialidade',
+            'integridade': 'Integridade',
+            'disponibilidade': 'Disponibilidade',
+            'privacidade': 'Privacidade'
+        }
+        widgets = {
+            'confidencialidade': forms.NumberInput(attrs={
+                'class': 'form-control cidp-rating',
+                'type': 'number',
+                'min': '1',
+                'max': '5',
+                'value': '1'
+            }),
+            'integridade': forms.NumberInput(attrs={
+                'class': 'form-control cidp-rating',
+                'type': 'number',
+                'min': '1',
+                'max': '5',
+                'value': '1'
+            }),
+            'disponibilidade': forms.NumberInput(attrs={
+                'class': 'form-control cidp-rating',
+                'type': 'number',
+                'min': '1',
+                'max': '5',
+                'value': '1'
+            }),
+            'privacidade': forms.NumberInput(attrs={
+                'class': 'form-control cidp-rating',
+                'type': 'number',
+                'min': '1',
+                'max': '5',
+                'value': '1'
+            })
+        }
+

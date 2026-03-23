@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm
+from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm, CadastroCategoriaAtivoForm
 from .models import UserProfile
 
 class HomeView(View):
@@ -176,23 +176,147 @@ class DashboardView(View):
     """Dashboard view - displays role-specific dashboard for authenticated users.
 
     Requires user to be logged in. Shows user information and actor type.
+
+    Each actor type can have different dashboard content based on their role in the system.
+
     """
     template_name = "ismsapp/dashboard.html"
+
+    #Creating "White lists" for each functionality/ user case
+
+    #cadastro de categoria de ativos
+    cadastra_categoria_de_ativos = [
+        UserProfile.Actor.SISTEMA_ADMIN,
+        UserProfile.Actor.AUDITOR
+    ]
+
+    #cadastro de ativos
+    cadastra_ativos = [
+        UserProfile.Actor.SISTEMA_ADMIN,
+        UserProfile.Actor.AUDITOR
+    ]
+
+    #criacao de criterios de valoracao dos ativos
+    cria_criterios_de_valoracao_dos_ativos = [
+        UserProfile.Actor.SISTEMA_ADMIN,
+        UserProfile.Actor.AUDITOR
+    ]
+
+    #analise da valoracao dos ativos
+    analisa_valoracao_dos_ativos = [
+        UserProfile.Actor.AUDITOR,
+        UserProfile.Actor.ANALISTA
+    ]
+
+    #criacao de criterios para avaliacao dos riscos
+    cria_criterios_para_avaliacao_dos_riscos = [
+        UserProfile.Actor.SISTEMA_ADMIN,
+        UserProfile.Actor.AUDITOR
+    ]
+
+    #identificacao de riscos
+    identifica_riscos = [
+        UserProfile.Actor.AUDITOR,
+        UserProfile.Actor.ANALISTA
+    ]
+
+    #analise de riscos
+    analisa_riscos = [
+        UserProfile.Actor.ANALISTA
+    ]
+
+    #avaliacao de riscos
+    avalia_riscos = [
+        UserProfile.Actor.AUDITOR
+    ]
+
+    #tratamento de riscos
+    trata_riscos = [
+        UserProfile.Actor.AUDITOR,
+        UserProfile.Actor.ANALISTA
+    ]
+
+    #gestao de incidentes de seguranca
+    gestao_de_incidentes_de_seguranca = [
+        UserProfile.Actor.AUDITOR,
+        UserProfile.Actor.ANALISTA
+    ]
+
+    #deteccao de ameacas
+    deteccao_de_ameacas = [
+        UserProfile.Actor.AUDITOR,
+        UserProfile.Actor.ANALISTA
+    ]
+
+    #monitoramento continuo
+    monitoramento_continuo = [
+        UserProfile.Actor.ANALISTA
+    ]
+
+    #gestao de vulnerabilidades
+    gestao_de_vulnerabilidade = [
+        UserProfile.Actor.AUDITOR,
+        UserProfile.Actor.ANALISTA
+    ]
+
+    #auditoria e revisao
+    auditoria_e_revisao = [
+        UserProfile.Actor.AUDITOR
+    ]
+
+    #gestao de auditorias internas e externas
+    gestao_de_auditorias = [
+        UserProfile.Actor.AUDITOR
+    ]
 
     @method_decorator(login_required(login_url="login"))
     def get(self, request, *args, **kwargs):
         try:
             profile = request.user.profile
             actor_tipo = profile.get_actor_type_display()
+            actor_type = profile.actor_type
         except UserProfile.DoesNotExist:
             actor_tipo = "Sem papel atribuído"
+            actor_type = None
+
+        # Check if user can access cadastro de categorias de ativos
+        pode_cadastrar_categorias_de_ativos = actor_type in self.cadastra_categoria_de_ativos if actor_type else False
+        pode_cadastrar_ativos = actor_type in self.cadastra_ativos if actor_type else False
+        pode_criar_criterios_de_valoracao_dos_ativos = actor_type in self.cria_criterios_de_valoracao_dos_ativos if actor_type else False
+        pode_analisar_valoracao_dos_ativos = actor_type in self.analisa_valoracao_dos_ativos if actor_type else False
+        pode_criar_criterios_para_avaliacao_dos_riscos = actor_type in self.cria_criterios_para_avaliacao_dos_riscos if actor_type else False
+        pode_identificar_riscos = actor_type in self.identifica_riscos if actor_type else False
+        pode_analisar_riscos = actor_type in self.analisa_riscos if actor_type else False
+        pode_avaliar_riscos = actor_type in self.avalia_riscos if actor_type else False
+        pode_tratar_riscos = actor_type in self.trata_riscos if actor_type else False
+        pode_gestionar_incidentes_de_seguranca = actor_type in self.gestao_de_incidentes_de_seguranca if actor_type else False
+        pode_detectar_ameacas = actor_type in self.deteccao_de_ameacas if actor_type else False
+        pode_monitorar_continuamente = actor_type in self.monitoramento_continuo if actor_type else False
+        pode_gerenciar_vulnerabilidades = actor_type in self.gestao_de_vulnerabilidade if actor_type else False
+        pode_auditar_e_revisar = actor_type in self.auditoria_e_revisao if actor_type else False
+        pode_gerenciar_auditorias = actor_type in self.gestao_de_auditorias if actor_type else False
 
         contexto = {
             "usuario": request.user,
             "actor_tipo": actor_tipo,
+            "pode_cadastrar_categorias_de_ativos": pode_cadastrar_categorias_de_ativos,
+            "pode_cadastrar_ativos": pode_cadastrar_ativos,
+            "pode_criar_criterios_de_valoracao_dos_ativos": pode_criar_criterios_de_valoracao_dos_ativos,
+            "pode_analisar_valoracao_dos_ativos": pode_analisar_valoracao_dos_ativos,
+            "pode_criar_criterios_para_avaliacao_dos_riscos": pode_criar_criterios_para_avaliacao_dos_riscos,
+            "pode_identificar_riscos": pode_identificar_riscos,
+            "pode_analisar_riscos": pode_analisar_riscos,
+            "pode_avaliar_riscos": pode_avaliar_riscos,
+            "pode_tratar_riscos": pode_tratar_riscos,
+            "pode_gestionar_incidentes_de_seguranca": pode_gestionar_incidentes_de_seguranca,
+            "pode_detectar_ameacas": pode_detectar_ameacas,
+            "pode_monitorar_continuamente": pode_monitorar_continuamente,
+            "pode_gerenciar_vulnerabilidades": pode_gerenciar_vulnerabilidades,
+            "pode_auditar_e_revisar": pode_auditar_e_revisar,
+            "pode_gerenciar_auditorias": pode_gerenciar_auditorias,
         }
+        
         return render(request, self.template_name, contexto)
-
 
 class UserPasswordChange(View):
     """User password change view - allows users to change their password.
@@ -241,7 +365,55 @@ class CadastroCategoriaAtivoView(View):
 
     Esta view permite que os usuários cadastrados como Administrador do sistema
     ou Auditor de Segurança da Informação cadastrem novas categorias de ativos.
-    Requer que o usuário esteja autenticado.
+    Requer que o usuário esteja autenticado e tenha permissão apropriada.
+
+    Usuarios autorizados:
+    - Administrador do sistema (SISTEMA_ADMIN)
+    - Auditor de Segurança (AUDITOR)
     """
+    form_class = CadastroCategoriaAtivoForm
     template_name = "ismsapp/cadastro_categoria_ativo.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to register asset categories.
+
+        Only Administrador do sistema and Auditor de Segurança are allowed
+        to register asset categories.
+        """
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        # Only System Admin and Information Security Auditor can register categories
+        allowed_actors = [
+            UserProfile.Actor.SISTEMA_ADMIN,
+            UserProfile.Actor.AUDITOR
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        form = self.form_class()
+        contexto = {'form': form}
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('dashboard')
+
+        contexto = {'form': form}
+        return render(request, self.template_name, contexto)
+
 

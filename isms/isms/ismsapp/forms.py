@@ -1,7 +1,7 @@
 # forms.py
 from django import forms
 from django.contrib.auth.models import User
-from .models import UserProfile
+from .models import UserProfile, CategoriaAtivo
 
 
 class SignUpForm(forms.Form):
@@ -187,3 +187,35 @@ class UserPasswordChangeForm(forms.Form):
         self.user.set_password(self.cleaned_data["new_password1"])
         self.user.save()
         return self.user
+
+class CadastroCategoriaAtivoForm(forms.ModelForm):
+    """Form for registering asset categories.
+
+    This form allows authorized users (System Administrators and Information Security Auditors)
+    to register new asset categories in the system.
+    """
+
+    class Meta:
+        model = CategoriaAtivo
+        fields = ['nome', 'tipo', 'descricao']
+        labels = {
+            'nome': 'Nome da Categoria',
+            'tipo': 'Tipo de Categoria',
+            'descricao': 'Descrição'
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex: Sistemas de Faturamento',
+                'maxlength': '100'
+            }),
+            'tipo': forms.Select(attrs={
+                'class': 'form-control',
+            }),
+            'descricao': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descreva brevemente o propósito desta categoria...',
+                'rows': 6
+            })
+        }
+

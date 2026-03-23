@@ -25,7 +25,6 @@
                 {% if user.is_authenticated %}
                     <!-- User is logged in -->
                     <div class="nav-user">
-                        <span class="username">Olá, {{ user.username }}</span>
                         <a href="{% url 'profile' %}" class="nav-button profile-button">
                             Perfil
                         </a>

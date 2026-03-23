@@ -31,4 +31,5 @@ urlpatterns = [
     path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
     path("password_change/", views.UserPasswordChange.as_view(), name="password_change"),
     path("password_change/done/", views.UserPasswordChangeDone.as_view(), name="password_change_done"),
+    path("cadastro_categoria_ativo/", views.CadastroCategoriaAtivoView.as_view(), name="cadastro_categoria_ativo"),
 ]

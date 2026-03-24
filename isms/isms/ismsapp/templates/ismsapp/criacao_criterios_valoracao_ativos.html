@@ -8,6 +8,13 @@
 {% endblock %}
 
 {% block content %}
+<!-- Hidden JSON data for assets -->
+<script id="ativos-data" type="application/json">
+{
+    {% for ativo in ativos %}"{{ ativo.id }}": {"confidencialidade": {{ ativo.confidencialidade }}, "integridade": {{ ativo.integridade }}, "disponibilidade": {{ ativo.disponibilidade }}, "privacidade": {{ ativo.privacidade }}}{% if not forloop.last %},{% endif %}{% endfor %}
+}
+</script>
+
 <div class="criterios-container">
     <!-- Header -->
     <div class="criterios-header">
@@ -22,7 +29,7 @@
         <!-- Asset Selection Section -->
         <div class="asset-selection-section">
             <label for="ativo-select" class="section-label">Selecione o Ativo</label>
-            <select id="ativo-select" name="ativo_id" class="form-control ativo-select" required onchange="carregarAtivoSelecionado()">
+            <select id="ativo-select" name="ativo_id" class="form-control ativo-select" required>
                 <option value="">-- Selecione um ativo --</option>
                 {% for ativo in ativos %}
                     <option value="{{ ativo.id }}" {% if ativo_selecionado.id == ativo.id %}selected{% endif %}>

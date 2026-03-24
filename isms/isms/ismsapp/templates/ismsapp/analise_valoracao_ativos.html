@@ -1,0 +1,127 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Análise de Valoração de Ativos{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/ismsapp/analise_valoracao_ativos.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<script id="ativos-data" type="application/json">
+{
+    {% for ativo in ativos %}"{{ ativo.id }}": {"confidencialidade": {{ ativo.confidencialidade }}, "integridade": {{ ativo.integridade }}, "disponibilidade": {{ ativo.disponibilidade }}, "privacidade": {{ ativo.privacidade }}}{% if not forloop.last %},{% endif %}{% endfor %}
+}
+</script>
+
+<div class="analise-container">
+    <!-- Header -->
+    <div class="analise-header">
+        <h1>Análise de Valoração de Ativos</h1>
+    </div>
+
+    <!-- Asset Selection Section -->
+    <div class="asset-selection-section">
+        <label for="ativo-select" class="section-label">
+            <i class="fas fa-cube"></i> Seleção do Ativo
+        </label>
+        <select id="ativo-select" name="ativo_id" class="form-control ativo-select" required>
+            <option value="">-- Selecione um ativo para avaliar --</option>
+            {% for ativo in ativos %}
+                <option value="{{ ativo.id }}">
+                    {{ ativo.nome }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- CIDP Valuation Section -->
+    <div class="valorizacao-cidp-section" style="display: none;">
+        <div class="section-header">
+            <i class="fas fa-star"></i>
+            <span>Valoração CIDP (1 a 5)</span>
+        </div>
+
+        <!-- Confidencialidade -->
+        <div class="criterio-section">
+            <div class="criterio-header">
+                <i class="fas fa-lock"></i>
+                <span>Confidencialidade</span>
+                <span class="rating-badge">0</span>
+            </div>
+            <div class="rating-display">
+                {% for i in "12345" %}
+                    <span class="rating-item">{{ i }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Integridade -->
+        <div class="criterio-section">
+            <div class="criterio-header">
+                <i class="fas fa-shield-alt"></i>
+                <span>Integridade</span>
+                <span class="rating-badge">0</span>
+            </div>
+            <div class="rating-display">
+                {% for i in "12345" %}
+                    <span class="rating-item">{{ i }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Disponibilidade -->
+        <div class="criterio-section">
+            <div class="criterio-header">
+                <i class="fas fa-server"></i>
+                <span>Disponibilidade</span>
+                <span class="rating-badge">0</span>
+            </div>
+            <div class="rating-display">
+                {% for i in "12345" %}
+                    <span class="rating-item">{{ i }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Privacidade -->
+        <div class="criterio-section">
+            <div class="criterio-header">
+                <i class="fas fa-user-secret"></i>
+                <span>Privacidade</span>
+                <span class="rating-badge">0</span>
+            </div>
+            <div class="rating-display">
+                {% for i in "12345" %}
+                    <span class="rating-item">{{ i }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Valuation Score Section -->
+    <div class="valuation-score-section" style="display: none;">
+        <div class="score-box">
+            <i class="fas fa-chart-bar"></i>
+            <div class="score-content">
+                <p class="score-label">Valor Calculado do Ativo</p>
+                <div class="score-display">
+                    <span class="score-value">0.0</span>
+                    <span class="score-max">/ 5.0</span>
+                </div>
+            </div>
+            <div class="risk-badge muito-baixo">
+                SEM AVALIAÇÃO
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="button-group">
+        <a href="{% url 'dashboard' %}" class="btn btn-cancel">Cancelar</a>
+        <button type="submit" class="btn btn-confirm">Registrar Avaliação</button>
+    </div>
+</div>
+
+<script src="{% static 'js/ismsapp/analise_valoracao_ativos.js' %}"></script>
+{% endblock %}

@@ -64,6 +64,22 @@
             </a>
             {% endif %}
 
+            <!--Analise da valoracao de ativos-->
+            {% if pode_analisar_valoracao_dos_ativos %}
+            <a href="{% url 'analise_valoracao_ativos' %}" class="dashboard-card-link">
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Analise da Valoração dos ativos</h3>
+                    <p>Veja os resultados da valoração de ativos</p>
+                    <div class="card-footer">
+                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+
         </div>
     </div>
 {% endblock %}

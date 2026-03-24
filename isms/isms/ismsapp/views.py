@@ -587,3 +587,111 @@ class CriacaoCriteriosValoracaoAtivosView(View):
         }
         return render(request, self.template_name, contexto)
 
+class AnaliseValoracaoAtivosView(View):
+    """View for analyzing asset valuations (CIDP weights).
+
+    Allows users to view the CIDP ratings for assets and see a calculated
+    valuation score based on the ratings.
+
+    Authorized users:
+    - System Administrator (SISTEMA_ADMIN)
+    - Information Security Auditor (AUDITOR)
+    """
+    template_name = "ismsapp/analise_valoracao_ativos.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to analyze asset valuations."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        # Only System Admin and Information Security Auditor can analyze valuations
+        allowed_actors = [
+            UserProfile.Actor.ANALISTA,
+            UserProfile.Actor.AUDITOR
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    def _calcular_valor_ativo(self, ativo):
+        """Calculate the asset valuation score based on CIDP ratings.
+
+        Returns a dictionary with score and risk level.
+        """
+        # Calculate average of CIDP ratings
+        cidp_values = [
+            ativo.confidencialidade,
+            ativo.integridade,
+            ativo.disponibilidade,
+            ativo.privacidade
+        ]
+
+        # Filter out zero values (not yet rated)
+        rated_values = [v for v in cidp_values if v > 0]
+
+        if not rated_values:
+            return {
+                'score': 0,
+                'score_texto': '0.0',
+                'nivel_risco': 'SEM AVALIAÇÃO',
+                'classe_risco': 'sem-risco'
+            }
+
+        average = sum(rated_values) / len(rated_values)
+
+        # Normalize to scale of 0-5 for display
+        score = round(average, 1)
+
+        # Determine risk level based on score
+        if score >= 4.5:
+            nivel_risco = 'MUITO ALTO'
+            classe_risco = 'muito-alto'
+        elif score >= 3.5:
+            nivel_risco = 'ALTO'
+            classe_risco = 'alto'
+        elif score >= 2.5:
+            nivel_risco = 'MÉDIO'
+            classe_risco = 'medio'
+        elif score >= 1.5:
+            nivel_risco = 'BAIXO'
+            classe_risco = 'baixo'
+        else:
+            nivel_risco = 'MUITO BAIXO'
+            classe_risco = 'muito-baixo'
+
+        return {
+            'score': score,
+            'score_texto': f'{score:.1f}',
+            'nivel_risco': nivel_risco,
+            'classe_risco': classe_risco
+        }
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, ativo_id=None, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Ativo
+
+        # Get all assets for selection
+        ativos = Ativo.objects.all()
+
+        # If ativo_id is provided, load that specific asset
+        ativo = None
+        valuation_data = None
+
+        if ativo_id:
+            try:
+                ativo = Ativo.objects.get(id=ativo_id)
+                valuation_data = self._calcular_valor_ativo(ativo)
+            except Ativo.DoesNotExist:
+                pass
+
+        contexto = {
+            'ativos': ativos,
+            'ativo_selecionado': ativo,
+            'valuation_data': valuation_data,
+        }
+        return render(request, self.template_name, contexto)

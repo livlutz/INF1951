@@ -34,4 +34,5 @@ urlpatterns = [
     path("cadastro_categoria_ativo/", views.CadastroCategoriaAtivoView.as_view(), name="cadastro_categoria_ativo"),
     path("cadastro_ativo/", views.CadastroAtivoView.as_view(), name="cadastro_ativo"),
     path("criacao_criterios_valoracao_ativos/", views.CriacaoCriteriosValoracaoAtivosView.as_view(), name="criacao_criterios_valoracao_ativos"),
+    path("analise_valoracao_ativos/", views.AnaliseValoracaoAtivosView.as_view(), name="analise_valoracao_ativos"),
 ]

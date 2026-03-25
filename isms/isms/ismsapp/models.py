@@ -318,8 +318,11 @@ class Ativo(models.Model):
     )
 
     """Interdependencies - other assets required for this asset to function."""
-    interdependencias = models.TextField(
+    interdependencias = models.ManyToManyField(
+        'self',
+        symmetrical=False,
         blank=True,
+        related_name='dependentes',
         help_text="Ativos necessários para o funcionamento deste ativo.",
     )
 

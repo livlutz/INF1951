@@ -258,9 +258,8 @@ class CadastroAtivoForm(forms.ModelForm):
                 'placeholder': 'Descreva brevemente a finalidade e as características do ativo...',
                 'rows': 5
             }),
-            'interdependencias': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Indique ativos necessários para o funcionamento'
+            'interdependencias': forms.SelectMultiple(attrs={
+                'class': 'form-control interdependencias-select',
             })
         }
 

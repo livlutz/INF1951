@@ -695,3 +695,46 @@ class AnaliseValoracaoAtivosView(View):
             'valuation_data': valuation_data,
         }
         return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Ativo
+
+        ativo_id = request.POST.get('ativo_id')
+
+        if not ativo_id:
+            return redirect('dashboard')
+
+        try:
+            ativo = Ativo.objects.get(id=ativo_id)
+        except Ativo.DoesNotExist:
+            return redirect('dashboard')
+
+        # Get CIDP values from POST request
+        try:
+            confidencialidade = int(request.POST.get('confidencialidade', 0))
+            integridade = int(request.POST.get('integridade', 0))
+            disponibilidade = int(request.POST.get('disponibilidade', 0))
+            privacidade = int(request.POST.get('privacidade', 0))
+
+            # Validate values are between 0 and 5
+            if not all(0 <= val <= 5 for val in [confidencialidade, integridade, disponibilidade, privacidade]):
+                raise ValueError("Values must be between 0 and 5")
+
+            # Update the asset with new CIDP values
+            ativo.confidencialidade = confidencialidade
+            ativo.integridade = integridade
+            ativo.disponibilidade = disponibilidade
+            ativo.privacidade = privacidade
+
+            # Save to database
+            ativo.save()
+
+            # Redirect to dashboard with success message
+            return redirect('dashboard')
+        except (ValueError, TypeError):
+            # If there's an error, just redirect back
+            return redirect('dashboard')

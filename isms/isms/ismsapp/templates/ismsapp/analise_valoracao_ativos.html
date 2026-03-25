@@ -15,31 +15,39 @@
 </script>
 
 <div class="analise-container">
-    <!-- Header -->
-    <div class="analise-header">
-        <h1>Análise de Valoração de Ativos</h1>
-    </div>
+    <form method="post" id="cidp-form">
+        {% csrf_token %}
+        <!-- Header -->
+        <div class="analise-header">
+            <h1>Análise de Valoração de Ativos</h1>
+        </div>
 
-    <!-- Asset Selection Section -->
-    <div class="asset-selection-section">
-        <label for="ativo-select" class="section-label">
-            <i class="fas fa-cube"></i> Seleção do Ativo
-        </label>
-        <select id="ativo-select" name="ativo_id" class="form-control ativo-select" required>
-            <option value="">-- Selecione um ativo para avaliar --</option>
-            {% for ativo in ativos %}
-                <option value="{{ ativo.id }}">
-                    {{ ativo.nome }}
-                </option>
-            {% endfor %}
-        </select>
-    </div>
+        <!-- Asset Selection Section -->
+        <div class="asset-selection-section">
+            <label for="ativo-select" class="section-label">
+                <i class="fas fa-cube"></i> Seleção do Ativo
+            </label>
+            <select id="ativo-select" name="ativo_id" class="form-control ativo-select" required>
+                <option value="">-- Selecione um ativo para avaliar --</option>
+                {% for ativo in ativos %}
+                    <option value="{{ ativo.id }}">
+                        {{ ativo.nome }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Hidden fields to store CIDP values -->
+        <input type="hidden" name="confidencialidade" id="cidp-confidencialidade" value="0">
+        <input type="hidden" name="integridade" id="cidp-integridade" value="0">
+        <input type="hidden" name="disponibilidade" id="cidp-disponibilidade" value="0">
+        <input type="hidden" name="privacidade" id="cidp-privacidade" value="0">
 
     <!-- CIDP Valuation Section -->
     <div class="valorizacao-cidp-section" style="display: none;">
         <div class="section-header">
             <i class="fas fa-star"></i>
-            <span>Valoração CIDP (1 a 5)</span>
+            <span>Valoração CIDP</span>
         </div>
 
         <!-- Confidencialidade -->
@@ -104,7 +112,7 @@
         <div class="score-box">
             <i class="fas fa-chart-bar"></i>
             <div class="score-content">
-                <p class="score-label">Valor Calculado do Ativo</p>
+                <p class="score-label">Valor CIDP Calculado do Ativo</p>
                 <div class="score-display">
                     <span class="score-value">0.0</span>
                     <span class="score-max">/ 5.0</span>
@@ -121,6 +129,7 @@
         <a href="{% url 'dashboard' %}" class="btn btn-cancel">Cancelar</a>
         <button type="submit" class="btn btn-confirm">Registrar Avaliação</button>
     </div>
+    </form>
 </div>
 
 <script src="{% static 'js/ismsapp/analise_valoracao_ativos.js' %}"></script>

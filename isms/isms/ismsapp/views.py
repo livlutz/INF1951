@@ -5,6 +5,7 @@ from django.urls.base import reverse_lazy
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.utils.decorators import method_decorator
 from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm, CadastroCategoriaAtivoForm, CadastroAtivoForm, CriacaoCriteriosValoracaoAtivosForm
 from .models import UserProfile
@@ -702,8 +703,13 @@ class AnaliseValoracaoAtivosView(View):
             return redirect('dashboard')
 
         from .models import Ativo
+        import logging
+        logger = logging.getLogger(__name__)
 
         ativo_id = request.POST.get('ativo_id')
+
+        # Log all POST data for debugging
+        logger.info(f"📥 POST data received: {dict(request.POST)}")
 
         if not ativo_id:
             return redirect('dashboard')
@@ -720,18 +726,36 @@ class AnaliseValoracaoAtivosView(View):
             disponibilidade = int(request.POST.get('disponibilidade', 0))
             privacidade = int(request.POST.get('privacidade', 0))
 
+            logger.info(f"📊 Parsed CIDP values: conf={confidencialidade}, integ={integridade}, disp={disponibilidade}, priv={privacidade}")
+
             # Validate values are between 0 and 5
             if not all(0 <= val <= 5 for val in [confidencialidade, integridade, disponibilidade, privacidade]):
                 raise ValueError("Values must be between 0 and 5")
+
+            # Calculate peso_cidp as the average of non-zero CIDP values
+            cidp_values = [confidencialidade, integridade, disponibilidade, privacidade]
+            non_zero_values = [v for v in cidp_values if v > 0]
+
+            if non_zero_values:
+                peso_cidp = sum(non_zero_values) / len(non_zero_values)
+            else:
+                peso_cidp = 0
+
+            logger.info(f"🧮 Calculated peso_cidp: {peso_cidp} from values: {non_zero_values}")
 
             # Update the asset with new CIDP values
             ativo.confidencialidade = confidencialidade
             ativo.integridade = integridade
             ativo.disponibilidade = disponibilidade
             ativo.privacidade = privacidade
+            ativo.peso_cidp = peso_cidp
 
             # Save to database
             ativo.save()
+            logger.info(f"✅ Asset {ativo.id} ({ativo.nome}) saved with CIDP values: conf={ativo.confidencialidade}, integ={ativo.integridade}, disp={ativo.disponibilidade}, priv={ativo.privacidade}, peso_cidp={ativo.peso_cidp}")
+
+            # Add success message
+            messages.success(request, f'Avaliação do ativo "{ativo.nome}" registrada com sucesso!')
 
             # Redirect to dashboard with success message
             return redirect('dashboard')

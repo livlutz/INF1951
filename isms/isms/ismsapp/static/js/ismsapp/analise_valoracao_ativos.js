@@ -1,3 +1,6 @@
+// TEST: JavaScript file is loaded
+console.log('JavaScript loaded: analise_valoracao_ativos.js');
+
 // Store asset data
 let ativosData = {};
 let currentAtivoId = null;
@@ -279,9 +282,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add form submission handler to ensure hidden fields are updated
     const form = document.getElementById('cidp-form');
     if (form) {
-        console.log('✓ Form element found and ready for submission handler');
+        console.log('[OK] Form element found and ready for submission handler');
         form.addEventListener('submit', function(e) {
-            console.log('🔴 FORM SUBMISSION DETECTED');
+            console.log('[SUBMIT] Form submission detected');
             console.log('currentValues before update:', JSON.parse(JSON.stringify(currentValues)));
 
             // IMPORTANT: Update hidden fields before submission
@@ -291,13 +294,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Log what will be submitted
             const formData = new FormData(form);
             const dataObj = Object.fromEntries(formData);
-            console.log('🟢 FORM DATA TO BE SENT TO SERVER:', dataObj);
+            console.log('[SUBMIT] Form data to be sent:', dataObj);
 
             // Double-check the hidden field values
             showHiddenFieldsStatus();
         });
     } else {
-        console.error('❌ Form element with id="cidp-form" NOT found!');
+        console.error('[ERROR] Form element with id="cidp-form" NOT found!');
     }
 });
 

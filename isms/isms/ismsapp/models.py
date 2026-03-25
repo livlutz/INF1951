@@ -612,6 +612,92 @@ class Risco(models.Model):
     def __str__(self):
         return f"Risco #{self.pk} – {self.get_tipo_display()} ({self.ativo})"
 
+
+class CriterioAvaliacaoRisco(models.Model):
+    """
+    Stores the risk evaluation criteria set for the organization.
+
+    This model defines the scales for probability, consequence, and risk appetite
+    that are used to evaluate and classify organizational risks.
+    There should typically be only one active instance of this model.
+    """
+
+    class ApetiteRisco(models.TextChoices):
+        """Organizational risk appetite levels."""
+        BAIXO = "baixo", "Baixo"
+        MODERADO = "moderado", "Moderado"
+        ALTO = "alto", "Alto"
+
+    # Probability scale: 1-5 from MUITO_BAIXO to MUITO_ALTO
+    escala_probabilidade_1 = models.CharField(
+        max_length=100,
+        default="Muito Baixo",
+        help_text="Descrição do nível 1 de probabilidade"
+    )
+    escala_probabilidade_2 = models.CharField(
+        max_length=100,
+        default="Baixo",
+        help_text="Descrição do nível 2 de probabilidade"
+    )
+    escala_probabilidade_3 = models.CharField(
+        max_length=100,
+        default="Médio",
+        help_text="Descrição do nível 3 de probabilidade"
+    )
+    escala_probabilidade_4 = models.CharField(
+        max_length=100,
+        default="Alto",
+        help_text="Descrição do nível 4 de probabilidade"
+    )
+    escala_probabilidade_5 = models.CharField(
+        max_length=100,
+        default="Muito Alto",
+        help_text="Descrição do nível 5 de probabilidade"
+    )
+
+    # Consequence scale: 1-5 from MUITO_BAIXO to MUITO_ALTO
+    escala_consequencia_1 = models.CharField(
+        max_length=100,
+        default="Muito Baixo",
+        help_text="Descrição do nível 1 de consequência"
+    )
+    escala_consequencia_2 = models.CharField(
+        max_length=100,
+        default="Baixo",
+        help_text="Descrição do nível 2 de consequência"
+    )
+    escala_consequencia_3 = models.CharField(
+        max_length=100,
+        default="Médio",
+        help_text="Descrição do nível 3 de consequência"
+    )
+    escala_consequencia_4 = models.CharField(
+        max_length=100,
+        default="Alto",
+        help_text="Descrição do nível 4 de consequência"
+    )
+    escala_consequencia_5 = models.CharField(
+        max_length=100,
+        default="Muito Alto",
+        help_text="Descrição do nível 5 de consequência"
+    )
+
+    # Organizational risk appetite
+    apetite_risco = models.CharField(
+        max_length=20,
+        choices=ApetiteRisco.choices,
+        default=ApetiteRisco.MODERADO,
+        help_text="Nível de apetite ao risco organizacional"
+    )
+
+
+    class Meta:
+        verbose_name = "Critério de Avaliação de Risco"
+        verbose_name_plural = "Critérios de Avaliação de Risco"
+
+    def __str__(self):
+        return f"Critério de Avaliação de Risco - Apetite: {self.get_apetite_risco_display()}"
+
 #user classes
 
 class UserProfile(models.Model):

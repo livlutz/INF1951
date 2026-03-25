@@ -7,8 +7,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.decorators import method_decorator
-from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm, CadastroCategoriaAtivoForm, CadastroAtivoForm, CriacaoCriteriosValoracaoAtivosForm
-from .models import UserProfile
+from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm, CadastroCategoriaAtivoForm, CadastroAtivoForm, CriacaoCriteriosValoracaoAtivosForm, CriacaoCriteriosAvaliacaoRiscosForm, IdentificacaoRiscosForm
+from .models import UserProfile, CriterioAvaliacaoRisco
 
 class HomeView(View):
     """Home page view - displays landing page.
@@ -762,3 +762,200 @@ class AnaliseValoracaoAtivosView(View):
         except (ValueError, TypeError):
             # If there's an error, just redirect back
             return redirect('dashboard')
+
+class CriacaoCriteriosAvaliacaoRiscosView(View):
+    """View para criação de critérios para avaliação dos riscos.
+
+    Esta view permite que os usuários cadastrados como Administrador do sistema
+    ou Auditor de Segurança da Informação definam os critérios de avaliação dos riscos
+    (escalas de probabilidade, consequência e apetite ao risco organizacional).
+    Requer que o usuário esteja autenticado e tenha permissão apropriada.
+
+    Usuarios autorizados:
+    - Administrador do sistema (SISTEMA_ADMIN)
+    - Auditor de Segurança (AUDITOR)
+    """
+    form_class = CriacaoCriteriosAvaliacaoRiscosForm
+    template_name = "ismsapp/criacao_criterios_avaliacao_riscos.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to create risk evaluation criteria."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        # Only System Admin and Information Security Auditor can create criteria
+        allowed_actors = [
+            UserProfile.Actor.SISTEMA_ADMIN,
+            UserProfile.Actor.AUDITOR
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    def _generate_risk_matrix(self, criterio):
+        """Generate a 5x5 risk matrix based on probability and consequence scales."""
+        matrix = []
+        for consequence in range(5, 0, -1):  # 5 to 1 (top to bottom)
+            row = []
+            for probability in range(1, 6):  # 1 to 5 (left to right)
+                risk_score = probability * consequence  # Simple risk score calculation
+                # Determine risk level based on score
+                if risk_score <= 5:
+                    risk_level = "Baixo"
+                elif risk_score <= 10:
+                    risk_level = "Moderado"
+                elif risk_score <= 15:
+                    risk_level = "Alto"
+                else:
+                    risk_level = "Crítico"
+                row.append({
+                    'score': risk_score,
+                    'level': risk_level,
+                    'probability': probability,
+                    'consequence': consequence
+                })
+            matrix.append(row)
+        return matrix
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        # Get existing criteria if any
+        criterio = CriterioAvaliacaoRisco.objects.first()
+        if criterio:
+            form = self.form_class(instance=criterio)
+            risk_matrix = self._generate_risk_matrix(criterio)
+            is_edit = True
+        else:
+            form = self.form_class()
+            risk_matrix = self._generate_risk_matrix(None)
+            is_edit = False
+
+        contexto = {
+            'form': form,
+            'risk_matrix': risk_matrix,
+            'is_edit': is_edit
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        # Get existing criteria if any
+        criterio = CriterioAvaliacaoRisco.objects.first()
+
+        # Prepare POST data with scale descriptions based on selections
+        post_data = request.POST.copy()
+
+        # Map selected probability level to description
+        prob_levels = {
+            '1': 'Muito Baixo',
+            '2': 'Baixo',
+            '3': 'Médio',
+            '4': 'Alto',
+            '5': 'Muito Alto'
+        }
+
+        # Map selected consequence level to description
+        cons_levels = {
+            '1': 'Muito Baixo',
+            '2': 'Baixo',
+            '3': 'Médio',
+            '4': 'Alto',
+            '5': 'Muito Alto'
+        }
+
+        # Populate form fields with default scale descriptions
+        prob_selected = request.POST.get('escala_probabilidade_selected', '3')
+        cons_selected = request.POST.get('escala_consequencia_selected', '4')
+
+        # Set all probability levels
+        for i in range(1, 6):
+            post_data[f'escala_probabilidade_{i}'] = prob_levels.get(str(i), f'Nível {i}')
+
+        # Set all consequence levels
+        for i in range(1, 6):
+            post_data[f'escala_consequencia_{i}'] = cons_levels.get(str(i), f'Nível {i}')
+
+        # Create form with updated data
+        if criterio:
+            form = self.form_class(post_data, instance=criterio)
+        else:
+            form = self.form_class(post_data)
+
+        if form.is_valid():
+            criterio = form.save()
+            criterio.save()
+            messages.success(request, "Critérios de avaliação de risco salvos com sucesso!")
+            return redirect('dashboard')
+
+        # Regenerate matrix for display
+        criterio = CriterioAvaliacaoRisco.objects.first()
+        if criterio:
+            risk_matrix = self._generate_risk_matrix(criterio)
+        else:
+            risk_matrix = self._generate_risk_matrix(None)
+
+        contexto = {
+            'form': form,
+            'risk_matrix': risk_matrix,
+            'is_edit': True
+        }
+        return render(request, self.template_name, contexto)
+
+class IdentificacaoRiscosView(View):
+    """View para identificação de riscos.
+
+    Esta view permite que os usuários cadastrados como Auditor de Segurança da Informação
+    ou Analista de Segurança da Informação identifiquem riscos relacionados a um ativo específico.
+    Requer que o usuário esteja autenticado e tenha permissão apropriada.
+
+    Usuarios autorizados:
+    - Auditor de Segurança (AUDITOR)
+    - Analista de Segurança (ANALISTA)
+    """
+    form_class = IdentificacaoRiscosForm
+    template_name = "ismsapp/identificacao_riscos.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to identify risks."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        # Only Information Security Auditor and Analyst can identify risks
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Ativo
+
+        # Get all assets for selection
+        ativos = Ativo.objects.all()
+
+        contexto = {
+            'form': self.form_class(),
+            'ativos': ativos,
+            'risks_identificados': None,
+            'ativo_selecionado': None,
+        }
+        return render(request, self.template_name, contexto)

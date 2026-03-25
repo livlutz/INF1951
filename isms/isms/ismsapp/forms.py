@@ -1,7 +1,7 @@
 # forms.py
 from django import forms
 from django.contrib.auth.models import User
-from .models import UserProfile, CategoriaAtivo
+from .models import Ativo, UserProfile, CategoriaAtivo, CriterioAvaliacaoRisco
 
 
 class SignUpForm(forms.Form):
@@ -313,3 +313,122 @@ class CriacaoCriteriosValoracaoAtivosForm(forms.ModelForm):
             })
         }
 
+
+class CriacaoCriteriosAvaliacaoRiscosForm(forms.ModelForm):
+    """Form for creating risk evaluation criteria.
+
+    This form allows authorized users (System Administrators and Information Security Auditors)
+    to define the probability scales, consequence scales, and organizational risk appetite.
+    """
+
+    class Meta:
+        model = CriterioAvaliacaoRisco
+        fields = [
+            'escala_probabilidade_1', 'escala_probabilidade_2', 'escala_probabilidade_3',
+            'escala_probabilidade_4', 'escala_probabilidade_5',
+            'escala_consequencia_1', 'escala_consequencia_2', 'escala_consequencia_3',
+            'escala_consequencia_4', 'escala_consequencia_5',
+            'apetite_risco'
+        ]
+        labels = {
+            'escala_probabilidade_1': 'Nível 1 (Muito Baixo)',
+            'escala_probabilidade_2': 'Nível 2 (Baixo)',
+            'escala_probabilidade_3': 'Nível 3 (Médio)',
+            'escala_probabilidade_4': 'Nível 4 (Alto)',
+            'escala_probabilidade_5': 'Nível 5 (Muito Alto)',
+            'escala_consequencia_1': 'Nível 1 (Muito Baixo)',
+            'escala_consequencia_2': 'Nível 2 (Baixo)',
+            'escala_consequencia_3': 'Nível 3 (Médio)',
+            'escala_consequencia_4': 'Nível 4 (Alto)',
+            'escala_consequencia_5': 'Nível 5 (Muito Alto)',
+            'apetite_risco': 'Apetite ao Risco Organizacional'
+        }
+        widgets = {
+            'escala_probabilidade_1': forms.TextInput(attrs={
+                'class': 'form-control scale-input',
+                'placeholder': 'Ex: Muito improvável'
+            }),
+            'escala_probabilidade_2': forms.TextInput(attrs={
+                'class': 'form-control scale-input',
+                'placeholder': 'Ex: Improvável'
+            }),
+            'escala_probabilidade_3': forms.TextInput(attrs={
+                'class': 'form-control scale-input',
+                'placeholder': 'Ex: Possível'
+            }),
+            'escala_probabilidade_4': forms.TextInput(attrs={
+                'class': 'form-control scale-input',
+                'placeholder': 'Ex: Provável'
+            }),
+            'escala_probabilidade_5': forms.TextInput(attrs={
+                'class': 'form-control scale-input',
+                'placeholder': 'Ex: Muito provável'
+            }),
+            'escala_consequencia_1': forms.TextInput(attrs={
+                'class': 'form-control scale-input',
+                'placeholder': 'Ex: Sem impacto'
+            }),
+            'escala_consequencia_2': forms.TextInput(attrs={
+                'class': 'form-control scale-input',
+                'placeholder': 'Ex: Impacto menor'
+            }),
+            'escala_consequencia_3': forms.TextInput(attrs={
+                'class': 'form-control scale-input',
+                'placeholder': 'Ex: Impacto moderado'
+            }),
+            'escala_consequencia_4': forms.TextInput(attrs={
+                'class': 'form-control scale-input',
+                'placeholder': 'Ex: Impacto significativo'
+            }),
+            'escala_consequencia_5': forms.TextInput(attrs={
+                'class': 'form-control scale-input',
+                'placeholder': 'Ex: Impacto crítico'
+            }),
+            'apetite_risco': forms.Select(attrs={
+                'class': 'form-control'
+            })
+        }
+
+class IdentificacaoRiscosForm(forms.Form):
+    """Form for identifying risks related to assets.
+
+    This form allows users to identify and describe risks associated with specific assets,
+    including the risk name, description, associated asset, and possible impacts.
+    """
+
+    nome = forms.CharField(
+        max_length=255,
+        label='Nome do Risco',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nome do Risco'
+        })
+    )
+
+    descricao = forms.CharField(
+        label='Descrição do Risco',
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Descreva o risco em detalhes...',
+            'rows': 5
+        })
+    )
+
+    ativo = forms.ModelChoiceField(
+        label='Ativo Associado',
+        queryset=Ativo.objects.all(),
+        empty_label='Selecione o ativo correspondente',
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+
+    impactos = forms.CharField(
+        label='Possíveis Impactos',
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Documente as perdas potenciais (financeiras, operacionais, reputacionais)...',
+            'rows': 5
+        })
+    )

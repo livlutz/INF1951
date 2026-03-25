@@ -80,6 +80,38 @@
             </a>
             {% endif %}
 
+            <!-- Criação de Critérios de Avaliação de Riscos - Only for Authorized Users -->
+            {% if pode_criar_criterios_para_avaliacao_dos_riscos %}
+            <a href="{% url 'criacao_criterios_avaliacao_riscos' %}" class="dashboard-card-link">
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Criação de Critérios de Avaliação de Riscos</h3>
+                    <p>Crie critérios de avaliação para os riscos</p>
+                    <div class="card-footer">
+                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+
+            <!-- Identificação de Riscos - Only for Authorized Users -->
+            {% if pode_identificar_riscos %}
+            <a href="{% url 'identificacao_riscos' %}" class="dashboard-card-link">
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3>Identificação de Riscos</h3>
+                    <p>Identifique novos riscos de segurança da informação</p>
+                    <div class="card-footer">
+                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+
         </div>
     </div>
 {% endblock %}

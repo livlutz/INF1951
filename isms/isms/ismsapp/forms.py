@@ -475,3 +475,49 @@ class AnaliseRiscosForm(forms.Form):
             'rows': 5
         })
     )
+
+
+class AvaliacaoRiscosForm(forms.Form):
+    """Form for evaluating analyzed risks against acceptance criteria.
+
+    This form allows users to review analyzed risks, compare them with
+    organizational risk appetite criteria, and decide whether to accept
+    the risk or send it for treatment.
+
+    The form displays the risk, its calculated level, and the organization's
+    risk acceptance criteria. The user can then make a decision about
+    accepting or treating the risk.
+    """
+
+    risco = forms.ModelChoiceField(
+        label='Risco a Avaliar',
+        queryset=Risco.objects.exclude(
+            valor_risco_inerente__isnull=True
+        ),
+        empty_label='Selecione o risco a ser avaliado',
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+            'id': 'avaliacao-risco-select'
+        })
+    )
+
+    decisao = forms.ChoiceField(
+        label='Decisão Sobre o Risco',
+        choices=[
+            ('aceitar', 'Aceitar Risco'),
+            ('tratar', 'Enviar para Tratamento'),
+        ],
+        widget=forms.RadioSelect(attrs={
+            'class': 'form-check-input'
+        })
+    )
+
+    observacoes = forms.CharField(
+        label='Observações sobre a Decisão',
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Registre observações, justificativas ou notas adicionais sobre esta avaliação...',
+            'rows': 4
+        })
+    )

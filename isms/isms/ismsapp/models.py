@@ -637,6 +637,29 @@ class Risco(models.Model):
         ),
     )
 
+    #Evaluation Decision (UC-08)
+
+    class DecisaoAvaliacao(models.TextChoices):
+        """Risk evaluation decision choices."""
+        NAO_AVALIADO = "nao_avaliado", "Não Avaliado"
+        ACEITAR = "aceitar", "Aceitar"
+        TRATAR = "tratar", "Enviar para Tratamento"
+
+    """The evaluation decision made for this risk. This field tracks whether the risk has been evaluated and what decision was made."""
+    decisao_avaliacao = models.CharField(
+        max_length=20,
+        choices=DecisaoAvaliacao.choices,
+        default=DecisaoAvaliacao.NAO_AVALIADO,
+        help_text="Decisão tomada durante a avaliação do risco (UC-08): aceitar, enviar para tratamento, ou não avaliado.",
+    )
+
+    """Observations or notes about the evaluation decision."""
+    observacoes_avaliacao = models.TextField(
+        blank=True,
+        default="",
+        help_text="Observações, justificativas ou notas adicionais sobre a avaliação.",
+    )
+
     class Meta:
         verbose_name = "Risco"
         verbose_name_plural = "Riscos"

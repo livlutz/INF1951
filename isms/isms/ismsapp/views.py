@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.decorators import method_decorator
-from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm, CadastroCategoriaAtivoForm, CadastroAtivoForm, CriacaoCriteriosValoracaoAtivosForm, CriacaoCriteriosAvaliacaoRiscosForm, IdentificacaoRiscosForm, AnaliseRiscosForm
+from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm, CadastroCategoriaAtivoForm, CadastroAtivoForm, CriacaoCriteriosValoracaoAtivosForm, CriacaoCriteriosAvaliacaoRiscosForm, IdentificacaoRiscosForm, AnaliseRiscosForm, AvaliacaoRiscosForm
 from .models import UserProfile, CriterioAvaliacaoRisco
 
 class HomeView(View):
@@ -1173,3 +1173,201 @@ class AnaliseRiscosView(View):
             'erro': 'Por favor, preencha todos os campos.',
         }
         return render(request, self.template_name, contexto)
+
+class AvaliacaoRiscoView(View):
+    """View for evaluating analyzed risks against acceptance criteria.
+
+    This view allows authorized users to review analyzed risks, compare them
+    with organizational risk appetite criteria, and decide whether to accept
+    the risk or send it for treatment.
+
+    The view implements the UC-08 use case (Avaliação de Riscos) which:
+    1. Displays analyzed risks with their calculated risk levels
+    2. Compares the risk with defined acceptance criteria
+    3. Indicates whether the risk should be treated or accepted
+    4. Records the evaluation decision
+
+    Authorized users:
+    - Information Security Auditor (AUDITOR)
+
+    Main flow:
+    - User accesses analyzed risks
+    - System presents the calculated risk level
+    - System compares risiko with acceptance criteria
+    - System recommends acceptance or treatment
+    - User confirms the decision
+    - System records the decision
+    """
+
+    template_name = "ismsapp/avaliacao_riscos.html"
+    form_class = AvaliacaoRiscosForm
+
+    def _check_permission(self, user):
+        """Check if user has permission to evaluate risks.
+
+        Only Information Security Auditor (AUDITOR) is allowed
+        to evaluate risks against acceptance criteria.
+        """
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    def _get_acceptance_level(self, criterio):
+        """Determine the acceptable risk level based on risk appetite.
+
+        Maps the organization's risk appetite to a numeric threshold.
+        Risks below this threshold are acceptable without treatment.
+
+        Risk Appetite Levels:
+        - BAIXO (Low): 8 points or below
+        - MODERADO (Moderate): 12 points or below
+        - ALTO (High): 16 points or below
+        """
+        appetite_thresholds = {
+            CriterioAvaliacaoRisco.ApetiteRisco.BAIXO: 8,
+            CriterioAvaliacaoRisco.ApetiteRisco.MODERADO: 12,
+            CriterioAvaliacaoRisco.ApetiteRisco.ALTO: 16,
+        }
+        return appetite_thresholds.get(criterio.apetite_risco, 12)
+
+    def _is_risk_acceptable(self, risk_value, acceptance_level):
+        """Determine if a risk value is acceptable based on criteria.
+
+        A risk is acceptable if its numeric value is less than or equal
+        to the organization's defined acceptance level.
+        """
+        try:
+            return float(risk_value) <= acceptance_level
+        except (TypeError, ValueError):
+            return False
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        """Display evaluated risks or a specific risk for evaluation."""
+
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Risco, CriterioAvaliacaoRisco
+
+        # Get the organization's risk acceptance criteria
+        try:
+            criterio_avaliacao = CriterioAvaliacaoRisco.objects.first()
+        except CriterioAvaliacaoRisco.DoesNotExist:
+            criterio_avaliacao = None
+            messages.warning(request, "Nenhum critério de avaliação de risco foi definido. Configure os critérios antes de avaliar riscos.")
+
+        acceptance_level = self._get_acceptance_level(criterio_avaliacao) if criterio_avaliacao else 12
+
+        # Get analyzed risks (those with a calculated inherent risk value)
+        riscos_analisados = Risco.objects.exclude(
+            valor_risco_inerente__isnull=True
+        ).select_related(
+            'ativo',
+            'nivel_inerente',
+            'consequencia_inerente',
+            'probabilidade_inerente'
+        ).prefetch_related('ameacas', 'tratamentos')
+
+        # Get risco_id from query parameter
+        risco_id = request.GET.get('risco_id')
+
+        # If a specific risk ID was provided, get that risk
+        risco_selecionado = None
+        if risco_id:
+            try:
+                risco_selecionado = riscos_analisados.get(id=risco_id)
+            except Risco.DoesNotExist:
+                messages.error(request, "Risco não encontrado ou não foi analisado ainda.")
+                risco_selecionado = None
+
+        # Prepare risk evaluation data for display
+        riscos_para_apresentacao = []
+        for risco in riscos_analisados:
+            is_acceptable = self._is_risk_acceptable(
+                risco.valor_risco_inerente,
+                acceptance_level
+            )
+
+            risco_data = {
+                'risco': risco,
+                'valor_risco': float(risco.valor_risco_inerente) if risco.valor_risco_inerente else 0,
+                'nivel_risco': risco.nivel_inerente.categoria if risco.nivel_inerente else 'Não Definido',
+                'aceitavel': is_acceptable,
+                'necessita_tratamento': not is_acceptable,
+                'ativo_nome': risco.ativo.nome if risco.ativo else 'Desconhecido',
+                'descricao': risco.descricao,
+            }
+            riscos_para_apresentacao.append(risco_data)
+
+        contexto = {
+            'riscos': riscos_para_apresentacao,
+            'risco_selecionado': risco_selecionado,
+            'criterio_avaliacao': criterio_avaliacao,
+            'apetite_risco': criterio_avaliacao.get_apetite_risco_display() if criterio_avaliacao else 'Não Definido',
+            'acceptance_level': acceptance_level,
+        }
+
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        """Process risk evaluation decision (accept or treat)."""
+
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Risco, Tratamento, CriterioAvaliacaoRisco
+        from django.utils import timezone
+
+        risco_id = request.POST.get('risco_id')
+        decisao = request.POST.get('decisao')
+        observacoes = request.POST.get('observacoes', '')
+
+        if not risco_id or not decisao:
+            messages.error(request, "Por favor, selecione um risco e uma decisão.")
+            return redirect('avaliacao_riscos')
+
+        try:
+            risco = Risco.objects.get(id=risco_id)
+
+            # Map decision string to model choice
+            decision_map = {
+                'aceitar': Risco.DecisaoAvaliacao.ACEITAR,
+                'tratar': Risco.DecisaoAvaliacao.TRATAR,
+            }
+
+            if decisao not in decision_map:
+                messages.error(request, "Decisão inválida.")
+                return redirect('avaliacao_riscos')
+
+            # Save the evaluation decision to the database
+            risco.decisao_avaliacao = decision_map[decisao]
+            risco.data_avaliacao = timezone.now()
+            risco.auditor_avaliacao = request.user
+            risco.observacoes_avaliacao = observacoes
+            risco.save()
+
+            if decisao == 'tratar':
+                # Could redirect to a treatment creation view here in the future
+                return redirect('dashboard')
+
+            elif decisao == 'aceitar':
+                return redirect('dashboard')
+
+        except Risco.DoesNotExist:
+            messages.error(request, "Risco não encontrado.")
+            return redirect('avaliacao_riscos')
+        except Exception as e:
+            messages.error(request, f"Erro ao processar decisão: {str(e)}")
+            return redirect('avaliacao_riscos')

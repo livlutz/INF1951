@@ -128,6 +128,23 @@
             </a>
             {% endif %}
 
+            <!-- Avaliação de Riscos - Only for Authorized Users -->
+            {% if pode_avaliar_riscos %}
+            <a href="{% url 'avaliacao_riscos' %}" class="dashboard-card-link">
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <h3>Avaliação de Riscos</h3>
+                    <p>Avalie os riscos identificados</p>
+                    <div class="card-footer">
+                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+
+
         </div>
     </div>
 {% endblock %}

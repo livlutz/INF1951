@@ -112,6 +112,22 @@
             </a>
             {% endif %}
 
+            <!-- Análise de Riscos - Only for Authorized Users -->
+            {% if pode_analisar_riscos %}
+            <a href="{% url 'analise_riscos' %}" class="dashboard-card-link">
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>Análise de Riscos</h3>
+                    <p>Analise os riscos identificados</p>
+                    <div class="card-footer">
+                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+
         </div>
     </div>
 {% endblock %}

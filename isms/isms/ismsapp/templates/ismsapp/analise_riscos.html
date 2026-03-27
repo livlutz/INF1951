@@ -1,0 +1,183 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Análise de Riscos{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/ismsapp/analise_riscos.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <form method="post" action="{% url 'analise_riscos' %}" class="card">
+    {% csrf_token %}
+
+    <!-- Header -->
+    <div class="card-header">
+      <div class="shield-wrap">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b3cf7" stroke-width="1.8">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M12 10v4M10 12h4"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="card-title">Análise de Riscos</h1>
+      </div>
+    </div>
+
+    <!-- Success Messages -->
+    {% if messages %}
+      <div class="alerts-container">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Risk Selection Section -->
+    <div class="section">
+      <div class="section-label">
+        <span class="s-icon s-purple">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M4 4h16v2H4V4z"/>
+            <path d="M4 9h16v2H4V9z"/>
+            <path d="M4 14h16v2H4v-2z"/>
+          </svg>
+        </span>
+        Risco sob Análise
+      </div>
+      <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 1rem;">Selecione o risco para análise</div>
+
+      <select name="risco_id" id="risco-select" class="form-control" required>
+        <option value="">-- Selecione um risco para analisar --</option>
+        {% for risco in riscos %}
+          <option value="{{ risco.id }}">{{ risco.nome }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Probabilidade Section -->
+    <div class="section">
+      <div class="section-label">
+        <span class="s-icon s-purple">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <circle cx="12" cy="12" r="1"/>
+            <circle cx="19" cy="12" r="1"/>
+            <circle cx="5" cy="12" r="1"/>
+          </svg>
+        </span>
+        Probabilidade (1-5)
+      </div>
+      <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 1rem;">Com que frequência este risco pode acontecer</div>
+      <div class="num-group" id="prob-group">
+        <button type="button" class="num-btn" data-group="prob" data-value="1">1</button>
+        <button type="button" class="num-btn" data-group="prob" data-value="2">2</button>
+        <button type="button" class="num-btn active" data-group="prob" data-value="3">3</button>
+        <button type="button" class="num-btn" data-group="prob" data-value="4">4</button>
+        <button type="button" class="num-btn" data-group="prob" data-value="5">5</button>
+      </div>
+      <input type="hidden" name="probabilidade" id="input-prob" value="3">
+    </div>
+
+    <!-- Consequência Section -->
+    <div class="section">
+      <div class="section-label">
+        <span class="s-icon s-amber">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 2v20M2 12h20"/>
+            <circle cx="12" cy="12" r="9"/>
+          </svg>
+        </span>
+        Consequência (1-5)
+      </div>
+      <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 1rem;">Tamanho do impacto se o risco se materializar</div>
+      <div class="num-group" id="cons-group">
+        <button type="button" class="num-btn" data-group="cons" data-value="1">1</button>
+        <button type="button" class="num-btn" data-group="cons" data-value="2">2</button>
+        <button type="button" class="num-btn" data-group="cons" data-value="3">3</button>
+        <button type="button" class="num-btn active" data-group="cons" data-value="4">4</button>
+        <button type="button" class="num-btn" data-group="cons" data-value="5">5</button>
+      </div>
+      <input type="hidden" name="consequencia" id="input-cons" value="4">
+    </div>
+
+    <!-- Risk Matrix and Value Display -->
+    <div class="section">
+      <div class="section-label">
+        <span class="s-icon s-purple">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
+            <rect x="1" y="1" width="6" height="6" rx="1"/>
+            <rect x="9" y="1" width="6" height="6" rx="1"/>
+            <rect x="1" y="9" width="6" height="6" rx="1"/>
+            <rect x="9" y="9" width="6" height="6" rx="1"/>
+          </svg>
+        </span>
+        Matriz de Risco
+      </div>
+
+      <div class="matrix-container">
+        <div class="matrix-wrapper">
+          <div class="axis-y"><span>Probabilidade</span></div>
+          <div class="matrix-grid" id="risk-matrix">
+            <!-- prob=5 (top row) -->
+            <div class="cell sc5"  data-p="5" data-c="1">5</div>
+            <div class="cell sc10" data-p="5" data-c="2">10</div>
+            <div class="cell sc15" data-p="5" data-c="3">15</div>
+            <div class="cell sc20" data-p="5" data-c="4">20</div>
+            <div class="cell sc25" data-p="5" data-c="5">25</div>
+            <!-- prob=4 -->
+            <div class="cell sc4"  data-p="4" data-c="1">4</div>
+            <div class="cell sc8"  data-p="4" data-c="2">8</div>
+            <div class="cell sc12" data-p="4" data-c="3">12</div>
+            <div class="cell sc16" data-p="4" data-c="4">16</div>
+            <div class="cell sc20" data-p="4" data-c="5">20</div>
+            <!-- prob=3 -->
+            <div class="cell sc3"  data-p="3" data-c="1">3</div>
+            <div class="cell sc6"  data-p="3" data-c="2">6</div>
+            <div class="cell sc9"  data-p="3" data-c="3">9</div>
+            <div class="cell sc12 highlight" data-p="3" data-c="4">12</div>
+            <div class="cell sc15" data-p="3" data-c="5">15</div>
+            <!-- prob=2 -->
+            <div class="cell sc2"  data-p="2" data-c="1">2</div>
+            <div class="cell sc4"  data-p="2" data-c="2">4</div>
+            <div class="cell sc6"  data-p="2" data-c="3">6</div>
+            <div class="cell sc8"  data-p="2" data-c="4">8</div>
+            <div class="cell sc10" data-p="2" data-c="5">10</div>
+            <!-- prob=1 (bottom row) -->
+            <div class="cell sc1"  data-p="1" data-c="1">1</div>
+            <div class="cell sc2"  data-p="1" data-c="2">2</div>
+            <div class="cell sc3"  data-p="1" data-c="3">3</div>
+            <div class="cell sc4"  data-p="1" data-c="4">4</div>
+            <div class="cell sc5"  data-p="1" data-c="5">5</div>
+          </div>
+          <div class="axis-x-spacer"></div>
+          <div class="axis-x">Consequência</div>
+        </div>
+
+        <!-- Risk Value Display -->
+        <div class="risk-value-box">
+          <div class="risk-value-title">VALOR DO RISCO</div>
+          <div class="risk-value-number" id="risk-value">12</div>
+          <div class="risk-value-label" id="risk-level">ALTO IMPACTO</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <a href="{% url 'dashboard' %}" class="btn-cancel">Cancelar Alterações</a>
+      <button type="submit" class="btn-confirm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+        Registrar Análise
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<script src="{% static 'js/ismsapp/analise_riscos.js' %}"></script>
+{% endblock %}

@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.decorators import method_decorator
-from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm, CadastroCategoriaAtivoForm, CadastroAtivoForm, CriacaoCriteriosValoracaoAtivosForm, CriacaoCriteriosAvaliacaoRiscosForm, IdentificacaoRiscosForm
+from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm, CadastroCategoriaAtivoForm, CadastroAtivoForm, CriacaoCriteriosValoracaoAtivosForm, CriacaoCriteriosAvaliacaoRiscosForm, IdentificacaoRiscosForm, AnaliseRiscosForm
 from .models import UserProfile, CriterioAvaliacaoRisco
 
 class HomeView(View):
@@ -849,6 +849,9 @@ class CriacaoCriteriosAvaliacaoRiscosView(View):
             messages.error(request, "Você não tem permissão para acessar esta página.")
             return redirect('dashboard')
 
+        from .models import Probabilidade, Consequencia, Nivel
+        from decimal import Decimal
+
         # Get existing criteria if any
         criterio = CriterioAvaliacaoRisco.objects.first()
 
@@ -859,7 +862,60 @@ class CriacaoCriteriosAvaliacaoRiscosView(View):
             form = self.form_class(request.POST)
 
         if form.is_valid():
-            form.save()
+            # Save the criteria
+            criterio = form.save()
+
+            # Create Probabilidade records for each level
+            prob_data = [
+                (Probabilidade.Categoria.MUITO_BAIXA, 1, form.cleaned_data.get('escala_probabilidade_1', 'Muito Baixo')),
+                (Probabilidade.Categoria.BAIXA, 2, form.cleaned_data.get('escala_probabilidade_2', 'Baixo')),
+                (Probabilidade.Categoria.MEDIA, 3, form.cleaned_data.get('escala_probabilidade_3', 'Médio')),
+                (Probabilidade.Categoria.ALTA, 4, form.cleaned_data.get('escala_probabilidade_4', 'Alto')),
+                (Probabilidade.Categoria.MUITO_ALTA, 5, form.cleaned_data.get('escala_probabilidade_5', 'Muito Alto')),
+            ]
+
+            for categoria, peso, descricao in prob_data:
+                Probabilidade.objects.update_or_create(
+                    categoria=categoria,
+                    defaults={
+                        'peso': Decimal(str(peso)),
+                        'descricao': descricao
+                    }
+                )
+
+            # Create Consequencia records for each level
+            cons_data = [
+                (Consequencia.Categoria.MUITO_BAIXO, 1, form.cleaned_data.get('escala_consequencia_1', 'Muito Baixo')),
+                (Consequencia.Categoria.BAIXO, 2, form.cleaned_data.get('escala_consequencia_2', 'Baixo')),
+                (Consequencia.Categoria.MEDIO, 3, form.cleaned_data.get('escala_consequencia_3', 'Médio')),
+                (Consequencia.Categoria.ALTO, 4, form.cleaned_data.get('escala_consequencia_4', 'Alto')),
+                (Consequencia.Categoria.MUITO_ALTO, 5, form.cleaned_data.get('escala_consequencia_5', 'Muito Alto')),
+            ]
+
+            for categoria, peso, descricao in cons_data:
+                Consequencia.objects.update_or_create(
+                    categoria=categoria,
+                    defaults={
+                        'peso': Decimal(str(peso)),
+                        'descricao': descricao
+                    }
+                )
+
+            # Create Nivel records for INERENTE and RESIDUAL types
+            nivel_data = [
+                ('Baixo', Decimal('5.00')),
+                ('Moderado', Decimal('10.00')),
+                ('Alto', Decimal('15.00')),
+                ('Crítico', Decimal('25.00')),
+            ]
+
+            for tipo in [Nivel.Tipo.INERENTE, Nivel.Tipo.RESIDUAL]:
+                for categoria, peso in nivel_data:
+                    Nivel.objects.update_or_create(
+                        categoria=categoria,
+                        tipo=tipo,
+                        defaults={'peso': peso}
+                    )
             return redirect('dashboard')
 
         # Regenerate matrix for display
@@ -935,21 +991,18 @@ class IdentificacaoRiscosView(View):
 
         form = self.form_class(request.POST)
         if form.is_valid():
-            # Create a new Risco object with the form data
+            # Extract form data
             nome = form.cleaned_data.get('nome')
             descricao = form.cleaned_data.get('descricao')
             ativo = form.cleaned_data.get('ativo')
             impactos = form.cleaned_data.get('impactos')
 
-            # Combine nome and impactos into the descricao for the Risco model
-            risco_descricao = f"{nome}\n\nDescrição: {descricao}"
-            if impactos:
-                risco_descricao += f"\n\nImpactos: {impactos}"
-
-            # Create Risco object
+            # Create Risco object with separate fields
             risco = Risco(
+                nome=nome,
+                descricao=descricao,
+                impactos=impactos,
                 ativo=ativo,
-                descricao=risco_descricao,
                 tipo=Risco.Tipo.INERENTE  # Default to INERENTE as starting point
             )
             risco.save()
@@ -962,5 +1015,161 @@ class IdentificacaoRiscosView(View):
             'form': form,
             'ativos': ativos,
             'ativo_selecionado': form.data.get('ativo'),
+        }
+        return render(request, self.template_name, contexto)
+
+class AnaliseRiscosView(View):
+    """View for analyzing identified risks.
+
+    This view allows authorized users to analyze risks by assessing their
+    probability and consequence levels, and viewing the resulting risk values
+    on a risk matrix.
+
+    Authorized users:
+    - Information Security Auditor (AUDITOR)
+    - Information Security Analyst (ANALISTA)
+    """
+    template_name = "ismsapp/analise_riscos.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to analyze risks."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Risco
+
+        # Get all risks for analysis
+        riscos = Risco.objects.all()
+
+        contexto = {
+            'riscos': riscos,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Risco, Probabilidade, Consequencia, Nivel
+        from decimal import Decimal
+
+        risco_id = request.POST.get('risco_id')
+        probabilidade_value = request.POST.get('probabilidade')
+        consequencia_value = request.POST.get('consequencia')
+
+        if risco_id and probabilidade_value and consequencia_value:
+            try:
+                risco = Risco.objects.get(id=risco_id)
+
+                # Convert string values to integers
+                prob_int = int(probabilidade_value)
+                cons_int = int(consequencia_value)
+
+                # Map numeric scale (1-5) to categoria values
+                prob_categoria_map = {
+                    1: Probabilidade.Categoria.MUITO_BAIXA,
+                    2: Probabilidade.Categoria.BAIXA,
+                    3: Probabilidade.Categoria.MEDIA,
+                    4: Probabilidade.Categoria.ALTA,
+                    5: Probabilidade.Categoria.MUITO_ALTA,
+                }
+
+                cons_categoria_map = {
+                    1: Consequencia.Categoria.MUITO_BAIXO,
+                    2: Consequencia.Categoria.BAIXO,
+                    3: Consequencia.Categoria.MEDIO,
+                    4: Consequencia.Categoria.ALTO,
+                    5: Consequencia.Categoria.MUITO_ALTO,
+                }
+
+                # Get Probabilidade and Consequencia objects
+                prob_categoria = prob_categoria_map.get(prob_int)
+                cons_categoria = cons_categoria_map.get(cons_int)
+
+                if not prob_categoria or not cons_categoria:
+                    messages.error(request, "Valores de probabilidade ou consequência inválidos.")
+                    riscos = Risco.objects.all()
+                    return render(request, self.template_name, {'riscos': riscos})
+
+                try:
+                    # Use .value to convert enum to string
+                    probabilidade_obj = Probabilidade.objects.get(categoria=prob_categoria.value)
+                except Probabilidade.DoesNotExist:
+                    messages.error(request, "Probabilidade não encontrada na base de dados. Verifique se a categoria foi criada.")
+                    riscos = Risco.objects.all()
+                    return render(request, self.template_name, {'riscos': riscos})
+
+                try:
+                    # Use .value to convert enum to string
+                    consequencia_obj = Consequencia.objects.get(categoria=cons_categoria.value)
+                except Consequencia.DoesNotExist:
+                    messages.error(request, "Consequência não encontrada na base de dados. Verifique se a categoria foi criada.")
+                    riscos = Risco.objects.all()
+                    return render(request, self.template_name, {'riscos': riscos})
+
+                # Calculate risk level (probability * consequence)
+                risk_score = prob_int * cons_int
+
+                # Look up Nivel by peso (weight) and tipo (type)
+                nivel_obj = None
+                try:
+                    # Try to find nivel where peso is closest to risk_score
+                    nivel_candidates = Nivel.objects.filter(
+                        tipo=Nivel.Tipo.INERENTE
+                    ).order_by('peso')
+
+                    if nivel_candidates.exists():
+                        # Find the nivel with peso that matches or is closest to risk_score
+                        for nivel in nivel_candidates:
+                            if float(nivel.peso) >= risk_score:
+                                nivel_obj = nivel
+                                break
+                        # If none found with peso >= risk_score, use the highest one
+                        if nivel_obj is None:
+                            nivel_obj = nivel_candidates.last()
+
+                except Nivel.DoesNotExist:
+                    nivel_obj = None
+
+                # Update risk with inherent assessment
+                risco.probabilidade_inerente = probabilidade_obj
+                risco.consequencia_inerente = consequencia_obj
+                if nivel_obj:
+                    risco.nivel_inerente = nivel_obj
+
+                # Save the calculated inherent risk value
+                risco.valor_risco_inerente = Decimal(str(risk_score))
+
+                risco.save()
+
+                return redirect('dashboard')
+
+            except Risco.DoesNotExist:
+                messages.error(request, "Risco não encontrado.")
+            except Exception as e:
+                messages.error(request, f"Erro ao salvar análise: {str(e)}")
+
+        riscos = Risco.objects.all()
+        contexto = {
+            'riscos': riscos,
+            'erro': 'Por favor, preencha todos os campos.',
         }
         return render(request, self.template_name, contexto)

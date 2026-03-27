@@ -507,6 +507,13 @@ class Risco(models.Model):
 
     #Classification
 
+    """The name or title of the risk."""
+    nome = models.CharField(
+        max_length = 255,
+        blank = False,
+        help_text = "Nome ou título do risco.",
+    )
+
     """Indicates whether this record is an inherent or residual risk assessment. This field is mainly for labelling and filtering purposes, as the actual scores are determined by the respective FK fields. In practice, most scenarios will have both an inherent and a residual assessment within the same Risco record, but this field allows explicit categorization when needed."""
     tipo = models.CharField(
         max_length = 10,
@@ -517,6 +524,13 @@ class Risco(models.Model):
     """Detailed description of the risk scenario, including how the associated threats could exploit vulnerabilities in the asset and what the potential consequences would be. This should provide enough context to understand the nature of the risk and inform the assessment and treatment process."""
     descricao = models.TextField(
         help_text = "Descrição completa do cenário de risco: o que poderia acontecer, por quê, e qual seria o impacto.",
+    )
+
+    """Documented potential losses and impacts if this risk materializes (financial, operational, reputational, etc.)."""
+    impactos = models.TextField(
+        blank = True,
+        default = "",
+        help_text = "Perdas potenciais e impactos se o risco se materializar (financeiros, operacionais, reputacionais, etc.).",
     )
 
     #Inherent risk scores (before controls)
@@ -553,6 +567,15 @@ class Risco(models.Model):
             "O nível geral de risco inerente derivado da combinação da consequência "
             "e da probabilidade inerentes (ex.: 'Crítico', 'Alto')."
         ),
+    )
+
+    """The numerical value of the inherent risk, calculated as probability × consequence."""
+    valor_risco_inerente = models.DecimalField(
+        max_digits = 5,
+        decimal_places = 2,
+        null = True,
+        blank = True,
+        help_text = "Valor numérico do risco inerente (probabilidade × consequência).",
     )
 
     #Residual risk scores (after controls)
@@ -592,6 +615,15 @@ class Risco(models.Model):
         ),
     )
 
+    """The numerical value of the residual risk, calculated as probability × consequence after controls."""
+    valor_risco_residual = models.DecimalField(
+        max_digits = 5,
+        decimal_places = 2,
+        null = True,
+        blank = True,
+        help_text = "Valor numérico do risco residual após aplicação dos controles.",
+    )
+
     #Treatment
 
     """The treatment plans selected to address this risk. More than one treatment can apply (e.g. mitigar + compartilhar), and a single treatment plan can be linked to multiple risks if it addresses common scenarios."""
@@ -610,7 +642,7 @@ class Risco(models.Model):
         verbose_name_plural = "Riscos"
 
     def __str__(self):
-        return f"Risco #{self.pk} – {self.get_tipo_display()} ({self.ativo})"
+        return f"Risco #{self.pk} – {self.nome} ({self.ativo})"
 
 
 class CriterioAvaliacaoRisco(models.Model):

@@ -1,7 +1,7 @@
 # forms.py
 from django import forms
 from django.contrib.auth.models import User
-from .models import Ativo, UserProfile, CategoriaAtivo, CriterioAvaliacaoRisco
+from .models import Ativo, Risco, UserProfile, CategoriaAtivo, CriterioAvaliacaoRisco
 
 
 class SignUpForm(forms.Form):
@@ -429,6 +429,49 @@ class IdentificacaoRiscosForm(forms.Form):
         widget=forms.Textarea(attrs={
             'class': 'form-control',
             'placeholder': 'Documente as perdas potenciais (financeiras, operacionais, reputacionais)...',
+            'rows': 5
+        })
+    )
+
+class AnaliseRiscosForm(forms.Form):
+    """Form for analyzing identified risks.
+
+    This form allows users to evaluate the probability and consequence of identified risks
+    based on the organization's defined criteria, and to provide a justification for the
+    assigned ratings.
+    """
+
+    risco = forms.ModelChoiceField(
+        label='Risco a Analisar',
+        queryset=Risco.objects.filter(tipo=Risco.Tipo.INERENTE),
+        empty_label='Selecione o risco a ser analisado',
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+
+    probabilidade = forms.ChoiceField(
+        label='Probabilidade',
+        choices=[(i, f'Nível {i}') for i in range(1, 6)],
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+
+    consequencia = forms.ChoiceField(
+        label='Consequência',
+        choices=[(i, f'Nível {i}') for i in range(1, 6)],
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+
+    justificativa = forms.CharField(
+        label='Justificativa para as Avaliações',
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Explique os motivos por trás das avaliações de probabilidade e consequência...',
             'rows': 5
         })
     )

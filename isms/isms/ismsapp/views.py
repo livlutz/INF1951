@@ -1,13 +1,13 @@
 from django.shortcuts import render, redirect
 from django.views.generic.base import View
 from django.http.response import HttpResponseRedirect
-from django.urls.base import reverse_lazy
+from django.urls.base import reverse_lazy, reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.decorators import method_decorator
-from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm, CadastroCategoriaAtivoForm, CadastroAtivoForm, CriacaoCriteriosValoracaoAtivosForm, CriacaoCriteriosAvaliacaoRiscosForm, IdentificacaoRiscosForm, AnaliseRiscosForm, AvaliacaoRiscosForm
+from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm, CadastroCategoriaAtivoForm, CadastroAtivoForm, CriacaoCriteriosValoracaoAtivosForm, CriacaoCriteriosAvaliacaoRiscosForm, IdentificacaoRiscosForm, AnaliseRiscosForm, AvaliacaoRiscosForm, TratamentoRiscoForm
 from .models import UserProfile, CriterioAvaliacaoRisco
 
 class HomeView(View):
@@ -1359,8 +1359,8 @@ class AvaliacaoRiscoView(View):
             risco.save()
 
             if decisao == 'tratar':
-                # Could redirect to a treatment creation view here in the future
-                return redirect('dashboard')
+                # Redirect to treatment creation view with the risk ID
+                return HttpResponseRedirect(f"{reverse('tratamento_riscos')}?risco_id={risco.id}")
 
             elif decisao == 'aceitar':
                 return redirect('dashboard')
@@ -1371,3 +1371,213 @@ class AvaliacaoRiscoView(View):
         except Exception as e:
             messages.error(request, f"Erro ao processar decisão: {str(e)}")
             return redirect('avaliacao_riscos')
+
+class TratamentoRiscoView(View):
+    """View for creating and managing risk treatment plans.
+
+    This view allows authorized users to define treatment strategies for risks,
+    including mitigation actions, responsible parties, deadlines, and expected
+    risk reduction. The view implements UC-09 (Tratamento de Riscos).
+
+    The flow is:
+    1. User accesses a risk requiring treatment
+    2. User selects treatment strategy (mitigar, evitar, compartilhar, aceitar)
+    3. User defines mitigation actions and controls
+    4. User registers responsible party and deadline
+    5. System recalculates residual risk level
+    6. System shows updated risk matrix position
+    7. System registers the treatment plan
+
+    Authorized users:
+    - Information Security Auditor (AUDITOR)
+    - Information Security Analyst (ANALISTA)
+    """
+
+    template_name = "ismsapp/tratamento_riscos.html"
+    form_class = TratamentoRiscoForm
+
+    def _check_permission(self, user):
+        """Check if user has permission to create risk treatments."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    def _calculate_residual_risk(self, risk, reducao_prob, reducao_impacto):
+        """Calculate residual risk level after treatment.
+
+        Uses the reduction percentages to estimate new probability and consequence.
+        """
+        from .models import Probabilidade, Consequencia, Nivel
+        from decimal import Decimal
+
+        if not risk.probabilidade_inerente or not risk.consequencia_inerente:
+            return None, None, None
+
+        # Get current weights
+        prob_weight = float(risk.probabilidade_inerente.peso)
+        cons_weight = float(risk.consequencia_inerente.peso)
+
+        # Calculate reduced weights
+        new_prob_weight = prob_weight * (1 - (reducao_prob / 100))
+        new_cons_weight = cons_weight * (1 - (reducao_impacto / 100))
+
+        # Calculate new risk value
+        new_risk_value = new_prob_weight * new_cons_weight
+
+        # Find corresponding Nivel
+        nivel_candidates = Nivel.objects.filter(
+            tipo=Nivel.Tipo.RESIDUAL
+        ).order_by('peso')
+
+        nivel_residual = None
+        if nivel_candidates.exists():
+            for nivel in nivel_candidates:
+                if float(nivel.peso) >= new_risk_value:
+                    nivel_residual = nivel
+                    break
+            if nivel_residual is None:
+                nivel_residual = nivel_candidates.last()
+
+        return Decimal(str(new_risk_value)), nivel_residual, {
+            'prob_original': prob_weight,
+            'prob_nova': new_prob_weight,
+            'cons_original': cons_weight,
+            'cons_nova': new_cons_weight,
+        }
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        """Display treatment form or list of risks requiring treatment."""
+
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Risco
+
+        # Get risks that were evaluated and marked for treatment
+        risco_id = request.GET.get('risco_id')
+
+        risco_selecionado = None
+        if risco_id:
+            try:
+                risco_selecionado = Risco.objects.get(
+                    id=risco_id,
+                    decisao_avaliacao=Risco.DecisaoAvaliacao.TRATAR
+                )
+            except Risco.DoesNotExist:
+                messages.error(request, "Risco não encontrado ou não foi marcado para tratamento.")
+                risco_selecionado = None
+
+        # Get all risks marked for treatment
+        riscos_para_tratar = Risco.objects.filter(
+            decisao_avaliacao=Risco.DecisaoAvaliacao.TRATAR
+        ).select_related(
+            'ativo',
+            'nivel_inerente',
+            'consequencia_inerente',
+            'probabilidade_inerente'
+        )
+
+        contexto = {
+            'riscos_para_tratar': riscos_para_tratar,
+            'risco_selecionado': risco_selecionado,
+            'form': self.form_class(),
+        }
+
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        """Process risk treatment plan creation."""
+
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Risco, Tratamento
+        from django.utils import timezone
+
+        form = self.form_class(request.POST)
+
+        if form.is_valid():
+            try:
+                risco_id = request.POST.get('risco_id')
+                risco = Risco.objects.get(
+                    id=risco_id,
+                    decisao_avaliacao=Risco.DecisaoAvaliacao.TRATAR
+                )
+
+                # Get form data
+                tipo_tratamento = form.cleaned_data.get('tipo_tratamento')
+                descricao = form.cleaned_data.get('descricao')
+                responsavel = form.cleaned_data.get('responsavel')
+                prazo = form.cleaned_data.get('prazo')
+                reducao_prob = form.cleaned_data.get('reducao_probabilidade', 0)
+                reducao_impacto = form.cleaned_data.get('reducao_impacto', 0)
+                controles = form.cleaned_data.get('controles', '')
+                observacoes = form.cleaned_data.get('observacoes', '')
+
+                # Create treatment plan
+                tratamento = Tratamento.objects.create(
+                    tipo_tratamento=tipo_tratamento,
+                    descricao=descricao,
+                    responsavel=responsavel,
+                    prazo=prazo,
+                    reducao_probabilidade=reducao_prob,
+                    reducao_impacto=reducao_impacto,
+                )
+
+                # Link treatment to risk
+                risco.tratamentos.add(tratamento)
+
+                # Calculate residual risk
+                valor_residual, nivel_residual, calcs = self._calculate_residual_risk(
+                    risco,
+                    reducao_prob,
+                    reducao_impacto
+                )
+
+                if valor_residual is not None:
+                    risco.valor_risco_residual = valor_residual
+                    risco.nivel_residual = nivel_residual
+
+                # Update residual probability and consequence based on reductions
+                if risco.probabilidade_inerente and risco.consequencia_inerente:
+                    from .models import Probabilidade, Consequencia
+
+                    # For now, keep the same probability/consequence objects
+                    # but new risk value reflects the reduction
+                    # In a more advanced implementation, we could create new P/C records
+                    risco.probabilidade_residual = risco.probabilidade_inerente
+                    risco.consequencia_residual = risco.consequencia_inerente
+
+                risco.save()
+
+                return redirect('dashboard')
+
+            except Risco.DoesNotExist:
+                messages.error(request, "Risco não encontrado.")
+                return redirect('tratamento_riscos')
+            except Exception as e:
+                messages.error(request, f"Erro ao criar plano de tratamento: {str(e)}")
+                return redirect('tratamento_riscos')
+        else:
+            messages.error(request, "Formulário inválido. Verifique os dados inseridos.")
+            contexto = {
+                'form': form,
+                'risco_selecionado': None,
+                'riscos_para_tratar': Risco.objects.filter(
+                    decisao_avaliacao=Risco.DecisaoAvaliacao.TRATAR
+                ),
+            }
+            return render(request, self.template_name, contexto)

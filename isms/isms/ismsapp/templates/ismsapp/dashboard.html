@@ -144,6 +144,22 @@
             </a>
             {% endif %}
 
+            <!-- Tratamento de Riscos - Only for Authorized Users -->
+            {% if pode_tratar_riscos %}
+            <a href="{% url 'tratamento_riscos' %}" class="dashboard-card-link">
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3>Tratamento de Riscos</h3>
+                    <p>Trate os riscos identificados</p>
+                    <div class="card-footer">
+                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+
 
         </div>
     </div>

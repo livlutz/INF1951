@@ -38,5 +38,6 @@ urlpatterns = [
     path("identificacao_riscos/", views.IdentificacaoRiscosView.as_view(), name="identificacao_riscos"),
     path("analise_riscos/", views.AnaliseRiscosView.as_view(), name="analise_riscos"),
     path("avaliacao_riscos/", views.AvaliacaoRiscoView.as_view(), name="avaliacao_riscos"),
+    path("tratamento_riscos/", views.TratamentoRiscoView.as_view(), name="tratamento_riscos"),
     path("analise_valoracao_ativos/", views.AnaliseValoracaoAtivosView.as_view(), name="analise_valoracao_ativos"),
 ]

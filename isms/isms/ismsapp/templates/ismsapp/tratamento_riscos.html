@@ -1,0 +1,386 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Tratamento de Riscos{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/ismsapp/analise_riscos.css' %}" rel="stylesheet">
+<link href="{% static 'css/ismsapp/tratamento_riscos.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  {% if risco_selecionado %}
+    <!-- Risk Treatment Form -->
+    <form method="post" action="{% url 'tratamento_riscos' %}" class="card">
+      {% csrf_token %}
+      <input type="hidden" name="risco_id" value="{{ risco_selecionado.id }}">
+
+      <!-- Header -->
+      <div class="card-header">
+        <div class="shield-wrap">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b3cf7" stroke-width="1.8">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M12 10v4M10 12h4"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="card-title">Tratamento de Riscos</h1>
+        </div>
+      </div>
+
+      <!-- Success Messages -->
+      {% if messages %}
+        <div class="alerts-container">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Risk Overview Section -->
+      <div class="section">
+        <div class="section-label">
+          <span class="s-icon s-warning">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </span>
+          Risco sob Tratamento
+        </div>
+
+        <div class="risk-overview-card">
+          <div class="risk-overview-header">
+            <h3 class="risk-overview-title">{{ risco_selecionado.nome }}</h3>
+            <div class="risk-impact-badge">
+              <span class="impact-label">Impacto Atual</span>
+              <span class="impact-value alto">{{ risco_selecionado.valor_risco_inerente|floatformat:0 }}</span>
+            </div>
+          </div>
+          <div class="risk-overview-info">
+            <div class="info-item">
+              <span class="label">Ativo:</span>
+              <span class="value">{{ risco_selecionado.ativo.nome }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Nível:</span>
+              <span class="value">{{ risco_selecionado.nivel_inerente.categoria }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Probabilidade:</span>
+              <span class="value">{{ risco_selecionado.probabilidade_inerente.nome }} (peso: {{ risco_selecionado.probabilidade_inerente.peso }})</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Consequência:</span>
+              <span class="value">{{ risco_selecionado.consequencia_inerente.nome }} (peso: {{ risco_selecionado.consequencia_inerente.peso }})</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Descrição:</span>
+              <span class="value">{{ risco_selecionado.descricao }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Treatment Strategy Section -->
+      <div class="section">
+        <div class="section-label">
+          <span class="s-icon s-purple">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+              <path d="M12 6v6l4 2.5"/>
+            </svg>
+          </span>
+          Estratégia de Tratamento
+        </div>
+        <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 1rem;">
+          Selecione a abordagem para tratar este risco
+        </div>
+
+        <div class="strategy-options">
+          {% for choice_value, choice_label in form.tipo_tratamento.field.choices %}
+            <label class="strategy-option">
+              <input type="radio" name="tipo_tratamento" value="{{ choice_value }}" required>
+              <span class="strategy-card strategy-{{ choice_value }}">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  {% if choice_value == "mitigar" %}
+                    <path d="M12 2v20M2 12h20"/>
+                    <circle cx="12" cy="12" r="10"/>
+                  {% elif choice_value == "evitar" %}
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                  {% elif choice_value == "compartilhar" %}
+                    <circle cx="9" cy="9" r="7"/>
+                    <circle cx="15" cy="15" r="7"/>
+                    <path d="M12 12l3 3"/>
+                  {% else %}
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                  {% endif %}
+                </svg>
+                <div class="strategy-text">
+                  <strong>
+                    {% if choice_value == "mitigar" %}
+                      Mitigar
+                    {% elif choice_value == "evitar" %}
+                      Evitar
+                    {% elif choice_value == "compartilhar" %}
+                      Compartilhar
+                    {% else %}
+                      Aceitar
+                    {% endif %}
+                  </strong>
+                  <small>
+                    {% if choice_value == "mitigar" %}
+                      Reduzir a probabilidade ou impacto (40% + 30%)
+                    {% elif choice_value == "evitar" %}
+                      Eliminar a atividade ou condição (80% + 70%)
+                    {% elif choice_value == "compartilhar" %}
+                      Transferir o risco (30% + 50%)
+                    {% else %}
+                      Aceitar o risco residual (0% + 0%)
+                    {% endif %}
+                  </small>
+                </div>
+              </span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Mitigation Actions Section -->
+      <div class="section">
+        <div class="section-label">
+          <span class="s-icon s-blue">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </span>
+          Ações de Mitigação
+        </div>
+
+        <div class="form-group">
+          <label for="descricao" class="form-label">Descrição do Plano</label>
+          {{ form.descricao }}
+          {% if form.descricao.errors %}
+            <div class="field-error">{{ form.descricao.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="controles" class="form-label">Controles</label>
+          {{ form.controles }}
+          {% if form.controles.errors %}
+            <div class="field-error">{{ form.controles.errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Risk Reduction Section -->
+      <div class="section">
+        <div class="section-label">
+          <span class="s-icon s-green">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </span>
+          Redução Esperada de Risco
+        </div>
+
+        <!-- Estimation Guide -->
+        <div style="background-color: #1a1f2e; border: 1px solid #2a3f5f; border-radius: 6px; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.85rem;">
+          <div style="font-weight: 600; color: #8b3cf7; margin-bottom: 0.75rem;">📋 Como a redução é calculada:</div>
+          <ul style="list-style: none; padding: 0; margin: 0; color: #cbd5e1; line-height: 1.6; margin-bottom: 0.75rem;">
+            <li>• <strong>Valores sugeridos:</strong> Definidos automaticamente pela estratégia de tratamento selecionada</li>
+            <li>• <strong>Probabilidade:</strong> Quanto seus controles reduzem a chance de ocorrência</li>
+            <li>• <strong>Impacto:</strong> Quanto seus controles reduzem o dano se o risco ocorrer</li>
+            <li>• <strong>Ajustes:</strong> Você pode modificar os valores conforme a efetividade real dos seus controles</li>
+          </ul>
+          <div style="border-top: 1px solid #2a3f5f; padding-top: 0.75rem; margin-top: 0.75rem; color: #a0aec0; font-size: 0.8rem;">
+            💡 <strong>Dica:</strong> Selecione a estratégia de tratamento acima para auto-preenchimento de valores recomendados.
+          </div>
+        </div>
+
+        <div class="reduction-inputs">
+          <div class="form-group">
+            <label for="reducao_probabilidade" class="form-label">Redução de Probabilidade</label>
+            <div class="input-with-unit">
+              {{ form.reducao_probabilidade }}
+              <span class="unit">%</span>
+            </div>
+            {% if form.reducao_probabilidade.errors %}
+              <div class="field-error">{{ form.reducao_probabilidade.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="reducao_impacto" class="form-label">Redução de Impacto</label>
+            <div class="input-with-unit">
+              {{ form.reducao_impacto }}
+              <span class="unit">%</span>
+            </div>
+            {% if form.reducao_impacto.errors %}
+              <div class="field-error">{{ form.reducao_impacto.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Residual Risk Preview -->
+        <div class="residual-preview">
+          <div class="preview-label">Simulação de Risco Residual</div>
+          <div class="preview-content" id="residual-preview">
+            <p style="color: #94a3b8; text-align: center;">Preencha os valores para ver a simulação</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Responsible Party & Deadline Section -->
+      <div class="section">
+        <div class="section-label">
+          <span class="s-icon s-purple">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </span>
+          Responsável e Prazo
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="responsavel" class="form-label">Nome do Responsável</label>
+            {{ form.responsavel }}
+            {% if form.responsavel.errors %}
+              <div class="field-error">{{ form.responsavel.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="prazo" class="form-label">Prazo de Implementação</label>
+            {{ form.prazo }}
+            {% if form.prazo.errors %}
+              <div class="field-error">{{ form.prazo.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Notes Section -->
+      <div class="section">
+        <div class="section-label">
+          <span class="s-icon s-blue">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </span>
+          Observações
+        </div>
+        {{ form.observacoes }}
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="button-group">
+        <button type="submit" class="btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Registrar Plano de Tratamento
+        </button>
+        <a href="{% url 'dashboard' %}" class="btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Cancelar
+        </a>
+      </div>
+    </form>
+
+  {% else %}
+    <!-- Risk Selection List -->
+    <div class="card">
+      <!-- Header -->
+      <div class="card-header">
+        <div class="shield-wrap">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b3cf7" stroke-width="1.8">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M12 10v4M10 12h4"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="card-title">Tratamento de Riscos</h1>
+          <p class="card-subtitle">Módulo de Gestão ISO 27001</p>
+        </div>
+      </div>
+
+      {% if messages %}
+        <div class="alerts-container">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="section">
+        <div class="section-label">
+          <span class="s-icon s-purple">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M4 4h16v2H4V4z"/>
+              <path d="M4 9h16v2H4V9z"/>
+              <path d="M4 14h16v2H4v-2z"/>
+            </svg>
+          </span>
+          Riscos Marcados para Tratamento
+        </div>
+
+        {% if riscos_para_tratar %}
+          <div class="risks-treatment-list">
+            {% for risco in riscos_para_tratar %}
+            <a href="?risco_id={{ risco.id }}" class="risk-treatment-item">
+              <div class="risk-item-header">
+                <h4 class="risk-item-title">{{ risco.nome }}</h4>
+                <div class="risk-item-impact">
+                  <span class="impact-value">{{ risco.valor_risco_inerente|floatformat:0 }}</span>
+                  <span class="impact-level">{{ risco.nivel_inerente.categoria }}</span>
+                </div>
+              </div>
+              <div class="risk-item-body">
+                <div class="risk-item-col">
+                  <span class="label">Ativo:</span>
+                  <span class="value">{{ risco.ativo.nome }}</span>
+                </div>
+                <div class="risk-item-col">
+                  <span class="label">Status:</span>
+                  <span class="badge badge-warning">Para Tratar</span>
+                </div>
+              </div>
+              <div class="risk-item-footer">
+                <small>Clique para definir plano de tratamento</small>
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+            <h3>Nenhum Risco para Tratar</h3>
+            <p>Não há riscos marcados para tratamento. Acesse a Avaliação de Riscos e marque riscos como "Enviar para Tratamento".</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/ismsapp/tratamento_riscos.js' %}"></script>
+{% endblock %}

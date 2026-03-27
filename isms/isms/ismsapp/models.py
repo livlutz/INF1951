@@ -166,7 +166,7 @@ class Tratamento(models.Model):
 
     class TipoTratamento(models.TextChoices):
         ACEITAR = "aceitar", "Aceitar"
-        MITIGAR = "mitigar", "Mitigar (Modificar)"
+        MITIGAR = "mitigar", "Mitigar"
         EVITAR = "evitar", "Evitar"
         COMPARTILHAR = "compartilhar", "Compartilhar"
 
@@ -183,6 +183,35 @@ class Tratamento(models.Model):
             "Detalhes de implementação deste tratamento: quais ações serão tomadas, "
             "quem é o responsável e quaisquer prazos ou decisões relevantes."
         ),
+    )
+
+    """Name or department responsible for implementing this treatment plan."""
+    responsavel = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='tratamentos_responsavel',
+        help_text="Usuário responsável pela implementação deste tratamento.",
+    )
+
+    """Deadline for implementing this treatment plan."""
+    prazo = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Prazo para implementação deste tratamento.",
+    )
+
+    """Percentage reduction in probability expected from this treatment (0-100)."""
+    reducao_probabilidade = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Porcentagem esperada de redução na probabilidade do risco (0-100).",
+    )
+
+    """Percentage reduction in consequence/impact expected from this treatment (0-100)."""
+    reducao_impacto = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Porcentagem esperada de redução no impacto/consequência do risco (0-100).",
     )
 
     class Meta:

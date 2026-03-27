@@ -521,3 +521,111 @@ class AvaliacaoRiscosForm(forms.Form):
             'rows': 4
         })
     )
+
+
+class TratamentoRiscoForm(forms.Form):
+    """Form for creating and managing risk treatment plans.
+
+    This form allows users to define treatment strategies, mitigation actions,
+    responsible parties, deadlines, and expected risk reduction for a specific risk.
+
+    The form supports the four treatment strategies:
+    - Mitigar (Mitigate/Modificar): Reduce risk through controls
+    - Evitar (Avoid): Eliminate the risk source
+    - Compartilhar (Share): Transfer risk to third party
+    - Aceitar (Accept): Accept residual risk
+
+    Note: The risco (risk) is passed as a hidden field (risco_id) in the template
+    and handled separately in the view.
+    """
+
+    tipo_tratamento = forms.ChoiceField(
+        label='Estratégia de Tratamento',
+        choices=[
+            ('mitigar', 'Mitigar (Modificar) - Reduzir a probabilidade ou impacto'),
+            ('evitar', 'Evitar - Eliminar a atividade ou condição'),
+            ('compartilhar', 'Compartilhar - Transferir o risco'),
+            ('aceitar', 'Aceitar - Acitar o risco residual'),
+        ],
+        widget=forms.RadioSelect(attrs={
+            'class': 'form-check-input'
+        })
+    )
+
+    descricao = forms.CharField(
+        label='Descrição do Plano de Tratamento',
+        required=True,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Descreva as ações de tratamento, medidas de controle e estratégia geral...',
+            'rows': 5
+        })
+    )
+
+    responsavel = forms.ModelChoiceField(
+        label='Responsável pela Implementação',
+        queryset=User.objects.all().order_by('first_name', 'last_name', 'username'),
+        empty_label='Selecione um responsável',
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        }),
+        help_text='Selecione um usuário do sistema responsável pela implementação deste tratamento.'
+    )
+
+    prazo = forms.DateField(
+        label='Prazo para Implementação',
+        required=True,
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        })
+    )
+
+    reducao_probabilidade = forms.IntegerField(
+        label='Redução Esperada na Probabilidade (%)',
+        required=True,
+        min_value=0,
+        max_value=100,
+        help_text='Estimativa de quanto o controle reduzirá a probabilidade de ocorrência. Considere a efetividade dos controles implementados.',
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'type': 'number',
+            'placeholder': '0-100',
+            'value': '30'
+        })
+    )
+
+    reducao_impacto = forms.IntegerField(
+        label='Redução Esperada no Impacto (%)',
+        required=True,
+        min_value=0,
+        max_value=100,
+        help_text='Estimativa de quanto o controle reduzirá o impacto se o risco ocorrer. Ex: 40% reduz o dano potencial. Para mitigação, ambos os valores precisam ser definidos.',
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'type': 'number',
+            'placeholder': '0-100',
+            'value': '30'
+        })
+    )
+
+    controles = forms.CharField(
+        label='Controles/Medidas (ISO 27001)',
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Selecione os controles a serem implementados',
+            'rows': 3
+        })
+    )
+
+    observacoes = forms.CharField(
+        label='Observações Adicionais',
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Notas, considerações especiais ou contexto adicional...',
+            'rows': 3
+        })
+    )

@@ -852,49 +852,14 @@ class CriacaoCriteriosAvaliacaoRiscosView(View):
         # Get existing criteria if any
         criterio = CriterioAvaliacaoRisco.objects.first()
 
-        # Prepare POST data with scale descriptions based on selections
-        post_data = request.POST.copy()
-
-        # Map selected probability level to description
-        prob_levels = {
-            '1': 'Muito Baixo',
-            '2': 'Baixo',
-            '3': 'Médio',
-            '4': 'Alto',
-            '5': 'Muito Alto'
-        }
-
-        # Map selected consequence level to description
-        cons_levels = {
-            '1': 'Muito Baixo',
-            '2': 'Baixo',
-            '3': 'Médio',
-            '4': 'Alto',
-            '5': 'Muito Alto'
-        }
-
-        # Populate form fields with default scale descriptions
-        prob_selected = request.POST.get('escala_probabilidade_selected', '3')
-        cons_selected = request.POST.get('escala_consequencia_selected', '4')
-
-        # Set all probability levels
-        for i in range(1, 6):
-            post_data[f'escala_probabilidade_{i}'] = prob_levels.get(str(i), f'Nível {i}')
-
-        # Set all consequence levels
-        for i in range(1, 6):
-            post_data[f'escala_consequencia_{i}'] = cons_levels.get(str(i), f'Nível {i}')
-
-        # Create form with updated data
+        # Create form with POST data
         if criterio:
-            form = self.form_class(post_data, instance=criterio)
+            form = self.form_class(request.POST, instance=criterio)
         else:
-            form = self.form_class(post_data)
+            form = self.form_class(request.POST)
 
         if form.is_valid():
-            criterio = form.save()
-            criterio.save()
-            messages.success(request, "Critérios de avaliação de risco salvos com sucesso!")
+            form.save()
             return redirect('dashboard')
 
         # Regenerate matrix for display
@@ -907,7 +872,7 @@ class CriacaoCriteriosAvaliacaoRiscosView(View):
         contexto = {
             'form': form,
             'risk_matrix': risk_matrix,
-            'is_edit': True
+            'is_edit': criterio is not None
         }
         return render(request, self.template_name, contexto)
 
@@ -957,5 +922,45 @@ class IdentificacaoRiscosView(View):
             'ativos': ativos,
             'risks_identificados': None,
             'ativo_selecionado': None,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Ativo, Risco
+
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            # Create a new Risco object with the form data
+            nome = form.cleaned_data.get('nome')
+            descricao = form.cleaned_data.get('descricao')
+            ativo = form.cleaned_data.get('ativo')
+            impactos = form.cleaned_data.get('impactos')
+
+            # Combine nome and impactos into the descricao for the Risco model
+            risco_descricao = f"{nome}\n\nDescrição: {descricao}"
+            if impactos:
+                risco_descricao += f"\n\nImpactos: {impactos}"
+
+            # Create Risco object
+            risco = Risco(
+                ativo=ativo,
+                descricao=risco_descricao,
+                tipo=Risco.Tipo.INERENTE  # Default to INERENTE as starting point
+            )
+            risco.save()
+
+            return redirect('dashboard')
+
+        # If form is invalid, re-render the template with errors
+        ativos = Ativo.objects.all()
+        contexto = {
+            'form': form,
+            'ativos': ativos,
+            'ativo_selecionado': form.data.get('ativo'),
         }
         return render(request, self.template_name, contexto)

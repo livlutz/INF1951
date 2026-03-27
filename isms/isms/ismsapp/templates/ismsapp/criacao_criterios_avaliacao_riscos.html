@@ -94,15 +94,27 @@
       </div>
       <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 1rem;">Nível de risco aceitável</div>
       <div class="appetite-group">
-        <button type="button" class="appetite-btn active" data-appetite="6">Baixo</button>
-        <button type="button" class="appetite-btn" data-appetite="12">Moderado</button>
-        <button type="button" class="appetite-btn" data-appetite="20">Alto</button>
+        <button type="button" class="appetite-btn active" data-appetite="baixo">Baixo</button>
+        <button type="button" class="appetite-btn" data-appetite="moderado">Moderado</button>
+        <button type="button" class="appetite-btn" data-appetite="alto">Alto</button>
       </div>
-      <input type="hidden" name="apetite_risco" id="input-apetite" value="6">
+      <input type="hidden" name="apetite_risco" id="input-apetite" value="baixo">
       {% if form.apetite_risco.errors %}
         <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.apetite_risco.errors|join:", " }}</p>
       {% endif %}
     </div>
+
+    <!-- Hidden fields for scale descriptions -->
+    <input type="hidden" name="escala_probabilidade_1" value="Muito Baixo">
+    <input type="hidden" name="escala_probabilidade_2" value="Baixo">
+    <input type="hidden" name="escala_probabilidade_3" value="Médio">
+    <input type="hidden" name="escala_probabilidade_4" value="Alto">
+    <input type="hidden" name="escala_probabilidade_5" value="Muito Alto">
+    <input type="hidden" name="escala_consequencia_1" value="Muito Baixo">
+    <input type="hidden" name="escala_consequencia_2" value="Baixo">
+    <input type="hidden" name="escala_consequencia_3" value="Médio">
+    <input type="hidden" name="escala_consequencia_4" value="Alto">
+    <input type="hidden" name="escala_consequencia_5" value="Muito Alto">
 
     <!-- Matriz de Risco -->
     <div class="section">

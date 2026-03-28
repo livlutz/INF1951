@@ -1,0 +1,136 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Gestão de Incidentes de Segurança{% endblock %}
+
+{% block extra_css %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'css/ismsapp/dashboard.css' %}" rel="stylesheet">
+    <link href="{% static 'css/ismsapp/gestao_incidentes.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <div class="incidents-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h1>
+                <i class="fas fa-exclamation-triangle" style="color: #9333ea; margin-right: 0.5rem;"></i>
+                Gestão de Incidentes de Segurança
+            </h1>
+            <a href="{% url 'cadastro_incidente' %}" class="btn btn-register">
+                <i class="fas fa-plus"></i> Registrar Novo Incidente
+            </a>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-hourglass-start"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Registrados</h3>
+                    <p>{{ status_counts.registrado }}</p>
+                </div>
+            </div>
+
+            <div class="stat-card" style="border-left-color: #f57c00;">
+                <div class="stat-icon" style="color: #f57c00;">
+                    <i class="fas fa-microscope"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Em Investigação</h3>
+                    <p>{{ status_counts.em_investigacao }}</p>
+                </div>
+            </div>
+
+            <div class="stat-card" style="border-left-color: #27ae60;">
+                <div class="stat-icon" style="color: #27ae60;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>Resolvidos</h3>
+                    <p>{{ status_counts.resolvido }}</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Incidents Table -->
+        {% if incidentes %}
+        <div class="incidents-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Descrição</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th>Responsável</th>
+                        <th>Relatório</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for incidente in incidentes %}
+                    <tr>
+                        <td><strong>#{{ incidente.numero_incidente }}</strong></td>
+                        <td>{{ incidente.descricao|truncatewords:10 }}</td>
+                        <td>
+                            <small>
+                                {{ incidente.data_incidente|date:"d/m/Y" }}
+                                às {{ incidente.hora_incidente|time:"H:i" }}
+                            </small>
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ incidente.status|lower }}">
+                                {{ incidente.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if incidente.responsavel_tratamento %}
+                                {{ incidente.responsavel_tratamento.get_full_name|default:incidente.responsavel_tratamento.username }}
+                            {% else %}
+                                <span class="text-muted"><small>Não atribuído</small></span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if incidente.relatorio_gerado %}
+                                <i class="fas fa-check" style="color: #27ae60;"></i>
+                            {% else %}
+                                <i class="fas fa-times" style="color: #e74c3c;"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'visualizar_incidente' incidente.id %}" class="btn-action btn-view" title="Visualizar">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if not incidente.relatorio_gerado %}
+                                <a href="{% url 'gerar_relatorio_incidente' incidente.id %}" class="btn-action btn-report" title="Gerar Relatório">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                                {% else %}
+                                <a href="{% url 'relatorio_incidente' incidente.relatorio.id %}" class="btn-action btn-report" title="Ver Relatório">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="incidents-table">
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>Nenhum incidente registrado</h3>
+                <p>Comece registrando um novo incidente de segurança.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}

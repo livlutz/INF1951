@@ -7,8 +7,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.decorators import method_decorator
-from .forms import SignUpForm, LoginForm, UserProfileUpdateForm, UserPasswordChangeForm, CadastroCategoriaAtivoForm, CadastroAtivoForm, CriacaoCriteriosValoracaoAtivosForm, CriacaoCriteriosAvaliacaoRiscosForm, IdentificacaoRiscosForm, AnaliseRiscosForm, AvaliacaoRiscosForm, TratamentoRiscoForm
-from .models import UserProfile, CriterioAvaliacaoRisco
+from .forms import *
+from .models import *
 
 class HomeView(View):
     """Home page view - displays landing page.
@@ -1581,3 +1581,442 @@ class TratamentoRiscoView(View):
                 ),
             }
             return render(request, self.template_name, contexto)
+
+
+class GestaoIncidentesView(View):
+    """View for managing security incidents (UC-10).
+
+    Displays a list of all incidents with their current status and allows
+    users to register new incidents or view existing ones.
+
+    Authorized users:
+    - Information Security Auditor (AUDITOR)
+    - Security Analyst (ANALISTA)
+    """
+    template_name = "ismsapp/gestao_incidentes.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to manage incidents."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        """Display list of incidents and option to register new ones."""
+
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Incidente
+
+        # Get all incidents ordered by date
+        incidentes = Incidente.objects.all().select_related(
+            'responsavel_tratamento',
+            'registrado_por'
+        ).prefetch_related('ativos_afetados')
+
+        # Get incident counts by status
+        status_counts = {
+            'registrado': Incidente.objects.filter(status=Incidente.StatusIncidente.REGISTRADO).count(),
+            'em_investigacao': Incidente.objects.filter(status=Incidente.StatusIncidente.EM_INVESTIGACAO).count(),
+            'resolvido': Incidente.objects.filter(status=Incidente.StatusIncidente.RESOLVIDO).count(),
+            'fechado': Incidente.objects.filter(status=Incidente.StatusIncidente.FECHADO).count(),
+            'total': incidentes.count(),
+        }
+
+        # Get reports generated
+        relatorios_gerados = incidentes.filter(relatorio_gerado=True).count()
+
+        contexto = {
+            'incidentes': incidentes,
+            'status_counts': status_counts,
+            'relatorios_gerados': relatorios_gerados,
+        }
+
+        return render(request, self.template_name, contexto)
+
+
+class CadastroIncidenteView(View):
+    """View for registering new security incidents (UC-10, Step 1-4).
+
+    Allows authorized users to register new incidents with:
+    - Description of the incident
+    - Date and time of occurrence
+    - Affected assets
+
+    The system automatically generates an incident number and records
+    who registered the incident and when.
+
+    Authorized users:
+    - Information Security Auditor (AUDITOR)
+    - Security Analyst (ANALISTA)
+    """
+    form_class = CadastroIncidenteForm
+    template_name = "ismsapp/cadastro_incidente.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to register incidents."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    def _generate_incident_number(self):
+        """Generate a unique incident number (INC-YYYY-NNNN format)."""
+        from .models import Incidente
+        from datetime import datetime
+
+        year = datetime.now().year
+        # Count incidents for this year
+        count = Incidente.objects.filter(
+            numero_incidente__startswith=f"INC-{year}-"
+        ).count() + 1
+
+        return f"INC-{year}-{count:04d}"
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        """Display incident registration form."""
+
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        form = self.form_class()
+        contexto = {'form': form}
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        """Process incident registration form."""
+
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        form = self.form_class(request.POST)
+
+        if form.is_valid():
+            try:
+                from .models import Incidente
+
+                # Create incident with auto-generated number
+                incidente = form.save(commit=False)
+                incidente.numero_incidente = self._generate_incident_number()
+                incidente.registrado_por = request.user
+                incidente.status = Incidente.StatusIncidente.REGISTRADO
+                incidente.save()
+
+                # Save many-to-many relationships
+                form.save_m2m()
+
+                messages.success(
+                    request,
+                    f"Incidente {incidente.numero_incidente} registrado com sucesso!"
+                )
+                return redirect('gestao_incidentes')
+
+            except Exception as e:
+                messages.error(
+                    request,
+                    f"Erro ao registrar incidente: {str(e)}"
+                )
+                contexto = {'form': form}
+                return render(request, self.template_name, contexto)
+        else:
+            contexto = {'form': form}
+            return render(request, self.template_name, contexto)
+
+
+class VisualizarIncidenteView(View):
+    """View for viewing incident details and managing status (UC-10, Steps 5-6).
+
+    Allows authorized users to:
+    - View incident details
+    - Assign responsible person for treatment
+    - Update incident status
+    - Generate final report
+
+    Authorized users:
+    - Information Security Auditor (AUDITOR)
+    - Security Analyst (ANALISTA)
+    """
+    template_name = "ismsapp/visualizar_incidente.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to view/edit incidents."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, incidente_id, *args, **kwargs):
+        """Display incident details and status update form."""
+
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        try:
+            from .models import Incidente
+            incidente = Incidente.objects.prefetch_related('ativos_afetados').get(id=incidente_id)
+        except:
+            messages.error(request, "Incidente não encontrado.")
+            return redirect('gestao_incidentes')
+
+        form = AtribuirResponsavelIncidenteForm(instance=incidente)
+
+        # Check if report has been generated
+        has_relatorio = hasattr(incidente, 'relatorio')
+
+        contexto = {
+            'incidente': incidente,
+            'form': form,
+            'has_relatorio': has_relatorio,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, incidente_id, *args, **kwargs):
+        """Process incident status update."""
+
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        try:
+            from .models import Incidente
+            incidente = Incidente.objects.get(id=incidente_id)
+        except:
+            messages.error(request, "Incidente não encontrado.")
+            return redirect('gestao_incidentes')
+
+        form = AtribuirResponsavelIncidenteForm(request.POST, instance=incidente)
+
+        if form.is_valid():
+            try:
+                form.save()
+                messages.success(request, "Incidente atualizado com sucesso!")
+                return redirect('visualizar_incidente', incidente_id=incidente_id)
+            except Exception as e:
+                messages.error(request, f"Erro ao atualizar incidente: {str(e)}")
+
+        contexto = {
+            'incidente': incidente,
+            'form': form,
+            'has_relatorio': hasattr(incidente, 'relatorio'),
+        }
+        return render(request, self.template_name, contexto)
+
+
+class GerarRelatórioIncidenteView(View):
+    """View for generating the final incident report (UC-10, Steps 7-8).
+
+    Allows authorized users to create the comprehensive final report with:
+    - Event description
+    - Affected assets details
+    - Remediation actions taken
+    - Root cause analysis
+    - Impact analysis (financial, operational, image)
+    - Lessons learned
+
+    The system stores the report and marks the incident as having a report.
+
+    Authorized users:
+    - Information Security Auditor (AUDITOR)
+    - Security Analyst (ANALISTA)
+    """
+    form_class = GerarRelatórioIncidenteForm
+    template_name = "ismsapp/gerar_relatorio_incidente.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to generate reports."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    def _generate_protocolo(self):
+        """Generate a unique protocol number for the report."""
+        from .models import RelatórioIncidente
+        from datetime import datetime
+
+        year = datetime.now().year
+        count = RelatórioIncidente.objects.filter(
+            protocolo__startswith=f"INC-{year}-"
+        ).count() + 1
+
+        return f"INC-{year}-{count:04d}"
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, incidente_id, *args, **kwargs):
+        """Display report generation form."""
+
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        try:
+            from .models import Incidente, RelatórioIncidente
+            incidente = Incidente.objects.get(id=incidente_id)
+
+            # Check if report already exists
+            if hasattr(incidente, 'relatorio'):
+                return redirect('relatorio_incidente', relatorio_id=incidente.relatorio.id)
+
+        except:
+            messages.error(request, "Incidente não encontrado.")
+            return redirect('gestao_incidentes')
+
+        form = self.form_class()
+
+        contexto = {
+            'incidente': incidente,
+            'form': form,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, incidente_id, *args, **kwargs):
+        """Process report generation."""
+
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        try:
+            from .models import Incidente, RelatórioIncidente
+            incidente = Incidente.objects.get(id=incidente_id)
+        except:
+            messages.error(request, "Incidente não encontrado.")
+            return redirect('gestao_incidentes')
+
+        form = self.form_class(request.POST)
+
+        if form.is_valid():
+            try:
+                # Create report
+                relatorio = form.save(commit=False)
+                relatorio.incidente = incidente
+                relatorio.protocolo = self._generate_protocolo()
+                relatorio.responsavel_tratamento = incidente.responsavel_tratamento
+                relatorio.status_relatorio = RelatórioIncidente.StatusRelatorio.FINAL
+                relatorio.save()
+
+                # Mark incident as having a report
+                incidente.relatorio_gerado = True
+                incidente.status = Incidente.StatusIncidente.FECHADO
+                incidente.save()
+
+                messages.success(
+                    request,
+                    f"Relatório {relatorio.protocolo} gerado com sucesso!"
+                )
+                return redirect('relatorio_incidente', relatorio_id=relatorio.id)
+
+            except Exception as e:
+                messages.error(request, f"Erro ao gerar relatório: {str(e)}")
+                contexto = {
+                    'incidente': incidente,
+                    'form': form,
+                }
+                return render(request, self.template_name, contexto)
+        else:
+            contexto = {
+                'incidente': incidente,
+                'form': form,
+            }
+            return render(request, self.template_name, contexto)
+
+
+class RelatórioIncidenteView(View):
+    """View for displaying the final incident report.
+
+    Shows all sections of the report:
+    - Incident identification
+    - Event description
+    - Affected assets
+    - Actions taken
+    - Responsible person
+    - Root cause analysis
+    - Impact analysis
+    - Lessons learned
+
+    Also provides option to download the report.
+    """
+    template_name = "ismsapp/relatorio_incidente.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to view reports."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, relatorio_id, *args, **kwargs):
+        """Display incident report."""
+
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        try:
+            from .models import RelatórioIncidente
+            relatorio = RelatórioIncidente.objects.select_related(
+                'incidente',
+                'responsavel_tratamento'
+            ).get(id=relatorio_id)
+        except:
+            messages.error(request, "Relatório não encontrado.")
+            return redirect('gestao_incidentes')
+
+        contexto = {
+            'relatorio': relatorio,
+            'incidente': relatorio.incidente,
+        }
+        return render(request, self.template_name, contexto)

@@ -1,0 +1,119 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Registrar Novo Incidente{% endblock %}
+
+{% block extra_css %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'css/ismsapp/cadastro_incidente.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <div class="form-container">
+        <div class="form-header">
+            <div class="icon-header">
+                <i class="fas fa-plus-circle"></i>
+            </div>
+            <h1>Registrar Novo Incidente</h1>
+            <p>Forneça os detalhes do incidente de segurança identificado</p>
+        </div>
+
+        <form method="POST" novalidate>
+            {% csrf_token %}
+
+            <!-- Descrição do Incidente -->
+            <div class="form-group {% if form.descricao.errors %}has-error{% endif %}">
+                <label for="{{ form.descricao.id_for_label }}">
+                    <i class="fas fa-align-left" style="color: #9333ea; margin-right: 0.5rem;"></i>
+                    {{ form.descricao.label }}
+                </label>
+                {{ form.descricao }}
+                {% if form.descricao.errors %}
+                    <div class="error-message">
+                        {% for error in form.descricao.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Data do Incidente -->
+            <div class="form-group {% if form.data_incidente.errors %}has-error{% endif %}">
+                <label for="{{ form.data_incidente.id_for_label }}">
+                    <i class="fas fa-calendar" style="color: #9333ea; margin-right: 0.5rem;"></i>
+                    {{ form.data_incidente.label }}
+                </label>
+                {{ form.data_incidente }}
+                {% if form.data_incidente.errors %}
+                    <div class="error-message">
+                        {% for error in form.data_incidente.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Hora do Incidente -->
+            <div class="form-group {% if form.hora_incidente.errors %}has-error{% endif %}">
+                <label for="{{ form.hora_incidente.id_for_label }}">
+                    <i class="fas fa-clock" style="color: #9333ea; margin-right: 0.5rem;"></i>
+                    {{ form.hora_incidente.label }}
+                </label>
+                {{ form.hora_incidente }}
+                {% if form.hora_incidente.errors %}
+                    <div class="error-message">
+                        {% for error in form.hora_incidente.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Ativos Afetados -->
+            <div class="form-group {% if form.ativos_afetados.errors %}has-error{% endif %}">
+                <label for="{{ form.ativos_afetados.id_for_label }}">
+                    <i class="fas fa-server" style="color: #9333ea; margin-right: 0.5rem;"></i>
+                    {{ form.ativos_afetados.label }}
+                </label>
+                <div class="asset-selection-container">
+                    {{ form.ativos_afetados }}
+                </div>
+                {% if form.ativos_afetados.errors %}
+                    <div class="error-message">
+                        {% for error in form.ativos_afetados.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Responsável pelo Tratamento -->
+            <div class="form-group {% if form.responsavel_tratamento.errors %}has-error{% endif %}">
+                <label for="{{ form.responsavel_tratamento.id_for_label }}">
+                    <i class="fas fa-user-check" style="color: #9333ea; margin-right: 0.5rem;"></i>
+                    {{ form.responsavel_tratamento.label }}
+                </label>
+                {{ form.responsavel_tratamento }}
+                {% if form.responsavel_tratamento.errors %}
+                    <div class="error-message">
+                        {% for error in form.responsavel_tratamento.errors %}
+                            {{ error }}<br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="form-text">Selecione a pessoa responsável pelo tratamento do incidente.</div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="btn-group-form">
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-save"></i> Registrar Incidente
+                </button>
+                <a href="{% url 'gestao_incidentes' %}" class="btn-cancel">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

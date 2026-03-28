@@ -1,0 +1,202 @@
+/* Cadastro de Incidente */
+
+.form-container {
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-header {
+    margin-bottom: 2rem;
+    text-align: center;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #667eea;
+}
+
+.form-header h1 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-header p {
+    color: #7f8c8d;
+    margin: 0;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    width: 100%;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.form-group .form-text {
+    color: #7f8c8d;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.form-group .form-check {
+    margin-left: 0;
+}
+
+.form-group .form-check-input {
+    margin-right: 0.5rem;
+    cursor: pointer;
+}
+
+.form-group .form-check-label {
+    margin-bottom: 0.5rem;
+    font-weight: normal;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.btn-group-form {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.btn-submit {
+    flex: 1;
+    background: #9333ea;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+}
+
+.btn-cancel {
+    flex: 1;
+    background: #e9ecef;
+    color: #2c3e50;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+}
+
+.btn-cancel:hover {
+    background: #d5dce0;
+    color: #2c3e50;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+.form-group.has-error input,
+.form-group.has-error textarea,
+.form-group.has-error select {
+    border-color: #e74c3c;
+}
+
+.icon-header {
+    font-size: 2.5rem;
+    color: #9333ea;
+    margin-bottom: 1rem;
+}
+
+/* Asset Selection Container */
+.asset-selection-container {
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+}
+
+.asset-checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.asset-checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0.75rem;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: normal;
+    color: #2c3e50;
+}
+
+.asset-checkbox-group label:hover {
+    background-color: #e3f2fd;
+    border-color: #667eea;
+}
+
+.asset-checkbox-group input[type="checkbox"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    accent-color: #9333ea;
+    flex-shrink: 0;
+}
+
+.asset-checkbox-group input[type="checkbox"]:checked + label,
+.asset-checkbox-group label:has(input[type="checkbox"]:checked) {
+    background-color: #f3e5f5;
+    border-color: #9333ea;
+    font-weight: 600;
+}
+
+.asset-checkbox-group input[type="checkbox"]:focus {
+    outline: none;
+}

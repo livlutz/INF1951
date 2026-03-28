@@ -815,3 +815,256 @@ class UserProfile(models.Model):
     @property
     def is_administrador(self):
         return self.actor_type == self.Actor.SISTEMA_ADMIN
+
+
+class Incidente(models.Model):
+    """
+    Represents a security incident that occurred in the organization.
+
+    Each incident records:
+    - Description and details of the incident
+    - Date and time of occurrence
+    - Affected assets
+    - Current status (registered, investigating, resolved, closed)
+    - Responsible person for treatment
+    - Whether a final report has been generated
+
+    """
+
+    class StatusIncidente(models.TextChoices):
+        """Status progression of an incident."""
+        REGISTRADO = "registrado", "Registrado"
+        EM_INVESTIGACAO = "em_investigacao", "Em Investigação"
+        RESOLVIDO = "resolvido", "Resolvido"
+        FECHADO = "fechado", "Fechado"
+
+    # Identification and Documentation
+    """Unique identifier for this incident (e.g., INC-2023-001)"""
+    numero_incidente = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text="Identificador único do incidente (ex: INC-2023-001)"
+    )
+
+    """Detailed description of the security incident observed."""
+    descricao = models.TextField(
+        help_text="Descrição detalhada da natureza do incidente observado."
+    )
+
+    """Date when the incident occurred."""
+    data_incidente = models.DateField(
+        help_text="Data em que o incidente ocorreu."
+    )
+
+    """Time when the incident occurred."""
+    hora_incidente = models.TimeField(
+        help_text="Hora em que o incidente ocorreu."
+    )
+
+    # Assets and Impact
+    """Assets affected by this incident (many-to-many relationship)."""
+    ativos_afetados = models.ManyToManyField(
+        Ativo,
+        related_name="incidentes",
+        help_text="Ativos afetados por este incidente."
+    )
+
+    # Status and Tracking
+    """Current status of the incident in its lifecycle."""
+    status = models.CharField(
+        max_length=20,
+        choices=StatusIncidente.choices,
+        default=StatusIncidente.REGISTRADO,
+        help_text="Status atual do incidente em seu ciclo de vida."
+    )
+
+    """User responsible for treating/resolving this incident."""
+    responsavel_tratamento = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="incidentes_responsavel",
+        help_text="Responsável pelo tratamento e resolução do incidente."
+    )
+
+    # Audit Trail
+    """User who registered this incident."""
+    registrado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="incidentes_registrados",
+        help_text="Usuário que registrou este incidente."
+    )
+
+    """Timestamp when this incident was registered."""
+    data_registro = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Data e hora do registro do incidente no sistema."
+    )
+
+    """Timestamp of the last update to this incident."""
+    data_atualizacao = models.DateTimeField(
+        auto_now=True,
+        help_text="Data e hora da última atualização do incidente."
+    )
+
+    # Report Generation
+    """Whether a final report has been generated for this incident."""
+    relatorio_gerado = models.BooleanField(
+        default=False,
+        help_text="Indica se o relatório final foi gerado para este incidente."
+    )
+
+    class Meta:
+        verbose_name = "Incidente"
+        verbose_name_plural = "Incidentes"
+        ordering = ["-data_incidente", "-hora_incidente"]
+
+    def __str__(self):
+        return f"{self.numero_incidente} - {self.descricao[:50]}"
+
+
+class RelatórioIncidente(models.Model):
+    """
+    Stores the final report for a security incident.
+
+    This model contains all the required information for the final incident report:
+    - Incident identification
+    - Event description
+    - Affected assets
+    - Actions taken
+    - Responsible person
+    - Root cause analysis
+    - Impact analysis
+    - Lessons learned
+
+    The report is generated once the incident investigation is complete and linked
+    to the corresponding Incidente record for audit trail and easy access.
+    """
+
+    class StatusRelatorio(models.TextChoices):
+        """Status of the report document."""
+        DRAFT = "rascunho", "Rascunho"
+        FINAL = "final", "Final"
+        CLOSED = "fechado", "Fechado"
+
+    # Link to Incident
+    """Reference to the incident this report documents."""
+    incidente = models.OneToOneField(
+        Incidente,
+        on_delete=models.CASCADE,
+        related_name="relatorio",
+        help_text="Incidente que este relatório documenta."
+    )
+
+    # Identification Section (1. Identificação do Incidente)
+    """Unique protocol/number for this report."""
+    protocolo = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text="Identificador único do protocolo do relatório (ex: INC-2023-0892)"
+    )
+
+    """Date when this report was issued."""
+    data_emissao = models.DateField(
+        auto_now_add=True,
+        help_text="Data de emissão do relatório."
+    )
+
+    # Event Description Section (2. Descrição do Evento)
+    """Detailed description of the security event that occurred."""
+    descricao_evento = models.TextField(
+        help_text="Descrição detalhada do evento de segurança que ocorreu."
+    )
+
+    # Affected Assets Section (3. Ativos Afetados)
+    """Assets confirmed to be affected by this incident."""
+    ativos_afetados_detalhamento = models.TextField(
+        blank=True,
+        help_text="Detalhamento dos ativos afetados e como foram impactados."
+    )
+
+    # Actions Taken Section (4. Ações Realizadas - Remediação)
+    """Detailed description of all remediation actions taken."""
+    acoes_realizadas = models.TextField(
+        help_text="Descrição detalhada de todas as ações de remediação realizadas."
+    )
+
+    # Responsible Person Section (5. Responsável pelo Tratamento)
+    """Person responsible for coordinating the incident response."""
+    responsavel_tratamento = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="relatorios_incidentes",
+        help_text="Responsável pelo tratamento e investigação do incidente."
+    )
+
+    # Root Cause Analysis Section (6. Análise da Causa Raiz)
+    """Detailed root cause analysis of what led to the incident."""
+    analise_causa_raiz = models.TextField(
+        blank=True,
+        help_text="Análise detalhada das causas raiz que levaram ao incidente."
+    )
+
+    # Impact Analysis Section (7. Impacto Analisado)
+    """Financial impact in currency units (optional)."""
+    impacto_financeiro = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Impacto financeiro estimado do incidente."
+    )
+
+    """Operational impact description (e.g., service downtime)."""
+    impacto_operacional = models.TextField(
+        blank=True,
+        help_text="Descrição do impacto operacional (ex: indisponibilidade do serviço)."
+    )
+
+    """Image/data impact description (e.g., data loss)."""
+    impacto_imagem = models.TextField(
+        blank=True,
+        help_text="Descrição do impacto à imagem/reputação da organização."
+    )
+
+    # Lessons Learned Section (8. Lições Aprendidas)
+    """Key lessons identified from this incident."""
+    licoes_aprendidas = models.TextField(
+        blank=True,
+        help_text="Lições principais aprendidas com este incidente para evitar recorrências."
+    )
+
+    # Report Metadata
+    """Current status of this report (draft, final, closed)."""
+    status_relatorio = models.CharField(
+        max_length=20,
+        choices=StatusRelatorio.choices,
+        default=StatusRelatorio.DRAFT,
+        help_text="Status atual do relatório."
+    )
+
+    """Timestamp when this report was created."""
+    data_criacao = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Data e hora de criação do relatório."
+    )
+
+    """Timestamp of the last update to this report."""
+    data_atualizacao = models.DateTimeField(
+        auto_now=True,
+        help_text="Data e hora da última atualização do relatório."
+    )
+
+    class Meta:
+        verbose_name = "Relatório de Incidente"
+        verbose_name_plural = "Relatórios de Incidentes"
+        ordering = ["-data_emissao"]
+
+    def __str__(self):
+        return f"Relatório {self.protocolo} - {self.incidente.numero_incidente}"

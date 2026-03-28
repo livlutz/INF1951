@@ -160,6 +160,22 @@
             </a>
             {% endif %}
 
+            <!-- Gestão de Incidentes de Segurança - Only for Authorized Users -->
+            {% if pode_gestionar_incidentes_de_seguranca %}
+            <a href="{% url 'gestao_incidentes' %}" class="dashboard-card-link">
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-exclamation-triangle" style="color: #9333ea;"></i>
+                    </div>
+                    <h3>Gestão de Incidentes</h3>
+                    <p>Registre e acompanhe incidentes de segurança</p>
+                    <div class="card-footer">
+                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+
 
         </div>
     </div>

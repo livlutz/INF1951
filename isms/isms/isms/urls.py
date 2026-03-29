@@ -40,11 +40,10 @@ urlpatterns = [
     path("avaliacao_riscos/", views.AvaliacaoRiscoView.as_view(), name="avaliacao_riscos"),
     path("tratamento_riscos/", views.TratamentoRiscoView.as_view(), name="tratamento_riscos"),
     path("analise_valoracao_ativos/", views.AnaliseValoracaoAtivosView.as_view(), name="analise_valoracao_ativos"),
-
-    # Incident Management (UC-10)
     path("gestao_incidentes/", views.GestaoIncidentesView.as_view(), name="gestao_incidentes"),
     path("cadastro_incidente/", views.CadastroIncidenteView.as_view(), name="cadastro_incidente"),
     path("visualizar_incidente/<int:incidente_id>/", views.VisualizarIncidenteView.as_view(), name="visualizar_incidente"),
     path("gerar_relatorio_incidente/<int:incidente_id>/", views.GerarRelatórioIncidenteView.as_view(), name="gerar_relatorio_incidente"),
     path("relatorio_incidente/<int:relatorio_id>/", views.RelatórioIncidenteView.as_view(), name="relatorio_incidente"),
+    path("deteccao_ameaca/", views.DeteccaoAmeacaView.as_view(), name="deteccao_ameaca"),
 ]

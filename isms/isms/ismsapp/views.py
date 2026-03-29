@@ -2020,3 +2020,138 @@ class RelatórioIncidenteView(View):
             'incidente': relatorio.incidente,
         }
         return render(request, self.template_name, contexto)
+
+
+class DeteccaoAmeacaView(View):
+    """View for threat detection (Detecção de Ameaças).
+
+    This view allows authorized users (Security Analysts and Auditors) to:
+    1. View the list of monitored assets
+    2. Register new threats
+    3. Associate threats to potentially affected assets
+    4. Record description, origin, and possible impacts
+
+    Requires:
+    - User must be authenticated
+    - User must be either an Auditor or Analyst
+
+    UC-11 - Detecção de Ameaças
+    """
+    form_class = AmeacaForm
+    template_name = "ismsapp/deteccao_ameaca.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to detect threats."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        # Only Security Auditor and Analyst can detect threats
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        """Display threat detection page with list of monitored assets and form."""
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Ativo, Ameaca
+
+        # Get all assets
+        ativos = Ativo.objects.all()
+
+        # Get all threats with their associated assets
+        ameacas = Ameaca.objects.prefetch_related('ativos').all()
+
+        contexto = {
+            'form': self.form_class(),
+            'ativos': ativos,
+            'ameacas': ameacas,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        """Handle threat registration."""
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Ativo, Ameaca
+
+        form = self.form_class(request.POST)
+
+        if form.is_valid():
+            try:
+                # Extract the data
+                ativos_selecionados = form.cleaned_data.get('ativos')
+                descricao = form.cleaned_data.get('descricao')
+                nome = form.cleaned_data.get('nome')
+                origem = form.cleaned_data.get('origem')
+                impactos = form.cleaned_data.get('impactos')
+
+                # Check if threat already exists with same description
+                # (Fluxo Alternativo A – Ameaça já registrada)
+                ameaca_existente = Ameaca.objects.filter(
+                    descricao=descricao
+                ).prefetch_related('ativos').first()
+
+                if ameaca_existente:
+                    ativos_existentes = list(ameaca_existente.ativos.values_list('nome', flat=True))
+                    messages.warning(
+                        request,
+                        f"Uma ameaça similar já foi registrada para: {', '.join(ativos_existentes)}. "
+                        "Por favor, considere atualizar o registro existente."
+                    )
+                else:
+                    # Create the threat
+                    ameaca = Ameaca.objects.create(
+                        descricao=descricao
+                    )
+
+                    # Add the selected assets to the threat
+                    ameaca.ativos.set(ativos_selecionados)
+
+                    # Get names of affected assets
+                    ativos_nomes = ", ".join([a.nome for a in ativos_selecionados])
+
+                    messages.success(
+                        request,
+                        f"Ameaça '{nome}' registrada com sucesso para os ativos: {ativos_nomes}."
+                    )
+
+                # Reload the page with updated data
+                ativos = Ativo.objects.all()
+                ameacas = Ameaca.objects.prefetch_related('ativos').all()
+
+                contexto = {
+                    'form': self.form_class(),
+                    'ativos': ativos,
+                    'ameacas': ameacas,
+                }
+                return render(request, self.template_name, contexto)
+
+            except Exception as e:
+                messages.error(request, f"Erro ao registrar ameaça: {str(e)}")
+                ativos = Ativo.objects.all()
+                ameacas = Ameaca.objects.prefetch_related('ativos').all()
+
+                contexto = {
+                    'form': form,
+                    'ativos': ativos,
+                    'ameacas': ameacas,
+                }
+                return render(request, self.template_name, contexto)
+
+        else:
+            # Form has errors
+            ativos = Ativo.objects.all()
+            ameacas = Ameaca.objects.prefetch_related('ativos').all()

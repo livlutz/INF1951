@@ -778,3 +778,70 @@ class GerarRelatórioIncidenteForm(forms.ModelForm):
                 'rows': 5
             })
         }
+
+class AmeacaForm(forms.ModelForm):
+    """Form for registering threats (Ameaças).
+
+    This form allows authorized users (Security Analysts and Auditors) to register
+    new threats with:
+    - Name/description of the threat
+    - Origin of the threat
+    - Associated asset(s) potentially affected (multiple selection)
+    - Possible impacts
+    """
+
+    class Meta:
+        model = Ameaca
+        fields = ['ativos', 'descricao']
+        labels = {
+            'ativos': 'Ativos Potencialmente Afetados',
+            'descricao': 'Descrição da Ameaça'
+        }
+        widgets = {
+            'ativos': forms.SelectMultiple(attrs={
+                'class': 'asset-select-multiple',
+                'size': '1',
+            }),
+            'descricao': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descreva detalhadamente a ameaça identificada...',
+                'rows': 5
+            })
+        }
+
+    # Additional fields not in the model
+    nome = forms.CharField(
+        max_length=255,
+        label='Nome da Ameaça',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ex: Ransomware Cryptolocker'
+        })
+    )
+
+    origem = forms.ChoiceField(
+        label='Origem',
+        choices=[
+            ('externa', 'Externa'),
+            ('interna', 'Interna'),
+            ('hibrida', 'Híbrida'),
+        ],
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+
+    impactos = forms.CharField(
+        label='Possíveis Impactos',
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ex: Interrupção de serviços, Perda de dados financeiros',
+            'rows': 4
+        })
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make 'ativos' required
+        self.fields['ativos'].required = True

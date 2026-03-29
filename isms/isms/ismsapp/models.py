@@ -414,18 +414,17 @@ class Ativo(models.Model):
 
 class Ameaca(models.Model):
     """
-    A threat that could exploit a weakness in a specific asset.
+    A threat that could exploit weaknesses in one or more assets.
 
-    Threats are always linked to the asset they target. The same threat scenario
+    Threats can be linked to multiple assets they could target. The same threat scenario
     can then be associated with one or more risks and with one or more vulnerabilities that it could exploit.
     """
 
-    """The asset that this threat targets. Each threat is linked to exactly one asset, but an asset can have multiple threats."""
-    ativo = models.ForeignKey(
+    """The assets that this threat targets. A threat can affect multiple assets."""
+    ativos = models.ManyToManyField(
         Ativo,
-        on_delete = models.CASCADE,
         related_name = "ameacas",
-        help_text = "O ativo que esta ameaça tem como alvo.",
+        help_text = "Os ativos que esta ameaça tem como alvo.",
     )
 
     """Detailed description of the threat scenario, including how it could be triggered and by whom. This should provide enough context to understand the nature of the threat and its potential impact on the asset."""
@@ -438,7 +437,10 @@ class Ameaca(models.Model):
         verbose_name_plural = "Ameaças"
 
     def __str__(self):
-        return f"Ameaça #{self.pk} – {self.ativo}"
+        ativos_list = ", ".join([ativo.nome for ativo in self.ativos.all()[:3]])
+        if self.ativos.count() > 3:
+            ativos_list += f", +{self.ativos.count() - 3}"
+        return f"Ameaça #{self.pk} – {ativos_list}"
 
 class Vulnerabilidade(models.Model):
     """

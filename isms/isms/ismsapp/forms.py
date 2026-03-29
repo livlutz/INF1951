@@ -779,6 +779,56 @@ class GerarRelatórioIncidenteForm(forms.ModelForm):
             })
         }
 
+class VulnerabilidadeForm(forms.ModelForm):
+    """Form for registering vulnerabilities (Vulnerabilidades).
+
+    This form allows authorized users (Security Analysts and Auditors) to register
+    new vulnerabilities with:
+    - Associated threat/vulnerability source
+    - Associated asset affected
+    - Description of the vulnerability
+    - Severity level
+    - Correction priority
+    """
+
+    class Meta:
+        model = Vulnerabilidade
+        fields = ['ameaca', 'ativo', 'descricao', 'nivel_severidade', 'prioridade_correcao']
+        labels = {
+            'ameaca': 'Ameaça Associada',
+            'ativo': 'Ativo Afetado',
+            'descricao': 'Descrição da Vulnerabilidade',
+            'nivel_severidade': 'Nível de Severidade',
+            'prioridade_correcao': 'Prioridade de Correção'
+        }
+        widgets = {
+            'ameaca': forms.Select(attrs={
+                'class': 'form-control',
+            }),
+            'ativo': forms.Select(attrs={
+                'class': 'form-control',
+            }),
+            'descricao': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descreva detalhadamente a vulnerabilidade identificada...',
+                'rows': 5
+            }),
+            'nivel_severidade': forms.Select(attrs={
+                'class': 'form-control',
+            }),
+            'prioridade_correcao': forms.Select(attrs={
+                'class': 'form-control',
+            })
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make all fields required
+        self.fields['ameaca'].required = True
+        self.fields['ativo'].required = True
+        self.fields['descricao'].required = True
+
+
 class AmeacaForm(forms.ModelForm):
     """Form for registering threats (Ameaças).
 

@@ -192,6 +192,22 @@
             </a>
             {% endif %}
 
+            <!-- Gestão de Vulnerabilidades - Only for Authorized Users -->
+            {% if pode_gerenciar_vulnerabilidades %}
+            <a href="{% url 'gestao_vulnerabilidades' %}" class="dashboard-card-link">
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-exclamation-triangle" style="color: #8b3cf7;"></i>
+                    </div>
+                    <h3>Gestão de Vulnerabilidades</h3>
+                    <p>Registre e acompanhe vulnerabilidades identificadas</p>
+                    <div class="card-footer">
+                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+
 
         </div>
     </div>

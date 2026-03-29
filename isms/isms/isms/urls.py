@@ -46,4 +46,5 @@ urlpatterns = [
     path("gerar_relatorio_incidente/<int:incidente_id>/", views.GerarRelatórioIncidenteView.as_view(), name="gerar_relatorio_incidente"),
     path("relatorio_incidente/<int:relatorio_id>/", views.RelatórioIncidenteView.as_view(), name="relatorio_incidente"),
     path("deteccao_ameaca/", views.DeteccaoAmeacaView.as_view(), name="deteccao_ameaca"),
+    path("gestao_vulnerabilidades/", views.VulnerabilidadeView.as_view(), name="gestao_vulnerabilidades"),
 ]

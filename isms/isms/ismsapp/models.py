@@ -437,10 +437,7 @@ class Ameaca(models.Model):
         verbose_name_plural = "Ameaças"
 
     def __str__(self):
-        ativos_list = ", ".join([ativo.nome for ativo in self.ativos.all()[:3]])
-        if self.ativos.count() > 3:
-            ativos_list += f", +{self.ativos.count() - 3}"
-        return f"Ameaça #{self.pk} – {ativos_list}"
+        return f"Ameaça #{self.pk}"
 
 class Vulnerabilidade(models.Model):
     """
@@ -475,6 +472,48 @@ class Vulnerabilidade(models.Model):
     descricao = models.TextField(
         blank = True,
         help_text = "Descrição opcional da vulnerabilidade específica e como ela poderia ser explorada.",
+    )
+
+    """Severity level of the vulnerability - how critical it is"""
+    class SeveridadeChoice(models.TextChoices):
+        CRITICO = 'critico', 'Crítico'
+        ALTO = 'alto', 'Alto'
+        MEDIO = 'medio', 'Médio'
+        BAIXO = 'baixo', 'Baixo'
+
+    nivel_severidade = models.CharField(
+        max_length=20,
+        choices=SeveridadeChoice.choices,
+        default=SeveridadeChoice.MEDIO,
+        help_text="Nível de severidade da vulnerabilidade.",
+    )
+
+    """Priority for correcting the vulnerability"""
+    class PrioridadeChoice(models.TextChoices):
+        URGENTE = 'urgente', 'Urgente'
+        ALTA = 'alta', 'Alta'
+        MEDIA = 'media', 'Média'
+        BAIXA = 'baixa', 'Baixa'
+
+    prioridade_correcao = models.CharField(
+        max_length=20,
+        choices=PrioridadeChoice.choices,
+        default=PrioridadeChoice.MEDIA,
+        help_text="Prioridade de correção da vulnerabilidade.",
+    )
+
+    """Status of the vulnerability - whether it's been treated or not"""
+    class StatusChoice(models.TextChoices):
+        REGISTRADA = 'registrada', 'Registrada'
+        EM_TRATAMENTO = 'em_tratamento', 'Em Tratamento'
+        RESOLVIDA = 'resolvida', 'Resolvida'
+        DESCARTADA = 'descartada', 'Descartada'
+
+    status = models.CharField(
+        max_length=20,
+        choices=StatusChoice.choices,
+        default=StatusChoice.REGISTRADA,
+        help_text="Status atual da vulnerabilidade.",
     )
 
     class Meta:

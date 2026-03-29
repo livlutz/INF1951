@@ -1,0 +1,221 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Gestão de Vulnerabilidades{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/ismsapp/gestao_vulnerabilidades.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <!-- Alert Messages -->
+  {% if messages %}
+    <div class="alerts-container">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Registrar Nova Vulnerabilidade Form -->
+  <div class="card">
+    <!-- Header -->
+    <div class="card-header">
+      <div class="shield-wrap">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b3cf7" stroke-width="1.8">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <circle cx="12" cy="12" r="2"/>
+          <line x1="12" y1="8" x2="12" y2="10"/>
+          <line x1="12" y1="14" x2="12" y2="16"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="card-title">Gestão de Vulnerabilidades</h1>
+        <p class="card-description">Identifique, registre e acompanhe vulnerabilidades dos ativos da organização.</p>
+      </div>
+    </div>
+
+    <!-- Registrar Nova Vulnerabilidade -->
+    <form method="post" action="{% url 'gestao_vulnerabilidades' %}" class="vulnerability-form">
+      {% csrf_token %}
+
+      <!-- Form Title -->
+      <div class="form-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="1"/>
+          <path d="M12 8v-3m0 10v3"/>
+          <path d="M16 12h3m-10 0H5"/>
+        </svg>
+        Registrar Nova Vulnerabilidade
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label>Descrição da Vulnerabilidade</label>
+        {{ form.descricao }}
+        {% if form.descricao.errors %}
+          <p class="form-error">{{ form.descricao.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Two Column Row: Ameaca + Ativo -->
+      <div class="form-row-2">
+        <!-- Ameaça Associada -->
+        <div class="form-group">
+          <label>Ameaça Associada</label>
+          {{ form.ameaca }}
+          {% if form.ameaca.errors %}
+            <p class="form-error">{{ form.ameaca.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Ativo Afetado -->
+        <div class="form-group">
+          <label>Ativo Afetado</label>
+          {{ form.ativo }}
+          {% if form.ativo.errors %}
+            <p class="form-error">{{ form.ativo.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Three Column Row: Severidade + Prioridade + Status -->
+      <div class="form-row-3">
+        <!-- Nível de Severidade -->
+        <div class="form-group">
+          <label>Nível de Severidade</label>
+          {{ form.nivel_severidade }}
+          {% if form.nivel_severidade.errors %}
+            <p class="form-error">{{ form.nivel_severidade.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Prioridade de Correção -->
+        <div class="form-group">
+          <label>Prioridade de Correção</label>
+          {{ form.prioridade_correcao }}
+          {% if form.prioridade_correcao.errors %}
+            <p class="form-error">{{ form.prioridade_correcao.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Placeholder for 3rd column -->
+        <div class="form-group" style="visibility: hidden;">
+          <label>&nbsp;</label>
+          <input type="hidden">
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Registrar Vulnerabilidade
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Vulnerabilidades Registradas Section -->
+  <div class="card">
+    <div class="card-header-simple">
+      <div class="header-title-group">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b3cf7" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 8v4m0 4v.01" stroke-width="2.5"/>
+        </svg>
+        <h2>Acompanhamento e Histórico</h2>
+      </div>
+    </div>
+
+    <!-- Status Filter Tabs -->
+    <div class="status-tabs">
+      <a href="#" class="status-tab active">
+        <span class="tab-label">Em Aberto</span>
+        <span class="tab-count">{{ count_abertos }}</span>
+      </a>
+      <a href="#" class="status-tab">
+        <span class="tab-label">Resolvidas</span>
+        <span class="tab-count">{{ count_resolvidas }}</span>
+      </a>
+    </div>
+
+    {% if vulnerabilidades %}
+      <div class="vulnerabilities-table-wrapper">
+        <table class="vulnerabilities-table">
+          <thead>
+            <tr>
+              <th>VULNERABILIDADE</th>
+              <th>ATIVO</th>
+              <th>SEVERIDADE</th>
+              <th>STATUS</th>
+              <th>AÇÕES</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for vuln in vulnerabilidades %}
+              <tr>
+                <td class="vuln-id-cell">
+                  <div class="vuln-id">{{ vuln.descricao|truncatewords:4 }}</div>
+                  <div class="vuln-meta-id">ID: VUL-{{ vuln.id|stringformat:"04d" }}</div>
+                </td>
+                <td class="asset-cell">{{ vuln.ativo.nome }}</td>
+                <td class="severity-cell">
+                  <span class="severity-badge severity-{{ vuln.nivel_severidade }}">
+                    {{ vuln.get_nivel_severidade_display }}
+                  </span>
+                </td>
+                <td class="status-cell">
+                  <span class="status-badge status-{{ vuln.status }}">
+                    {{ vuln.get_status_display }}
+                  </span>
+                </td>
+                <td class="actions-cell">
+                  <a href="#" class="btn-icon" title="Ver detalhes">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="table-pagination">
+        <span class="pagination-info">Listando {{ vulnerabilidades|length }} de {{ total_vulnerabilidades }} vulnerabilidades registradas</span>
+        <div class="pagination-controls">
+          <button class="pagination-btn" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18l-6-6 6-6"></polyline>
+            </svg>
+          </button>
+          <button class="pagination-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18l6-6-6-6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #64748b; margin-bottom: 1rem;">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <p>Nenhuma vulnerabilidade registrada</p>
+        <p style="font-size: 0.85rem; color: #94a3b8;">Registre uma nova vulnerabilidade para começar</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script src="{% static 'js/ismsapp/gestao_vulnerabilidades.js' %}"></script>
+{% endblock %}

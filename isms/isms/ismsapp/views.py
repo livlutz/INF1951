@@ -2155,3 +2155,129 @@ class DeteccaoAmeacaView(View):
             # Form has errors
             ativos = Ativo.objects.all()
             ameacas = Ameaca.objects.prefetch_related('ativos').all()
+
+class VulnerabilidadeView(View):
+    """View for vulnerability management (Gestão de Vulnerabilidades).
+
+    This view allows authorized users (Security Analysts and Auditors) to:
+    1. Register new vulnerabilities in assets
+    2. Specify severity level and correction priority
+    3. Track vulnerability status
+    4. View historical resolution records
+
+    Requires:
+    - User must be authenticated
+    - User must be either an Auditor or Analyst
+
+    UC-13 - Gestão de Vulnerabilidades
+    """
+    form_class = VulnerabilidadeForm
+    template_name = "ismsapp/gestao_vulnerabilidades.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to manage vulnerabilities."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        # Only Security Auditor and Analyst can manage vulnerabilities
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        """Display vulnerability management page with form and vulnerability list."""
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Vulnerabilidade
+
+        # Get all vulnerabilities ordered by severity and priority
+        vulnerabilidades = Vulnerabilidade.objects.select_related('ativo').order_by('-nivel_severidade', '-prioridade_correcao')
+
+        # Calculate status counts
+        abertos = vulnerabilidades.filter(
+            status__in=['registrada', 'em_tratamento']
+        ).count()
+        resolvidas = vulnerabilidades.filter(
+            status__in=['resolvida', 'descartada']
+        ).count()
+        total = vulnerabilidades.count()
+
+        contexto = {
+            'form': self.form_class(),
+            'vulnerabilidades': vulnerabilidades,
+            'count_abertos': abertos,
+            'count_resolvidas': resolvidas,
+            'total_vulnerabilidades': total,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        """Handle vulnerability registration."""
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Vulnerabilidade
+
+        form = self.form_class(request.POST)
+
+        if form.is_valid():
+            try:
+                # Extract the data
+                ameaca = form.cleaned_data.get('ameaca')
+                ativo = form.cleaned_data.get('ativo')
+                descricao = form.cleaned_data.get('descricao')
+                nivel_severidade = form.cleaned_data.get('nivel_severidade')
+                prioridade_correcao = form.cleaned_data.get('prioridade_correcao')
+
+                # Check if vulnerability already exists (Fluxo Alternativo A)
+                # Unique constraint is on (ativo, ameaca) pair
+                existing = Vulnerabilidade.objects.filter(
+                    ativo=ativo,
+                    ameaca=ameaca
+                ).first()
+
+                if existing:
+                    messages.warning(
+                        request,
+                        f"Vulnerabilidade já registrada para este ativo e ameaça. "
+                        f"ID: {existing.pk} | Severidade: {existing.get_nivel_severidade_display()}"
+                    )
+                else:
+                    # Create the vulnerability
+                    vulnerabilidade = Vulnerabilidade.objects.create(
+                        ameaca=ameaca,
+                        ativo=ativo,
+                        descricao=descricao,
+                        nivel_severidade=nivel_severidade,
+                        prioridade_correcao=prioridade_correcao,
+                        status=Vulnerabilidade.StatusChoice.REGISTRADA
+                    )
+
+                    messages.success(
+                        request,
+                        f"Vulnerabilidade registrada com sucesso! "
+                        f"ID: VUL-{vulnerabilidade.pk:04d} | {ativo.nome}"
+                    )
+
+            except Exception as e:
+                messages.error(request, f"Erro ao registrar vulnerabilidade: {str(e)}")
+
+        else:
+            # Form has errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+
+        # Redirect to the same page
+        return redirect('gestao_vulnerabilidades')

@@ -3,25 +3,25 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg-page:        #0e1019;
-  --bg-card:        #161b27;
-  --bg-guide:       #1c2133;
-  --bg-btn:         #1e2436;
-  --bg-btn-hover:   #252c42;
-  --purple:         #8b3cf7;
-  --purple-hover:   #9d50ff;
-  --purple-border:  #7c35e0;
+  --bg-page:        #1a1a1a;
+  --bg-card:        #1e1e1e;
+  --bg-guide:       rgba(30, 30, 30, 0.7);
+  --bg-btn:         rgba(255, 255, 255, 0.08);
+  --bg-btn-hover:   rgba(255, 255, 255, 0.12);
+  --purple:         #9333ea;
+  --purple-hover:   #a855f7;
+  --purple-border:  #b366ff;
   --red:            #ef4444;
-  --border:         #252c42;
-  --border-soft:    #1e2639;
-  --text-primary:   #e8eaf0;
-  --text-secondary: #8a93a8;
-  --text-muted:     #4a5168;
+  --border:         rgba(255, 255, 255, 0.15);
+  --border-soft:    rgba(255, 255, 255, 0.1);
+  --text-primary:   #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-muted:     #808080;
 }
 
 html, body {
   min-height: 100vh;
-  background: var(--bg-page);
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   font-family: 'Inter', sans-serif;
   color: var(--text-primary);
 }

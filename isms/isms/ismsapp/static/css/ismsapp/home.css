@@ -9,7 +9,7 @@ html, body {
 }
 
 body {
-    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #ffffff;
     overflow-x: hidden;

@@ -1,10 +1,15 @@
 /* Cadastro de Incidente */
 
+body {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    min-height: 100vh;
+}
+
 .form-container {
     max-width: 700px;
     margin: 2rem auto;
     padding: 2rem;
-    background: white;
+    background: rgba(30, 30, 30, 0.95);
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -17,13 +22,13 @@
 }
 
 .form-header h1 {
-    color: #2c3e50;
+    color: #ffffff;
     font-size: 1.8rem;
     margin-bottom: 0.5rem;
 }
 
 .form-header p {
-    color: #7f8c8d;
+    color: #b0b0b0;
     margin: 0;
 }
 
@@ -33,7 +38,7 @@
 
 .form-group label {
     font-weight: 600;
-    color: #2c3e50;
+    color: #ffffff;
     margin-bottom: 0.5rem;
     display: block;
 }
@@ -41,7 +46,7 @@
 .form-group input,
 .form-group textarea,
 .form-group select {
-    border: 1px solid #e9ecef;
+    border: 1px solid #444;
     border-radius: 4px;
     padding: 0.75rem;
     font-size: 1rem;
@@ -110,8 +115,8 @@
 
 .btn-cancel {
     flex: 1;
-    background: #e9ecef;
-    color: #2c3e50;
+    background: #667eea;
+    color: #ffffff;
     border: none;
     padding: 0.75rem 1.5rem;
     border-radius: 4px;
@@ -125,8 +130,8 @@
 }
 
 .btn-cancel:hover {
-    background: #d5dce0;
-    color: #2c3e50;
+    background: #5568d3;
+    color: #ffffff;
 }
 
 .error-message {
@@ -149,10 +154,10 @@
 
 /* Asset Selection Container */
 .asset-selection-container {
-    border: 1px solid #e9ecef;
+    border: 1px solid #444;
     border-radius: 4px;
     padding: 0.75rem;
-    background-color: #f8f9fa;
+    background-color: rgba(40, 40, 40, 0.95);
 }
 
 .asset-checkbox-group {
@@ -168,17 +173,17 @@
     gap: 0.75rem;
     margin: 0;
     padding: 0.75rem;
-    background: white;
-    border: 1px solid #e9ecef;
+    background: rgba(50, 50, 50, 0.8);
+    border: 1px solid #444;
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
     font-weight: normal;
-    color: #2c3e50;
+    color: #ffffff;
 }
 
 .asset-checkbox-group label:hover {
-    background-color: #e3f2fd;
+    background-color: rgba(60, 60, 60, 0.8);
     border-color: #667eea;
 }
 

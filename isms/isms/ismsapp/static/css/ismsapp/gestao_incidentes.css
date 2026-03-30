@@ -41,7 +41,7 @@
 }
 
 .stat-card {
-    background: white;
+    background: rgba(30, 30, 30, 0.95);
     padding: 1.5rem;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -59,7 +59,7 @@
 .stat-content h3 {
     margin: 0;
     font-size: 0.9rem;
-    color: #7f8c8d;
+    color: #ffffff;
     text-transform: uppercase;
 }
 
@@ -67,11 +67,11 @@
     margin: 0.5rem 0 0 0;
     font-size: 1.8rem;
     font-weight: bold;
-    color: #2c3e50;
+    color: #ffffff;
 }
 
 .incidents-table {
-    background: white;
+    background: rgba(30, 30, 30, 0.95);
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -82,24 +82,25 @@
 }
 
 .table thead {
-    background: #f8f9fa;
-    border-bottom: 2px solid #e9ecef;
+    background: rgba(50, 50, 50, 0.8);
+    border-bottom: 2px solid #444;
 }
 
 .table thead th {
     padding: 1rem;
     font-weight: 600;
-    color: #2c3e50;
+    color: #ffffff;
     border: none;
 }
 
 .table tbody td {
     padding: 1rem;
-    border-color: #e9ecef;
+    border-color: #444;
+    color: #ffffff;
 }
 
 .table tbody tr:hover {
-    background-color: #f8f9fa;
+    background-color: rgba(60, 60, 60, 0.8);
 }
 
 .status-badge {

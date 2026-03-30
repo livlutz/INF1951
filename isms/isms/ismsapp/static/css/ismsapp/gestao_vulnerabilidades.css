@@ -11,25 +11,25 @@
 }
 
 :root {
-  --bg-page: #0e1019;
-  --bg-card: #151d2d;
-  --bg-btn: #1e2a3f;
-  --bg-btn-hover: #2a3856;
-  --bg-input: #1a2332;
-  --bg-input-hover: #1f2d3f;
-  --border: #2d3e5f;
-  --border-soft: #1f2d4a;
-  --text-primary: #e2e8f0;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --purple: #8b3cf7;
+  --bg-page: #1a1a1a;
+  --bg-card: #1e1e1e;
+  --bg-btn: rgba(255, 255, 255, 0.08);
+  --bg-btn-hover: rgba(255, 255, 255, 0.12);
+  --bg-input: rgba(40, 40, 40, 0.95);
+  --bg-input-hover: rgba(50, 50, 50, 0.8);
+  --border: rgba(255, 255, 255, 0.15);
+  --border-soft: rgba(255, 255, 255, 0.1);
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-muted: #808080;
+  --purple: #9333ea;
   --red: #ef4444;
   --yellow: #f59e0b;
   --green: #10b981;
 }
 
 html, body {
-  background: var(--bg-page);
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   font-family: 'Inter', sans-serif;
   color: var(--text-primary);
 }
@@ -48,6 +48,7 @@ html, body {
 .card {
   width: 100%;
   max-width: 1200px;
+  margin: 0 auto;
   background: var(--bg-card);
   border-radius: 12px;
   border: 1px solid var(--border-soft);
@@ -57,21 +58,24 @@ html, body {
 
 .card-header {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
   gap: 1.5rem;
   margin-bottom: 2rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid var(--border-soft);
+  text-align: center;
 }
 
 .shield-wrap {
   flex-shrink: 0;
   padding: 0.75rem;
-  background: rgba(139, 60, 247, 0.1);
+  background: rgba(147, 51, 234, 0.12);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0 auto;
 }
 
 .card-title {
@@ -145,6 +149,7 @@ html, body {
 .form-section-title {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
@@ -152,6 +157,7 @@ html, body {
   margin-bottom: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--border-soft);
+  text-align: center;
 }
 
 .form-section-title svg {
@@ -169,6 +175,7 @@ html, body {
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: capitalize;
+  text-align: center;
 }
 
 .form-group textarea,

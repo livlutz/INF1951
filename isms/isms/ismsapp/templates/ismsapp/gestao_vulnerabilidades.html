@@ -42,16 +42,6 @@
     <form method="post" action="{% url 'gestao_vulnerabilidades' %}" class="vulnerability-form">
       {% csrf_token %}
 
-      <!-- Form Title -->
-      <div class="form-section-title">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="1"/>
-          <path d="M12 8v-3m0 10v3"/>
-          <path d="M16 12h3m-10 0H5"/>
-        </svg>
-        Registrar Nova Vulnerabilidade
-      </div>
-
       <!-- Description -->
       <div class="form-group">
         <label>Descrição da Vulnerabilidade</label>

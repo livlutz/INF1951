@@ -43,16 +43,6 @@ body {
     gap: 30px;
 }
 
-.dashboard-card-link {
-    text-decoration: none;
-    color: inherit;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-.dashboard-card-link:hover {
-    transform: translateY(-8px);
-}
-
 .dashboard-card {
     background: rgba(30, 30, 30, 0.95);
     border-radius: 12px;
@@ -123,6 +113,110 @@ body {
     letter-spacing: 0.5px;
 }
 
+/* Modules Container */
+.modules-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Module Card Styles */
+.module-card {
+    background: rgba(30, 30, 30, 0.95);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.module-card.expanded {
+    border-color: rgba(147, 51, 234, 0.3);
+    box-shadow: 0 15px 50px rgba(147, 51, 234, 0.2);
+}
+
+.module-card-header {
+    padding: 25px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s ease;
+}
+
+.module-card-header:hover {
+    background-color: rgba(147, 51, 234, 0.05);
+}
+
+.module-header-content {
+    flex: 1;
+}
+
+.module-title-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.module-icon {
+    font-size: 32px;
+    color: #9333ea;
+    flex-shrink: 0;
+}
+
+.module-title {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.module-description {
+    color: #a0a0a0;
+    font-size: 14px;
+    margin: 8px 0 0 47px;
+    font-weight: 400;
+}
+
+.module-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(147, 51, 234, 0.1);
+    border-radius: 8px;
+    margin-left: 20px;
+    flex-shrink: 0;
+}
+
+.toggle-icon {
+    font-size: 18px;
+    color: #9333ea;
+    transition: transform 0.3s ease;
+}
+
+.module-card.expanded .toggle-icon {
+    transform: rotate(180deg);
+}
+
+/* Module Content Styles */
+.module-content {
+    padding: 0 30px 30px 30px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
+    opacity: 0;
+}
+
+.module-card.expanded .module-content {
+    max-height: 3000px;
+    opacity: 1;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .dashboard-container {
@@ -136,6 +230,42 @@ body {
 
     .dashboard-header .subtitle {
         font-size: 14px;
+    }
+
+    .modules-container {
+        gap: 15px;
+    }
+
+    .module-card-header {
+        padding: 20px;
+    }
+
+    .module-title-container {
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .module-icon {
+        font-size: 28px;
+    }
+
+    .module-title {
+        font-size: 18px;
+    }
+
+    .module-description {
+        font-size: 13px;
+        margin-left: 38px;
+    }
+
+    .module-toggle {
+        width: 36px;
+        height: 36px;
+        margin-left: 15px;
+    }
+
+    .module-content {
+        padding: 0 20px 20px 20px;
     }
 
     .dashboard-grid {
@@ -169,6 +299,51 @@ body {
 
     .dashboard-header h1 {
         font-size: 24px;
+    }
+
+    .modules-container {
+        gap: 12px;
+    }
+
+    .module-card-header {
+        padding: 15px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .module-header-content {
+        width: 100%;
+        margin-bottom: 12px;
+    }
+
+    .module-title-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+
+    .module-icon {
+        font-size: 24px;
+    }
+
+    .module-title {
+        font-size: 16px;
+    }
+
+    .module-description {
+        font-size: 12px;
+        margin-left: 0;
+    }
+
+    .module-toggle {
+        width: 32px;
+        height: 32px;
+        margin-left: 0;
+    }
+
+    .module-content {
+        padding: 0 15px 15px 15px;
     }
 
     .dashboard-grid {

@@ -9,222 +9,348 @@
     <link href="{% static 'css/ismsapp/dashboard.css' %}" rel="stylesheet">
 {% endblock %}
 
+{% block extra_js %}
+    <script src="{% static 'js/ismsapp/dashboard.js' %}"></script>
+{% endblock %}
+
 {% block content %}
     <div class="dashboard-container">
         <div class="dashboard-header">
             <h1>Olá, {{ usuario.username }}!</h1>
         </div>
 
-        <div class="dashboard-grid">
-            <!-- Cadastro de Categorias de Ativos - Only for Authorized Users -->
-            {% if pode_cadastrar_categorias_de_ativos %}
-            <a href="{% url 'cadastro_categoria_ativo' %}" class="dashboard-card-link">
-                <div class="dashboard-card">
-                    <div class="card-icon">
-                        <i class="fas fa-tag"></i>
+        <div class="modules-container">
+            <!-- ATIVO MODULE -->
+            {% if pode_cadastrar_categorias_de_ativos or pode_cadastrar_ativos or pode_criar_criterios_de_valoracao_dos_ativos or pode_analisar_valoracao_dos_ativos %}
+            <div class="module-card">
+                <div class="module-card-header" onclick="toggleModule(this)">
+                    <div class="module-header-content">
+                        <div class="module-title-container">
+                            <i class="fas fa-cube module-icon"></i>
+                            <h2 class="module-title">Ativos</h2>
+                        </div>
+                        <p class="module-description">Gerenciar ativos, categorias e valorações</p>
                     </div>
-                    <h3>Cadastro de Categorias de Ativos</h3>
-                    <p>Cadastre categorias de ativos</p>
-                    <div class="card-footer">
-                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
-                    </div>
-                </div>
-            </a>
-            {% endif %}
-
-            <!-- Cadastro de Ativos - Only for Authorized Users -->
-            {% if pode_cadastrar_ativos %}
-            <a href="{% url 'cadastro_ativo' %}" class="dashboard-card-link">
-                <div class="dashboard-card">
-                    <div class="card-icon">
-                        <i class="fas fa-desktop"></i>
-                    </div>
-                    <h3>Cadastro de Ativos</h3>
-                    <p>Cadastre ativos</p>
-                    <div class="card-footer">
-                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    <div class="module-toggle">
+                        <i class="fas fa-chevron-down toggle-icon"></i>
                     </div>
                 </div>
-            </a>
-            {% endif %}
 
-            <!-- Criação de Critérios de Valoração de Ativos - Only for Authorized Users -->
-            {% if pode_criar_criterios_de_valoracao_dos_ativos %}
-            <a href="{% url 'criacao_criterios_valoracao_ativos' %}" class="dashboard-card-link">
-                <div class="dashboard-card">
-                    <div class="card-icon">
-                        <i class="fas fa-cogs"></i>
+                <div class="module-content">
+                    <div class="dashboard-grid">
+                <!-- Cadastro de Categorias de Ativos -->
+                {% if pode_cadastrar_categorias_de_ativos %}
+                <a href="{% url 'cadastro_categoria_ativo' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-tag"></i>
+                        </div>
+                        <h3>Cadastro de Categorias de Ativos</h3>
+                        <p>Cadastre categorias de ativos</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
                     </div>
-                    <h3>Criação de Critérios de Valoração</h3>
-                    <p>Crie critérios de valoração para os ativos</p>
-                    <div class="card-footer">
-                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                </a>
+                {% endif %}
+
+                <!-- Cadastro de Ativos -->
+                {% if pode_cadastrar_ativos %}
+                <a href="{% url 'cadastro_ativo' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                        <h3>Cadastro de Ativos</h3>
+                        <p>Cadastre ativos</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
+
+                <!-- Criação de Critérios de Valoração de Ativos -->
+                {% if pode_criar_criterios_de_valoracao_dos_ativos %}
+                <a href="{% url 'criacao_criterios_valoracao_ativos' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h3>Criação de Critérios de Valoração</h3>
+                        <p>Crie critérios de valoração para os ativos</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
+
+                <!-- Análise da Valoração dos Ativos -->
+                {% if pode_analisar_valoracao_dos_ativos %}
+                <a href="{% url 'analise_valoracao_ativos' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Análise da Valoração dos Ativos</h3>
+                        <p>Confira a valoração dos ativos</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
                     </div>
                 </div>
-            </a>
+            </div>
             {% endif %}
 
-            <!--Analise da valoracao de ativos-->
-            {% if pode_analisar_valoracao_dos_ativos %}
-            <a href="{% url 'analise_valoracao_ativos' %}" class="dashboard-card-link">
-                <div class="dashboard-card">
-                    <div class="card-icon">
-                        <i class="fas fa-chart-line"></i>
+            <!-- RISCO MODULE -->
+            {% if pode_criar_criterios_para_avaliacao_dos_riscos or pode_identificar_riscos or pode_analisar_riscos or pode_avaliar_riscos or pode_tratar_riscos %}
+            <div class="module-card">
+                <div class="module-card-header" onclick="toggleModule(this)">
+                    <div class="module-header-content">
+                        <div class="module-title-container">
+                            <i class="fas fa-exclamation-circle module-icon"></i>
+                            <h2 class="module-title">Riscos</h2>
+                        </div>
+                        <p class="module-description">Identificar, analisar, avaliar e tratar riscos</p>
                     </div>
-                    <h3>Análise da Valoração dos ativos</h3>
-                    <p>Confira a valoração dos ativos</p>
-                    <div class="card-footer">
-                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    <div class="module-toggle">
+                        <i class="fas fa-chevron-down toggle-icon"></i>
                     </div>
                 </div>
-            </a>
-            {% endif %}
 
-            <!-- Criação de Critérios de Avaliação de Riscos - Only for Authorized Users -->
-            {% if pode_criar_criterios_para_avaliacao_dos_riscos %}
-            <a href="{% url 'criacao_criterios_avaliacao_riscos' %}" class="dashboard-card-link">
-                <div class="dashboard-card">
-                    <div class="card-icon">
-                        <i class="fas fa-shield-alt"></i>
+                <div class="module-content">
+                    <div class="dashboard-grid">
+                <!-- Criação de Critérios de Avaliação de Riscos -->
+                {% if pode_criar_criterios_para_avaliacao_dos_riscos %}
+                <a href="{% url 'criacao_criterios_avaliacao_riscos' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Criação de Critérios de Avaliação</h3>
+                        <p>Crie critérios de avaliação para os riscos</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
                     </div>
-                    <h3>Criação de Critérios de Avaliação de Riscos</h3>
-                    <p>Crie critérios de avaliação para os riscos</p>
-                    <div class="card-footer">
-                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                </a>
+                {% endif %}
+
+                <!-- Identificação de Riscos -->
+                {% if pode_identificar_riscos %}
+                <a href="{% url 'identificacao_riscos' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3>Identificação de Riscos</h3>
+                        <p>Identifique novos riscos de segurança da informação</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
+
+                <!-- Análise de Riscos -->
+                {% if pode_analisar_riscos %}
+                <a href="{% url 'analise_riscos' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h3>Análise de Riscos</h3>
+                        <p>Analise os riscos identificados</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
+
+                <!-- Avaliação de Riscos -->
+                {% if pode_avaliar_riscos %}
+                <a href="{% url 'avaliacao_riscos' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-clipboard-check"></i>
+                        </div>
+                        <h3>Avaliação de Riscos</h3>
+                        <p>Avalie os riscos identificados</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
+
+                <!-- Tratamento de Riscos -->
+                {% if pode_tratar_riscos %}
+                <a href="{% url 'tratamento_riscos' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <h3>Tratamento de Riscos</h3>
+                        <p>Trate os riscos identificados</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
                     </div>
                 </div>
-            </a>
+            </div>
             {% endif %}
 
-            <!-- Identificação de Riscos - Only for Authorized Users -->
-            {% if pode_identificar_riscos %}
-            <a href="{% url 'identificacao_riscos' %}" class="dashboard-card-link">
-                <div class="dashboard-card">
-                    <div class="card-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <h3>Identificação de Riscos</h3>
-                    <p>Identifique novos riscos de segurança da informação</p>
-                    <div class="card-footer">
-                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
-                    </div>
-                </div>
-            </a>
-            {% endif %}
-
-            <!-- Análise de Riscos - Only for Authorized Users -->
-            {% if pode_analisar_riscos %}
-            <a href="{% url 'analise_riscos' %}" class="dashboard-card-link">
-                <div class="dashboard-card">
-                    <div class="card-icon">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <h3>Análise de Riscos</h3>
-                    <p>Analise os riscos identificados</p>
-                    <div class="card-footer">
-                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
-                    </div>
-                </div>
-            </a>
-            {% endif %}
-
-            <!-- Avaliação de Riscos - Only for Authorized Users -->
-            {% if pode_avaliar_riscos %}
-            <a href="{% url 'avaliacao_riscos' %}" class="dashboard-card-link">
-                <div class="dashboard-card">
-                    <div class="card-icon">
-                        <i class="fas fa-clipboard-check"></i>
-                    </div>
-                    <h3>Avaliação de Riscos</h3>
-                    <p>Avalie os riscos identificados</p>
-                    <div class="card-footer">
-                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
-                    </div>
-                </div>
-            </a>
-            {% endif %}
-
-            <!-- Tratamento de Riscos - Only for Authorized Users -->
-            {% if pode_tratar_riscos %}
-            <a href="{% url 'tratamento_riscos' %}" class="dashboard-card-link">
-                <div class="dashboard-card">
-                    <div class="card-icon">
-                        <i class="fas fa-tools"></i>
-                    </div>
-                    <h3>Tratamento de Riscos</h3>
-                    <p>Trate os riscos identificados</p>
-                    <div class="card-footer">
-                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
-                    </div>
-                </div>
-            </a>
-            {% endif %}
-
-            <!-- Gestão de Incidentes de Segurança - Only for Authorized Users -->
-            {% if pode_gestionar_incidentes_de_seguranca %}
-            <a href="{% url 'gestao_incidentes' %}" class="dashboard-card-link">
-                <div class="dashboard-card">
-                    <div class="card-icon">
-                        <i class="fas fa-exclamation-triangle" style="color: #9333ea;"></i>
-                    </div>
-                    <h3>Gestão de Incidentes</h3>
-                    <p>Registre e acompanhe incidentes de segurança</p>
-                    <div class="card-footer">
-                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
-                    </div>
-                </div>
-            </a>
-            {% endif %}
-
-            <!-- Detecção de Ameaças - Only for Authorized Users -->
+            <!-- AMEACA MODULE -->
             {% if pode_detectar_ameacas %}
-            <a href="{% url 'deteccao_ameaca' %}" class="dashboard-card-link">
-                <div class="dashboard-card">
-                    <div class="card-icon">
-                        <i class="fas fa-shield-alt" style="color: #8b3cf7;"></i>
+            <div class="module-card">
+                <div class="module-card-header" onclick="toggleModule(this)">
+                    <div class="module-header-content">
+                        <div class="module-title-container">
+                            <i class="fas fa-virus module-icon"></i>
+                            <h2 class="module-title">Ameaças</h2>
+                        </div>
+                        <p class="module-description">Detectar e registrar ameaças aos ativos</p>
                     </div>
-                    <h3>Detecção de Ameaças</h3>
-                    <p>Identifique e registre novas ameaças aos ativos</p>
-                    <div class="card-footer">
-                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    <div class="module-toggle">
+                        <i class="fas fa-chevron-down toggle-icon"></i>
                     </div>
                 </div>
-            </a>
+
+                <div class="module-content">
+                    <div class="dashboard-grid">
+                <!-- Detecção de Ameaças -->
+                <a href="{% url 'deteccao_ameaca' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-shield-alt" style="color: #8b3cf7;"></i>
+                        </div>
+                        <h3>Detecção de Ameaças</h3>
+                        <p>Identifique e registre novas ameaças aos ativos</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                    </div>
+                </div>
+            </div>
             {% endif %}
 
-            <!-- Gestão de Vulnerabilidades - Only for Authorized Users -->
+            <!-- VULNERABILIDADE MODULE -->
             {% if pode_gerenciar_vulnerabilidades %}
-            <a href="{% url 'gestao_vulnerabilidades' %}" class="dashboard-card-link">
-                <div class="dashboard-card">
-                    <div class="card-icon">
-                        <i class="fas fa-exclamation-triangle" style="color: #8b3cf7;"></i>
+            <div class="module-card">
+                <div class="module-card-header" onclick="toggleModule(this)">
+                    <div class="module-header-content">
+                        <div class="module-title-container">
+                            <i class="fas fa-bug module-icon"></i>
+                            <h2 class="module-title">Vulnerabilidades</h2>
+                        </div>
+                        <p class="module-description">Registrar e acompanhar vulnerabilidades</p>
                     </div>
-                    <h3>Gestão de Vulnerabilidades</h3>
-                    <p>Registre e acompanhe vulnerabilidades identificadas</p>
-                    <div class="card-footer">
-                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    <div class="module-toggle">
+                        <i class="fas fa-chevron-down toggle-icon"></i>
                     </div>
                 </div>
-            </a>
+
+                <div class="module-content">
+                    <div class="dashboard-grid">
+                <!-- Gestão de Vulnerabilidades -->
+                <a href="{% url 'gestao_vulnerabilidades' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-exclamation-triangle" style="color: #8b3cf7;"></i>
+                        </div>
+                        <h3>Gestão de Vulnerabilidades</h3>
+                        <p>Registre e acompanhe vulnerabilidades identificadas</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                    </div>
+                </div>
+            </div>
             {% endif %}
 
-            <!-- Registro de Auditorias - Only for Authorized Users -->
+            <!-- INCIDENTE MODULE -->
+            {% if pode_gestionar_incidentes_de_seguranca %}
+            <div class="module-card">
+                <div class="module-card-header" onclick="toggleModule(this)">
+                    <div class="module-header-content">
+                        <div class="module-title-container">
+                            <i class="fas fa-fire module-icon"></i>
+                            <h2 class="module-title">Incidentes</h2>
+                        </div>
+                        <p class="module-description">Registrar e acompanhar incidentes de segurança</p>
+                    </div>
+                    <div class="module-toggle">
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                </div>
+
+                <div class="module-content">
+                    <div class="dashboard-grid">
+                <!-- Gestão de Incidentes de Segurança -->
+                <a href="{% url 'gestao_incidentes' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-exclamation-triangle" style="color: #9333ea;"></i>
+                        </div>
+                        <h3>Gestão de Incidentes</h3>
+                        <p>Registre e acompanhe incidentes de segurança</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- AUDITORIA MODULE -->
             {% if pode_registrar_auditorias %}
-            <a href="{% url 'registro_auditoria' %}" class="dashboard-card-link">
-                <div class="dashboard-card">
-                    <div class="card-icon">
-                        <i class="fas fa-clipboard-list" style="color: #8b3cf7;"></i>
+            <div class="module-card">
+                <div class="module-card-header" onclick="toggleModule(this)">
+                    <div class="module-header-content">
+                        <div class="module-title-container">
+                            <i class="fas fa-clipboard-check module-icon"></i>
+                            <h2 class="module-title">Auditorias</h2>
+                        </div>
+                        <p class="module-description">Registrar auditorias e acompanhar conformidades</p>
                     </div>
-                    <h3>Registro de Auditorias</h3>
-                    <p>Registre auditorias e acompanhe não conformidades</p>
-                    <div class="card-footer">
-                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    <div class="module-toggle">
+                        <i class="fas fa-chevron-down toggle-icon"></i>
                     </div>
                 </div>
-            </a>
+
+                <div class="module-content">
+                    <div class="dashboard-grid">
+                <!-- Registro de Auditorias -->
+                <a href="{% url 'registro_auditoria' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-clipboard-list" style="color: #8b3cf7;"></i>
+                        </div>
+                        <h3>Registro de Auditorias</h3>
+                        <p>Registre auditorias e acompanhe não conformidades</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                    </div>
+                </div>
+            </div>
             {% endif %}
-
-
         </div>
     </div>
 {% endblock %}

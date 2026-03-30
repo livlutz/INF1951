@@ -24,10 +24,11 @@
 }
 
 .incident-content {
-    background: white;
+    background: rgba(30, 30, 30, 0.95);
     padding: 2rem;
     border-radius: 0 0 8px 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    color: #ffffff;
 }
 
 .section {
@@ -115,7 +116,7 @@
 }
 
 .form-section {
-    background: #f8f9fa;
+    background: rgba(50, 50, 50, 0.8);
     padding: 1.5rem;
     border-radius: 4px;
     margin-top: 1rem;
@@ -135,7 +136,7 @@
 .form-group select {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid #e9ecef;
+    border: 1px solid #444;
     border-radius: 4px;
     font-size: 1rem;
 }

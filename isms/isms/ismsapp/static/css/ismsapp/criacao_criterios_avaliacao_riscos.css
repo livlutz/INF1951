@@ -3,24 +3,24 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg-page:        #0e1019;
-    --bg-card:        #161b27;
-    --bg-guide:       #1c2133;
-    --bg-btn:         #1e2436;
-    --bg-btn-hover:   #252c42;
-    --purple:         #8b3cf7;
-    --purple-hover:   #9d50ff;
-    --purple-border:  #7c35e0;
-    --border:         #252c42;
-    --border-soft:    #1e2639;
-    --text-primary:   #e8eaf0;
-    --text-secondary: #8a93a8;
-    --text-muted:     #4a5168;
+    --bg-page:        #1a1a1a;
+    --bg-card:        #1e1e1e;
+    --bg-guide:       rgba(30, 30, 30, 0.7);
+    --bg-btn:         rgba(255, 255, 255, 0.08);
+    --bg-btn-hover:   rgba(255, 255, 255, 0.12);
+    --purple:         #9333ea;
+    --purple-hover:   #a855f7;
+    --purple-border:  #b366ff;
+    --border:         rgba(255, 255, 255, 0.15);
+    --border-soft:    rgba(255, 255, 255, 0.1);
+    --text-primary:   #ffffff;
+    --text-secondary: #b0b0b0;
+    --text-muted:     #808080;
   }
 
   html, body {
     min-height: 100vh;
-    background: var(--bg-page);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     font-family: 'Inter', sans-serif;
     color: var(--text-primary);
   }
@@ -93,7 +93,7 @@
 
   .shield-wrap {
     width: 48px; height: 48px;
-    background: rgba(139,60,247,0.12);
+    background: rgba(147,51,234,0.12);
     border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     margin: 0 auto 1rem;
@@ -148,7 +148,7 @@
     flex-shrink: 0;
   }
 
-  .s-purple { background: rgba(139,60,247,.18); color: var(--purple); }
+  .s-purple { background: rgba(147,51,234,.18); color: var(--purple); }
   .s-amber  { background: rgba(245,166,35,.15); color: #f5a623; font-size: .95rem; font-weight: 700; }
 
   /* ── 1-5 button group ─────────────────────────────────────────────── */
@@ -171,13 +171,13 @@
     user-select: none;
   }
 
-  .num-btn:hover { background: var(--bg-btn-hover); border-color: rgba(139,60,247,.4); color: var(--text-primary); }
+  .num-btn:hover { background: var(--bg-btn-hover); border-color: rgba(147,51,234,.4); color: var(--text-primary); }
   .num-btn:active { transform: scale(.94); }
   .num-btn.active {
     background: var(--purple);
     border-color: var(--purple-border);
     color: #fff;
-    box-shadow: 0 0 18px rgba(139,60,247,.4);
+    box-shadow: 0 0 18px rgba(147,51,234,.4);
   }
 
   /* ── Appetite buttons ─────────────────────────────────────────────── */
@@ -200,7 +200,7 @@
     user-select: none;
   }
 
-  .appetite-btn:hover { background: var(--bg-btn-hover); border-color: rgba(139,60,247,.4); color: var(--text-primary); }
+  .appetite-btn:hover { background: var(--bg-btn-hover); border-color: rgba(147,51,234,.4); color: var(--text-primary); }
   .appetite-btn:active { transform: scale(.97); }
   .appetite-btn.active {
     background: transparent;
@@ -310,8 +310,8 @@
     font-size: .9rem; font-weight: 600;
     padding: 0 1.4rem; height: 46px;
     cursor: pointer;
-    box-shadow: 0 4px 18px rgba(139,60,247,.4);
+    box-shadow: 0 4px 18px rgba(147,51,234,.4);
     transition: background .14s, box-shadow .14s, transform .1s;
   }
-  .btn-confirm:hover { background: var(--purple-hover); box-shadow: 0 6px 24px rgba(139,60,247,.55); transform: translateY(-1px); }
+  .btn-confirm:hover { background: var(--purple-hover); box-shadow: 0 6px 24px rgba(147,51,234,.55); transform: translateY(-1px); }
   .btn-confirm:active { transform: scale(.97); }

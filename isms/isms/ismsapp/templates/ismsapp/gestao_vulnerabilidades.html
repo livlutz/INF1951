@@ -154,7 +154,6 @@
               <th>ATIVO</th>
               <th>SEVERIDADE</th>
               <th>STATUS</th>
-              <th>AÇÕES</th>
             </tr>
           </thead>
           <tbody>
@@ -175,36 +174,13 @@
                     {{ vuln.get_status_display }}
                   </span>
                 </td>
-                <td class="actions-cell">
-                  <a href="#" class="btn-icon" title="Ver detalhes">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                      <circle cx="12" cy="12" r="3"/>
-                    </svg>
-                  </a>
-                </td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
 
-      <!-- Pagination -->
-      <div class="table-pagination">
-        <span class="pagination-info">Listando {{ vulnerabilidades|length }} de {{ total_vulnerabilidades }} vulnerabilidades registradas</span>
-        <div class="pagination-controls">
-          <button class="pagination-btn" disabled>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="15 18l-6-6 6-6"></polyline>
-            </svg>
-          </button>
-          <button class="pagination-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 18l6-6-6-6"></polyline>
-            </svg>
-          </button>
-        </div>
-      </div>
+
     {% else %}
       <div class="empty-state">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #64748b; margin-bottom: 1rem;">

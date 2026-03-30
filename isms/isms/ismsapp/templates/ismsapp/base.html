@@ -29,6 +29,9 @@
                     <!-- User is logged in -->
                     <div class="nav-user">
                         <span class="username">{{ user.username }}</span>
+                        <a href="{% url 'dashboard' %}" class="nav-button dashboard-button">
+                            Dashboard
+                        </a>
                         <a href="{% url 'profile' %}" class="nav-button profile-button">
                             Perfil
                         </a>

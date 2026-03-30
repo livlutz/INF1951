@@ -432,6 +432,12 @@ class Ameaca(models.Model):
         help_text = "Descrição detalhada do cenário de ameaça, incluindo como ele poderia ser acionado e por quem.",
     )
 
+    """Description of possible impacts that could result from this threat being realized."""
+    impactos = models.TextField(
+        blank=True,
+        help_text = "Descrição dos possíveis impactos que poderiam resultar da realização desta ameaça.",
+    )
+
     class Meta:
         verbose_name = "Ameaça"
         verbose_name_plural = "Ameaças"

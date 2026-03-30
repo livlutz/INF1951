@@ -842,10 +842,11 @@ class AmeacaForm(forms.ModelForm):
 
     class Meta:
         model = Ameaca
-        fields = ['ativos', 'descricao']
+        fields = ['ativos', 'descricao', 'impactos']
         labels = {
             'ativos': 'Ativos Potencialmente Afetados',
-            'descricao': 'Descrição da Ameaça'
+            'descricao': 'Descrição da Ameaça',
+            'impactos': 'Possíveis Impactos'
         }
         widgets = {
             'ativos': forms.SelectMultiple(attrs={

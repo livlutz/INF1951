@@ -2114,7 +2114,8 @@ class DeteccaoAmeacaView(View):
                 else:
                     # Create the threat
                     ameaca = Ameaca.objects.create(
-                        descricao=descricao
+                        descricao=descricao,
+                        impactos=impactos
                     )
 
                     # Add the selected assets to the threat

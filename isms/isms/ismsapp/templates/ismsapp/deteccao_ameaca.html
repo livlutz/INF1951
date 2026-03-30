@@ -201,7 +201,14 @@
                   <span class="asset-badge empty">Nenhum ativo associado</span>
                 {% endfor %}
               </div>
-              <div class="threat-description">{{ ameaca.descricao|truncatewords:20 }}</div>
+              <div class="threat-description">
+                <strong>Descrição:</strong> {{ ameaca.descricao|truncatewords:20 }}
+              </div>
+              {% if ameaca.impactos %}
+              <div class="threat-impacts">
+                <strong>Possíveis Impactos:</strong> {{ ameaca.impactos|truncatewords:20 }}
+              </div>
+              {% endif %}
             </div>
           {% endfor %}
         </div>

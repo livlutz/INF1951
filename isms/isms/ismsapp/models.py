@@ -1115,3 +1115,103 @@ class RelatórioIncidente(models.Model):
 
     def __str__(self):
         return f"Relatório {self.protocolo} - {self.incidente.numero_incidente}"
+
+
+class Auditoria(models.Model):
+    """
+    Represents an internal or external audit conducted by the organization.
+
+    Each audit records:
+    - Type (internal or external)
+    - Name/ID of the audit
+    - Date of the audit
+    - Identified non-conformities
+    - Remediation action plans
+    - Status (concluded or pending)
+
+    UC-15 - Gestão de Auditorias Internas e Externas
+    """
+
+    class TipoAuditoria(models.TextChoices):
+        """Audit type choices."""
+        INTERNA = "interna", "Interna"
+        EXTERNA = "externa", "Externa"
+
+    class StatusAuditoria(models.TextChoices):
+        """Audit status choices."""
+        PENDENTE = "pendente", "Pendente"
+        CONCLUIDA = "concluida", "Concluída"
+
+    """Type of audit: internal or external."""
+    tipo_auditoria = models.CharField(
+        max_length=20,
+        choices=TipoAuditoria.choices,
+        help_text="Tipo de auditoria realizada: interna ou externa."
+    )
+
+    """Name or ID of the audit (e.g., 'AUD-2023-001')."""
+    nome = models.CharField(
+        max_length=255,
+        help_text="Nome ou ID da auditoria (ex: 'AUD-2023-001')."
+    )
+
+    """Date when the audit was conducted."""
+    data_auditoria = models.DateField(
+        help_text="Data em que a auditoria foi realizada."
+    )
+
+    """Whether non-conformities were identified during the audit."""
+    nao_conformidades_identificadas = models.BooleanField(
+        default=False,
+        help_text="Indica se foram identificadas não conformidades durante a auditoria."
+    )
+
+    """Description of non-conformities found (if any)."""
+    nao_conformidades = models.TextField(
+        blank=True,
+        help_text="Descrição dos achados e não conformidades identificadas (se houver)."
+    )
+
+    """Remediation/action plan to address identified non-conformities."""
+    plano_acao = models.TextField(
+        blank=True,
+        help_text="Planos de ação para remediação das não conformidades."
+    )
+
+    """Current status of the audit."""
+    status = models.CharField(
+        max_length=20,
+        choices=StatusAuditoria.choices,
+        default=StatusAuditoria.PENDENTE,
+        help_text="Status atual da auditoria."
+    )
+
+    """User who registered this audit."""
+    registrado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="auditorias_registradas",
+        help_text="Usuário que registrou esta auditoria."
+    )
+
+    """Timestamp when this audit was registered."""
+    data_registro = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Data e hora do registro da auditoria no sistema."
+    )
+
+    """Timestamp of the last update to this audit."""
+    data_atualizacao = models.DateTimeField(
+        auto_now=True,
+        help_text="Data e hora da última atualização da auditoria."
+    )
+
+    class Meta:
+        verbose_name = "Auditoria"
+        verbose_name_plural = "Auditorias"
+        ordering = ["-data_auditoria"]
+
+    def __str__(self):
+        return f"{self.nome} - {self.get_tipo_auditoria_display()} ({self.data_auditoria})"

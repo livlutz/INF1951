@@ -1,0 +1,196 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Registro de Auditorias{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/ismsapp/registro_auditoria.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <!-- Alert Messages -->
+  {% if messages %}
+    <div class="alerts-container">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Registrar Nova Auditoria Form -->
+  <div class="card">
+    <!-- Header -->
+    <div class="card-header">
+      <div class="shield-wrap">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b3cf7" stroke-width="1.8">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <circle cx="12" cy="12" r="2"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="card-title">Registro de Auditorias</h1>
+        <p class="card-description">Registre auditorias internas e externas, acompanhe não conformidades e planos de ação.</p>
+      </div>
+    </div>
+
+    <!-- Registrar Nova Auditoria -->
+    <form method="post" action="{% url 'registro_auditoria' %}" class="audit-form">
+      {% csrf_token %}
+
+      <!-- Form Title -->
+      <div class="form-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="1"/>
+          <path d="M12 8v-3m0 10v3"/>
+          <path d="M16 12h3m-10 0H5"/>
+        </svg>
+        Registrar Nova Auditoria
+      </div>
+
+      <!-- Two Column Row: Tipo + Nome -->
+      <div class="form-row-2">
+        <!-- Tipo de Auditoria -->
+        <div class="form-group">
+          <label>Tipo de Auditoria</label>
+          {{ form.tipo_auditoria }}
+          {% if form.tipo_auditoria.errors %}
+            <p class="form-error">{{ form.tipo_auditoria.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Nome da Auditoria -->
+        <div class="form-group">
+          <label>Nome da Auditoria</label>
+          {{ form.nome }}
+          {% if form.nome.errors %}
+            <p class="form-error">{{ form.nome.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Data da Auditoria -->
+      <div class="form-group">
+        <label>Data da Auditoria</label>
+        {{ form.data_auditoria }}
+        {% if form.data_auditoria.errors %}
+          <p class="form-error">{{ form.data_auditoria.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Checkbox: Não foram identificadas não conformidades -->
+      <div class="form-group checkbox-group">
+        {{ form.nao_conformidades_identificadas }}
+        <label class="checkbox-label">
+          {{ form.nao_conformidades_identificadas.label }}
+        </label>
+        {% if form.nao_conformidades_identificadas.errors %}
+          <p class="form-error">{{ form.nao_conformidades_identificadas.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Não Conformidades (Achados) -->
+      <div class="form-group">
+        <label>Não Conformidades (Achados)</label>
+        {{ form.nao_conformidades }}
+        {% if form.nao_conformidades.errors %}
+          <p class="form-error">{{ form.nao_conformidades.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Planos de Ação (Remediação) -->
+      <div class="form-group">
+        <label>Planos de Ação (Remediação)</label>
+        {{ form.plano_acao }}
+        {% if form.plano_acao.errors %}
+          <p class="form-error">{{ form.plano_acao.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Submit Button -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Registrar Auditoria
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Auditorias Registradas Section -->
+  <div class="card">
+    <div class="card-header-simple">
+      <div class="header-title-group">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b3cf7" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 8v4m0 4v.01" stroke-width="2.5"/>
+        </svg>
+        <h2>Acompanhamento e Histórico</h2>
+      </div>
+    </div>
+
+    <!-- Status Filter Tabs -->
+    <div class="status-tabs">
+      <a href="#" class="status-tab active">
+        <span class="tab-label">Pendentes</span>
+        <span class="tab-count">{{ count_pendentes }}</span>
+      </a>
+      <a href="#" class="status-tab">
+        <span class="tab-label">Concluídas</span>
+        <span class="tab-count">{{ count_concluidas }}</span>
+      </a>
+    </div>
+
+    {% if auditorias %}
+      <div class="audits-table-wrapper">
+        <table class="audits-table">
+          <thead>
+            <tr>
+              <th>AUDITORIA</th>
+              <th>TIPO</th>
+              <th>DATA</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for auditoria in auditorias %}
+              <tr>
+                <td class="audit-id-cell">
+                  <div class="audit-id">{{ auditoria.nome }}</div>
+                  <div class="audit-meta-id">ID: AUD-{{ auditoria.id|stringformat:"04d" }}</div>
+                </td>
+                <td class="type-cell">
+                  <span class="type-badge type-{{ auditoria.tipo_auditoria }}">
+                    {{ auditoria.get_tipo_auditoria_display }}
+                  </span>
+                </td>
+                <td class="date-cell">{{ auditoria.data_auditoria|date:"d/m/Y" }}</td>
+                <td class="status-cell">
+                  <span class="status-badge status-{{ auditoria.status }}">
+                    {{ auditoria.get_status_display }}
+                  </span>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    {% else %}
+      <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #64748b; margin-bottom: 1rem;">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <p>Nenhuma auditoria registrada</p>
+        <p style="font-size: 0.85rem; color: #94a3b8;">Registre uma nova auditoria para começar</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script src="{% static 'js/ismsapp/registro_auditoria.js' %}"></script>
+{% endblock %}

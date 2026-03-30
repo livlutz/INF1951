@@ -896,3 +896,56 @@ class AmeacaForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Make 'ativos' required
         self.fields['ativos'].required = True
+
+
+class AuditoriaForm(forms.ModelForm):
+    """Form for registering audits (Auditorias).
+
+    This form allows authorized users (Security Auditors) to register
+    new internal and external audits with:
+    - Type of audit (internal or external)
+    - Name/ID of the audit
+    - Date of the audit
+    - Whether non-conformities were identified
+    - Description of non-conformities (if any)
+    - Remediation/action plan (if any)
+    """
+
+    class Meta:
+        model = Auditoria
+        fields = ['tipo_auditoria', 'nome', 'data_auditoria', 'nao_conformidades_identificadas', 'nao_conformidades', 'plano_acao']
+        labels = {
+            'tipo_auditoria': 'Tipo de Auditoria',
+            'nome': 'Nome da Auditoria',
+            'data_auditoria': 'Data da Auditoria',
+            'nao_conformidades_identificadas': 'Não foram identificadas não conformidades',
+            'nao_conformidades': 'Não Conformidades (Achados)',
+            'plano_acao': 'Planos de Ação (Remediação)'
+        }
+        widgets = {
+            'tipo_auditoria': forms.Select(attrs={
+                'placeholder': 'Selecione o tipo'
+            }),
+            'nome': forms.TextInput(attrs={
+                'placeholder': 'Ex: Auditoria de Segurança'
+            }),
+            'data_auditoria': forms.DateInput(attrs={
+                'type': 'date',
+            }),
+            'nao_conformidades_identificadas': forms.CheckboxInput(attrs={}),
+            'nao_conformidades': forms.Textarea(attrs={
+                'placeholder': 'Descreva as evidências e não conformidades encontradas...',
+                'rows': 5
+            }),
+            'plano_acao': forms.Textarea(attrs={
+                'placeholder': 'Defina os passos para mitigação e correção das falhas...',
+                'rows': 5
+            })
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make all required fields
+        self.fields['tipo_auditoria'].required = True
+        self.fields['nome'].required = True
+        self.fields['data_auditoria'].required = True

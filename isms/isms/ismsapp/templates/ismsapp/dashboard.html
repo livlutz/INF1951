@@ -208,6 +208,22 @@
             </a>
             {% endif %}
 
+            <!-- Registro de Auditorias - Only for Authorized Users -->
+            {% if pode_registrar_auditorias %}
+            <a href="{% url 'registro_auditoria' %}" class="dashboard-card-link">
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-clipboard-list" style="color: #8b3cf7;"></i>
+                    </div>
+                    <h3>Registro de Auditorias</h3>
+                    <p>Registre auditorias e acompanhe não conformidades</p>
+                    <div class="card-footer">
+                        <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+
 
         </div>
     </div>

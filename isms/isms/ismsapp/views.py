@@ -303,6 +303,7 @@ class DashboardView(View):
         pode_gerenciar_vulnerabilidades = actor_type in self.gestao_de_vulnerabilidade if actor_type else False
         pode_auditar_e_revisar = actor_type in self.auditoria_e_revisao if actor_type else False
         pode_gerenciar_auditorias = actor_type in self.gestao_de_auditorias if actor_type else False
+        pode_registrar_auditorias = actor_type in self.gestao_de_auditorias if actor_type else False
 
         contexto = {
             "usuario": request.user,
@@ -322,6 +323,7 @@ class DashboardView(View):
             "pode_gerenciar_vulnerabilidades": pode_gerenciar_vulnerabilidades,
             "pode_auditar_e_revisar": pode_auditar_e_revisar,
             "pode_gerenciar_auditorias": pode_gerenciar_auditorias,
+            "pode_registrar_auditorias": pode_registrar_auditorias,
         }
 
         return render(request, self.template_name, contexto)
@@ -2282,3 +2284,139 @@ class VulnerabilidadeView(View):
 
         # Redirect to the same page
         return redirect('gestao_vulnerabilidades')
+
+class RegistroAuditoriaView(View):
+    """View for audit registration and tracking (Registro de Auditorias).
+
+    This view allows authorized users (Security Auditors) to:
+    1. Register new internal and external audits
+    2. Record identified non-conformities
+    3. Define remediation action plans
+    4. Track audit status and non-conformity resolution
+
+    Requires:
+    - User must be authenticated
+    - User must be a Security Auditor
+
+    UC-15 - Gestão de Auditorias Internas e Externas
+    """
+    form_class = AuditoriaForm
+    template_name = "ismsapp/registro_auditoria.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to manage audits."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        # Only Security Auditor can register audits
+        return user_profile.actor_type == UserProfile.Actor.AUDITOR
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        """Display audit registration page with form and audit history."""
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Auditoria
+
+        # Get all audits ordered by date (most recent first)
+        auditorias = Auditoria.objects.all().order_by('-data_auditoria')
+
+        # Calculate status counts
+        pendentes = auditorias.filter(status='pendente').count()
+        concluidas = auditorias.filter(status='concluida').count()
+        total = auditorias.count()
+
+        contexto = {
+            'form': self.form_class(),
+            'auditorias': auditorias,
+            'count_pendentes': pendentes,
+            'count_concluidas': concluidas,
+            'total_auditorias': total,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        """Handle audit registration."""
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Auditoria
+
+        form = self.form_class(request.POST)
+
+        if form.is_valid():
+            try:
+                # Extract the data
+                tipo_auditoria = form.cleaned_data.get('tipo_auditoria')
+                nome = form.cleaned_data.get('nome')
+                data_auditoria = form.cleaned_data.get('data_auditoria')
+                nao_conformidades_identificadas = form.cleaned_data.get('nao_conformidades_identificadas')
+                nao_conformidades = form.cleaned_data.get('nao_conformidades')
+                plano_acao = form.cleaned_data.get('plano_acao')
+
+                # Check if audit already exists with same name and date
+                existentes = Auditoria.objects.filter(
+                    nome=nome,
+                    data_auditoria=data_auditoria
+                ).first()
+
+                if existentes:
+                    messages.warning(
+                        request,
+                        f"Auditoria já registrada: {nome} em {data_auditoria}. "
+                        f"Status: {existentes.get_status_display()}"
+                    )
+                else:
+                    # Determine status based on whether non-conformities were identified
+                    status = Auditoria.StatusAuditoria.CONCLUIDA if not nao_conformidades_identificadas else Auditoria.StatusAuditoria.PENDENTE
+
+                    # Create the audit
+                    auditoria = Auditoria.objects.create(
+                        tipo_auditoria=tipo_auditoria,
+                        nome=nome,
+                        data_auditoria=data_auditoria,
+                        nao_conformidades_identificadas=nao_conformidades_identificadas,
+                        nao_conformidades=nao_conformidades,
+                        plano_acao=plano_acao,
+                        status=status,
+                        registrado_por=request.user
+                    )
+
+                    messages.success(
+                        request,
+                        f"Auditoria '{nome}' registrada com sucesso! "
+                        f"Tipo: {auditoria.get_tipo_auditoria_display()} | "
+                        f"Status: {auditoria.get_status_display()}"
+                    )
+
+            except Exception as e:
+                messages.error(request, f"Erro ao registrar auditoria: {str(e)}")
+
+        else:
+            # Form has errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+
+        # Reload the page with updated data
+        auditorias = Auditoria.objects.all().order_by('-data_auditoria')
+        pendentes = auditorias.filter(status='pendente').count()
+        concluidas = auditorias.filter(status='concluida').count()
+        total = auditorias.count()
+
+        contexto = {
+            'form': self.form_class(),
+            'auditorias': auditorias,
+            'count_pendentes': pendentes,
+            'count_concluidas': concluidas,
+            'total_auditorias': total,
+        }
+        return render(request, self.template_name, contexto)

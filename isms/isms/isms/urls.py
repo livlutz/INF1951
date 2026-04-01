@@ -52,6 +52,9 @@ urlpatterns = [
     path("gerar_relatorio_incidente/<int:incidente_id>/", views.GerarRelatórioIncidenteView.as_view(), name="gerar_relatorio_incidente"),
     path("relatorio_incidente/<int:relatorio_id>/", views.RelatórioIncidenteView.as_view(), name="relatorio_incidente"),
     path("deteccao_ameaca/", views.DeteccaoAmeacaView.as_view(), name="deteccao_ameaca"),
+    path("lista_ameacas/", views.ReadAmeacaView.as_view(), name="lista_ameacas"),
+    path("editar_ameaca/<int:ameaca_id>/", views.UpdateAmeacaView.as_view(), name="editar_ameaca"),
+    path("deletar_ameaca/<int:ameaca_id>/", views.DeleteAmeacaView.as_view(), name="deletar_ameaca"),
     path("gestao_vulnerabilidades/", views.VulnerabilidadeView.as_view(), name="gestao_vulnerabilidades"),
     path("registro_auditoria/", views.RegistroAuditoriaView.as_view(), name="registro_auditoria"),
 ]

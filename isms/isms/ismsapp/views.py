@@ -2081,7 +2081,6 @@ class GestaoIncidentesView(View):
 
         return render(request, self.template_name, contexto)
 
-
 class CadastroIncidenteView(View):
     """View for registering new security incidents (UC-10, Step 1-4).
 
@@ -2456,7 +2455,7 @@ class RelatórioIncidenteView(View):
         }
         return render(request, self.template_name, contexto)
 
-
+#Threats CRUD
 class DeteccaoAmeacaView(View):
     """View for threat detection (Detecção de Ameaças).
 
@@ -2593,6 +2592,205 @@ class DeteccaoAmeacaView(View):
             # Form has errors
             ativos = Ativo.objects.all()
             ameacas = Ameaca.objects.prefetch_related('ativos').all()
+
+class ReadAmeacaView(View):
+    """View para listar ameaças.
+
+    Esta view permite que os usuários visualizem todas as ameaças identificadas
+    no sistema.
+    """
+    template_name = "ismsapp/lista_ameacas.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to view threats."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        # All authenticated users can view threats
+        return True
+
+    def _check_edit_permission(self, user):
+        """Check if user has permission to edit/delete threats."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Ameaca
+
+        ameacas = Ameaca.objects.all()
+        pode_editar_deletar = self._check_edit_permission(request.user)
+
+        contexto = {
+            'ameacas': ameacas,
+            'pode_editar_deletar': pode_editar_deletar,
+        }
+        return render(request, self.template_name, contexto)
+
+
+class UpdateAmeacaView(View):
+    """View para edição/atualização de ameaça.
+
+    Esta view permite que os usuários cadastrados como Auditor ou Analista de Segurança
+    editem ameaças existentes.
+    Requer que o usuário esteja autenticado e tenha permissão apropriada.
+
+    Usuarios autorizados:
+    - Auditor de Segurança (AUDITOR)
+    - Analista de Segurança (ANALISTA)
+    """
+    form_class = AmeacaForm
+    template_name = "ismsapp/editar_ameaca.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to update threats."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, ameaca_id=None, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Ameaca
+
+        if not ameaca_id:
+            return redirect('lista_ameacas')
+
+        try:
+            ameaca = Ameaca.objects.get(id=ameaca_id)
+        except Ameaca.DoesNotExist:
+            return redirect('lista_ameacas')
+
+        form = self.form_class(instance=ameaca)
+        contexto = {
+            'form': form,
+            'ameaca': ameaca,
+            'ameaca_id': ameaca_id,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, ameaca_id=None, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Ameaca
+
+        if not ameaca_id:
+            return redirect('lista_ameacas')
+
+        try:
+            ameaca = Ameaca.objects.get(id=ameaca_id)
+        except Ameaca.DoesNotExist:
+            return redirect('lista_ameacas')
+
+        form = self.form_class(request.POST, instance=ameaca)
+        if form.is_valid():
+            form.save()
+            return redirect('lista_ameacas')
+
+        contexto = {
+            'form': form,
+            'ameaca': ameaca,
+            'ameaca_id': ameaca_id,
+        }
+        return render(request, self.template_name, contexto)
+
+
+class DeleteAmeacaView(View):
+    """View para deletar ameaça.
+
+    Esta view permite que os usuários cadastrados como Auditor ou Analista de Segurança
+    deletem ameaças existentes.
+    Requer que o usuário esteja autenticado e tenha permissão apropriada.
+
+    Usuarios autorizados:
+    - Auditor de Segurança (AUDITOR)
+    - Analista de Segurança (ANALISTA)
+    """
+    template_name = "ismsapp/deletar_ameaca.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to delete threats."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, ameaca_id=None, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Ameaca
+
+        if not ameaca_id:
+            return redirect('lista_ameacas')
+
+        try:
+            ameaca = Ameaca.objects.get(id=ameaca_id)
+        except Ameaca.DoesNotExist:
+            return redirect('lista_ameacas')
+
+        contexto = {
+            'ameaca': ameaca,
+            'ameaca_id': ameaca_id,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, ameaca_id=None, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Ameaca
+
+        if not ameaca_id:
+            return redirect('lista_ameacas')
+
+        try:
+            ameaca = Ameaca.objects.get(id=ameaca_id)
+            ameaca.delete()
+            return redirect('lista_ameacas')
+        except Ameaca.DoesNotExist:
+            return redirect('lista_ameacas')
+
 
 class VulnerabilidadeView(View):
     """View for vulnerability management (Gestão de Vulnerabilidades).

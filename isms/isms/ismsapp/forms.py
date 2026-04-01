@@ -431,6 +431,51 @@ class IdentificacaoRiscosForm(forms.Form):
         })
     )
 
+class AtualizacaoRiscosForm(forms.Form):
+    """Form for updating identified risks.
+
+    This form allows users to update and edit risks that have already been identified,
+    including the risk name, description, associated asset, and possible impacts.
+    Similar to IdentificacaoRiscosForm but used for updates.
+    """
+
+    nome = forms.CharField(
+        max_length=255,
+        label='Nome do Risco',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nome do Risco'
+        })
+    )
+
+    descricao = forms.CharField(
+        label='Descrição do Risco',
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Descreva o risco em detalhes...',
+            'rows': 5
+        })
+    )
+
+    ativo = forms.ModelChoiceField(
+        label='Ativo Associado',
+        queryset=Ativo.objects.all(),
+        empty_label='Selecione o ativo correspondente',
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        })
+    )
+
+    impactos = forms.CharField(
+        label='Possíveis Impactos',
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'placeholder': 'Documente as perdas potenciais (financeiras, operacionais, reputacionais)...',
+            'rows': 5
+        })
+    )
+
 class AnaliseRiscosForm(forms.Form):
     """Form for analyzing identified risks.
 

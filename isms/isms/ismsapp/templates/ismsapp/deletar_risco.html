@@ -1,0 +1,159 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Deletar Risco{% endblock %}
+
+{% block extra_css %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'css/ismsapp/delete_account.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <div class="delete-container">
+        <div class="delete-card">
+            <!-- Warning Icon -->
+            <div class="icon-wrapper warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+
+            <!-- Title -->
+            <h1>Deletar Risco</h1>
+            <p class="subtitle">Esta ação é permanente</p>
+
+            <!-- Warning Message -->
+            <div class="warning-message">
+                <p>
+                    <strong>Atenção!</strong> Você está prestes a deletar este risco do sistema. Esta ação é <strong>irreversível</strong> e resultará na perda permanente de:
+                </p>
+                <ul>
+                    <li>Todos os dados do risco</li>
+                    <li>Todas as informações de análise e avaliação associadas</li>
+                    <li>Todos os planos de tratamento vinculados a este risco</li>
+                </ul>
+                <p class="warning-final">
+                    Uma vez deletado, o risco não poderá ser recuperado.
+                </p>
+            </div>
+
+            <!-- Risk Information -->
+            <div class="confirmation-message">
+                <p><strong>Risco a ser deletado:</strong></p>
+            </div>
+
+            <div class="asset-info-display">
+                <div class="info-item">
+                    <span class="info-label">Nome:</span>
+                    <span class="info-value">{{ risco.nome }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Ativo Associado:</span>
+                    <span class="info-value">{{ risco.ativo.nome }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Tipo:</span>
+                    <span class="info-value">{{ risco.get_tipo_display }}</span>
+                </div>
+                {% if risco.descricao %}
+                <div class="info-item">
+                    <span class="info-label">Descrição:</span>
+                    <span class="info-value">{{ risco.descricao|truncatewords:20 }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Confirmation Message -->
+            <div class="confirmation-message">
+                <p>Se você tem certeza de que deseja deletar este risco, preencha o formulário abaixo:</p>
+            </div>
+
+            <!-- Delete Form -->
+            <form method="post" class="delete-form" id="deleteForm">
+                {% csrf_token %}
+
+                <!-- Risk Name Confirmation -->
+                <div class="form-group">
+                    <label for="riscoName">Digite o nome do risco:</label>
+                    <input
+                        type="text"
+                        id="riscoName"
+                        name="risco_name_confirm"
+                        class="form-control"
+                        placeholder="{{ risco.nome }}"
+                        required
+                        aria-required="true"
+                    >
+                </div>
+
+                <!-- Acknowledgement Checkbox -->
+                <div class="form-group checkbox-group">
+                    <div class="form-check">
+                        <input
+                            type="checkbox"
+                            id="acknowledge"
+                            class="form-check-input"
+                            required
+                            aria-required="true"
+                        >
+                        <label class="form-check-label" for="acknowledge">
+                            Entendo que esta ação é permanente e não poderá ser desfeita.
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button type="submit" class="btn-delete" id="deleteBtn" disabled>
+                        <i class="fas fa-trash-alt"></i> Deletar Risco
+                    </button>
+                    <a href="{% url 'lista_riscos' %}" class="btn-cancel">
+                        <i class="fas fa-arrow-left"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+
+            <!-- Help Text -->
+            <div class="help-text">
+                <p>
+                    Se você não deseja deletar este risco, <a href="{% url 'lista_riscos' %}">volte à lista de riscos</a>.
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const riscoNameInput = document.getElementById('riscoName');
+            const acknowledgeCheckbox = document.getElementById('acknowledge');
+            const deleteBtn = document.getElementById('deleteBtn');
+            const deleteForm = document.getElementById('deleteForm');
+            const expectedName = '{{ risco.nome }}';
+
+            function updateDeleteButtonState() {
+                const isNameCorrect = riscoNameInput.value === expectedName;
+                const isAcknowledged = acknowledgeCheckbox.checked;
+
+                if (isNameCorrect && isAcknowledged) {
+                    deleteBtn.disabled = false;
+                    deleteBtn.classList.add('enabled');
+                } else {
+                    deleteBtn.disabled = true;
+                    deleteBtn.classList.remove('enabled');
+                }
+            }
+
+            riscoNameInput.addEventListener('input', updateDeleteButtonState);
+            acknowledgeCheckbox.addEventListener('change', updateDeleteButtonState);
+
+            deleteForm.addEventListener('submit', function(e) {
+                if (riscoNameInput.value !== expectedName || !acknowledgeCheckbox.checked) {
+                    e.preventDefault();
+                    alert('Por favor, digite o nome do risco corretamente e confirme que entende as consequências.');
+                }
+            });
+        });
+    </script>
+{% endblock %}

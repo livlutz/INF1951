@@ -36,7 +36,7 @@
                     </div>
                 </div>
 
-                
+
 
                 <div class="module-content">
                     <div class="dashboard-grid">
@@ -167,6 +167,22 @@
                         </div>
                         <h3>Identificação de Riscos</h3>
                         <p>Identifique novos riscos de segurança da informação</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
+
+                <!-- Gestão de Riscos -->
+                {% if pode_identificar_riscos %}
+                <a href="{% url 'lista_riscos' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <h3>Gestão de Riscos</h3>
+                        <p>Visualize, edite e delete riscos</p>
                         <div class="card-footer">
                             <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
                         </div>

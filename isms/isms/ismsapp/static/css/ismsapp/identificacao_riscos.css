@@ -200,6 +200,30 @@
   .btn-confirm:hover { background: var(--purple-hover); box-shadow: 0 6px 24px rgba(139,60,247,.55); transform: translateY(-1px); }
   .btn-confirm:active { transform: scale(.97); }
 
+  /* ── Form Buttons ─────────────────────────────────────────────────── */
+  .form-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    justify-content: center;
+  }
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 46px;
+  }
+
   /* ── Error messages ───────────────────────────────────────────────── */
   p[style*="color:#f87171"] {
     color: #fca5a5 !important;
@@ -231,5 +255,14 @@
     .btn-confirm {
       width: 100%;
       justify-content: center;
+    }
+
+    .form-buttons {
+      flex-direction: column-reverse;
+      gap: 0.75rem;
+    }
+
+    .form-buttons .btn {
+      width: 100%;
     }
   }

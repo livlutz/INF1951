@@ -1234,6 +1234,225 @@ class IdentificacaoRiscosView(View):
         }
         return render(request, self.template_name, contexto)
 
+# Risk CRUD
+
+# Risk CRUD
+
+class ReadRiscoView(View):
+    """View para listagem/leitura de riscos.
+
+    Esta view exibe uma lista de todos os riscos cadastrados no sistema
+    com opções para editar ou deletar cada um.
+    Requer que o usuário esteja autenticado e tenha permissão apropriada.
+
+    Usuarios autorizados:
+    - Auditor de Segurança (AUDITOR)
+    - Analista de Segurança (ANALISTA)
+    """
+    template_name = "ismsapp/lista_riscos.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to view risks."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    def _check_edit_permission(self, user):
+        """Check if user has permission to edit/delete risks (more restrictive)."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Risco
+        riscos = Risco.objects.all().order_by('-id')
+
+        pode_editar_deletar = self._check_edit_permission(request.user)
+
+        contexto = {
+            'riscos': riscos,
+            'pode_editar_deletar': pode_editar_deletar,
+        }
+        return render(request, self.template_name, contexto)
+
+
+class UpdateRiscoView(View):
+    """View para edição/atualização de risco.
+
+    Esta view permite que os usuários cadastrados como Auditor ou Analista de Segurança
+    editem riscos existentes.
+    Requer que o usuário esteja autenticado e tenha permissão apropriada.
+
+    Usuarios autorizados:
+    - Auditor de Segurança (AUDITOR)
+    - Analista de Segurança (ANALISTA)
+    """
+    form_class = AtualizacaoRiscosForm
+    template_name = "ismsapp/editar_risco.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to update risks."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, risco_id=None, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Risco
+
+        if not risco_id:
+            return redirect('lista_riscos')
+
+        try:
+            risco = Risco.objects.get(id=risco_id)
+        except Risco.DoesNotExist:
+            return redirect('lista_riscos')
+
+        form = self.form_class(initial={
+            'nome': risco.nome,
+            'descricao': risco.descricao,
+            'ativo': risco.ativo,
+            'impactos': risco.impactos
+        })
+        contexto = {
+            'form': form,
+            'risco': risco,
+            'risco_id': risco_id,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, risco_id=None, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Risco
+
+        if not risco_id:
+            return redirect('lista_riscos')
+
+        try:
+            risco = Risco.objects.get(id=risco_id)
+        except Risco.DoesNotExist:
+            return redirect('lista_riscos')
+
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            risco.nome = form.cleaned_data.get('nome')
+            risco.descricao = form.cleaned_data.get('descricao')
+            risco.ativo = form.cleaned_data.get('ativo')
+            risco.impactos = form.cleaned_data.get('impactos')
+            risco.save()
+            return redirect('lista_riscos')
+
+        contexto = {
+            'form': form,
+            'risco': risco,
+            'risco_id': risco_id,
+        }
+        return render(request, self.template_name, contexto)
+
+
+class DeleteRiscoView(View):
+    """View para deletar risco.
+
+    Esta view permite que os usuários cadastrados como Auditor ou Analista de Segurança
+    deletem riscos existentes.
+    Requer que o usuário esteja autenticado e tenha permissão apropriada.
+
+    Usuarios autorizados:
+    - Auditor de Segurança (AUDITOR)
+    - Analista de Segurança (ANALISTA)
+    """
+    template_name = "ismsapp/deletar_risco.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to delete risks."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, risco_id=None, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Risco
+
+        if not risco_id:
+            return redirect('lista_riscos')
+
+        try:
+            risco = Risco.objects.get(id=risco_id)
+        except Risco.DoesNotExist:
+            return redirect('lista_riscos')
+
+        contexto = {
+            'risco': risco,
+            'risco_id': risco_id,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, risco_id=None, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Risco
+
+        if not risco_id:
+            return redirect('lista_riscos')
+
+        try:
+            risco = Risco.objects.get(id=risco_id)
+            risco.delete()
+            return redirect('lista_riscos')
+        except Risco.DoesNotExist:
+            return redirect('lista_riscos')
+
 class AnaliseRiscosView(View):
     """View for analyzing identified risks.
 

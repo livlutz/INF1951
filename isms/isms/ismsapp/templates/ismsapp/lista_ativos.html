@@ -1,0 +1,106 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Lista de Ativos{% endblock %}
+
+{% block extra_css %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{% static 'css/ismsapp/lista_ativos.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <div class="lista-container">
+        <div class="lista-card">
+            <!-- Header with Title and Add Button -->
+            <div class="lista-header">
+                <div class="header-content">
+                    <h1>Ativos Cadastrados</h1>
+                    <p class="subtitle">Gerenciar e visualizar todos os ativos do sistema</p>
+                </div>
+                {% if pode_editar_deletar %}
+                <a href="{% url 'cadastro_ativo' %}" class="btn-add-asset">
+                    <i class="fas fa-plus"></i> Novo Ativo
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Assets List/Table -->
+            {% if ativos %}
+                <div class="assets-table-wrapper">
+                    <table class="assets-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Categoria</th>
+                                <th>Responsável</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ativo in ativos %}
+                                <tr>
+                                    <td class="asset-id-cell">
+                                        <span class="id-badge">{{ ativo.id }}</span>
+                                    </td>
+                                    <td class="asset-name-cell">
+                                        {{ ativo.nome }}
+                                    </td>
+                                    <td class="asset-category-cell">
+                                        {% if ativo.categoria %}
+                                            <span class="category-badge">{{ ativo.categoria.nome }}</span>
+                                        {% else %}
+                                            <span class="category-badge empty">Sem categoria</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="asset-responsible-cell">
+                                        {{ ativo.responsavel }}
+                                    </td>
+                                    <td class="asset-actions-cell">
+                                        <div class="action-buttons">
+                                            <a href="{% url 'editar_ativo' ativo.id %}" class="action-btn view-btn" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% if pode_editar_deletar %}
+                                                <a href="{% url 'deletar_ativo' ativo.id %}" class="action-btn delete-btn" title="Deletar">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table Info -->
+                <div class="table-info">
+                    <p>Total de ativos: <strong>{{ ativos.count }}</strong></p>
+                </div>
+            {% else %}
+                <!-- No Assets Message -->
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <h3>Nenhum ativo cadastrado</h3>
+                    <p>Não há ativos cadastrados no sistema. Comece cadastrando um novo ativo.</p>
+                    {% if pode_editar_deletar %}
+                        <a href="{% url 'cadastro_ativo' %}" class="btn-primary">
+                            <i class="fas fa-plus"></i> Cadastrar Primeiro Ativo
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- Footer Buttons -->
+            <div class="lista-footer">
+                <a href="{% url 'dashboard' %}" class="btn btn-cancel">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -426,6 +426,7 @@ class CadastroCategoriaAtivoView(View):
         contexto = {'form': form}
         return render(request, self.template_name, contexto)
 
+#Assets CRUD
 class CadastroAtivoView(View):
     """View para cadastro de ativo.
 
@@ -481,6 +482,219 @@ class CadastroAtivoView(View):
 
         contexto = {'form': form}
         return render(request, self.template_name, contexto)
+
+class ReadAtivoView(View):
+    """View para leitura/listagem de ativos.
+
+    Esta view exibe uma lista de todos os ativos cadastrados no sistema
+    com opções para editar ou deletar cada um.
+    Requer que o usuário esteja autenticado e tenha permissão apropriada.
+
+    Usuarios autorizados:
+    - Administrador do sistema (SISTEMA_ADMIN)
+    - Auditor de Segurança (AUDITOR)
+    - Analista de Segurança (ANALISTA)
+    """
+    template_name = "ismsapp/lista_ativos.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to view assets.
+
+        Only Administrador do sistema, Auditor de Segurança, and Analista
+        are allowed to view assets.
+        """
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        # System Admin, Information Security Auditor, and Security Analyst can view assets
+        allowed_actors = [
+            UserProfile.Actor.SISTEMA_ADMIN,
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Ativo
+        ativos = Ativo.objects.all().order_by('nome')
+
+        # Check edit/delete permissions
+        user_profile = getattr(request.user, 'profile', None)
+        pode_editar_deletar = user_profile and user_profile.actor_type in [
+            UserProfile.Actor.SISTEMA_ADMIN,
+            UserProfile.Actor.AUDITOR
+        ]
+
+        contexto = {
+            'ativos': ativos,
+            'pode_editar_deletar': pode_editar_deletar,
+        }
+        return render(request, self.template_name, contexto)
+
+
+class UpdateAtivoView(View):
+    """View para edição/atualização de ativo.
+
+    Esta view permite que os usuários cadastrados como Administrador do sistema
+    ou Auditor de Segurança da Informação editem ativos existentes.
+    Requer que o usuário esteja autenticado e tenha permissão apropriada.
+
+    Usuarios autorizados:
+    - Administrador do sistema (SISTEMA_ADMIN)
+    - Auditor de Segurança (AUDITOR)
+    """
+    form_class = CadastroAtivoForm
+    template_name = "ismsapp/editar_ativo.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to update assets.
+
+        Only Administrador do sistema and Auditor de Segurança are allowed
+        to update assets.
+        """
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        # Only System Admin and Information Security Auditor can update assets
+        allowed_actors = [
+            UserProfile.Actor.SISTEMA_ADMIN,
+            UserProfile.Actor.AUDITOR
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, ativo_id=None, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Ativo
+
+        if not ativo_id:
+            return redirect('lista_ativos')
+
+        try:
+            ativo = Ativo.objects.get(id=ativo_id)
+        except Ativo.DoesNotExist:
+            return redirect('lista_ativos')
+
+        form = self.form_class(instance=ativo)
+        contexto = {
+            'form': form,
+            'ativo': ativo,
+            'ativo_id': ativo_id,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, ativo_id=None, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Ativo
+
+        if not ativo_id:
+            return redirect('lista_ativos')
+
+        try:
+            ativo = Ativo.objects.get(id=ativo_id)
+        except Ativo.DoesNotExist:
+            return redirect('lista_ativos')
+
+        form = self.form_class(request.POST, instance=ativo)
+        if form.is_valid():
+            form.save()
+            return redirect('lista_ativos')
+
+        contexto = {
+            'form': form,
+            'ativo': ativo,
+            'ativo_id': ativo_id,
+        }
+        return render(request, self.template_name, contexto)
+
+
+class DeleteAtivoView(View):
+    """View para deletar ativo.
+
+    Esta view permite que os usuários cadastrados como Administrador do sistema
+    ou Auditor de Segurança da Informação deletem ativos existentes.
+    Requer que o usuário esteja autenticado e tenha permissão apropriada.
+
+    Usuarios autorizados:
+    - Administrador do sistema (SISTEMA_ADMIN)
+    - Auditor de Segurança (AUDITOR)
+    """
+    template_name = "ismsapp/deletar_ativo.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to delete assets.
+
+        Only Administrador do sistema and Auditor de Segurança are allowed
+        to delete assets.
+        """
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        # Only System Admin and Information Security Auditor can delete assets
+        allowed_actors = [
+            UserProfile.Actor.SISTEMA_ADMIN,
+            UserProfile.Actor.AUDITOR
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, ativo_id=None, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Ativo
+
+        if not ativo_id:
+            return redirect('lista_ativos')
+
+        try:
+            ativo = Ativo.objects.get(id=ativo_id)
+        except Ativo.DoesNotExist:
+            return redirect('lista_ativos')
+
+        contexto = {
+            'ativo': ativo,
+            'ativo_id': ativo_id,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, ativo_id=None, *args, **kwargs):
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Ativo
+
+        if not ativo_id:
+            return redirect('lista_ativos')
+
+        try:
+            ativo = Ativo.objects.get(id=ativo_id)
+            ativo.delete()
+            return redirect('lista_ativos')
+        except Ativo.DoesNotExist:
+            return redirect('lista_ativos')
 
 class CriacaoCriteriosValoracaoAtivosView(View):
     """View para criação de critérios de valoração dos ativos.

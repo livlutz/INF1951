@@ -36,6 +36,8 @@
                     </div>
                 </div>
 
+                
+
                 <div class="module-content">
                     <div class="dashboard-grid">
                 <!-- Cadastro de Categorias de Ativos -->
@@ -63,6 +65,22 @@
                         </div>
                         <h3>Cadastro de Ativos</h3>
                         <p>Cadastre ativos</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
+
+                <!-- Gestão de Ativos -->
+                {% if pode_cadastrar_ativos %}
+                <a href="{% url 'lista_ativos' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <h3>Gestão de Ativos</h3>
+                        <p>Visualize, edite e delete ativos</p>
                         <div class="card-footer">
                             <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
                         </div>

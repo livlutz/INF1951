@@ -2116,6 +2116,8 @@ class DeteccaoAmeacaView(View):
                 else:
                     # Create the threat
                     ameaca = Ameaca.objects.create(
+                        nome=nome,
+                        origem=origem,
                         descricao=descricao,
                         impactos=impactos
                     )

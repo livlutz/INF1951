@@ -4,6 +4,7 @@
 {% block title %}Gestão de Vulnerabilidades{% endblock %}
 
 {% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link href="{% static 'css/ismsapp/gestao_vulnerabilidades.css' %}" rel="stylesheet">
 {% endblock %}
 
@@ -42,61 +43,84 @@
     <form method="post" action="{% url 'gestao_vulnerabilidades' %}" class="vulnerability-form">
       {% csrf_token %}
 
-      <!-- Description -->
+      <!-- Descrição da Vulnerabilidade -->
       <div class="form-group">
-        <label>Descrição da Vulnerabilidade</label>
+        <label for="{{ form.descricao.id_for_label }}">
+          <i class="fas fa-align-left" style="color: #9333ea; margin-right: 0.5rem;"></i>
+          {{ form.descricao.label }}
+        </label>
         {{ form.descricao }}
         {% if form.descricao.errors %}
-          <p class="form-error">{{ form.descricao.errors|join:", " }}</p>
+          <div class="error-message">
+            {% for error in form.descricao.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
         {% endif %}
       </div>
 
-      <!-- Two Column Row: Ameaca + Ativo -->
-      <div class="form-row-2">
-        <!-- Ameaça Associada -->
-        <div class="form-group">
-          <label>Ameaça Associada</label>
-          {{ form.ameaca }}
-          {% if form.ameaca.errors %}
-            <p class="form-error">{{ form.ameaca.errors|join:", " }}</p>
-          {% endif %}
-        </div>
-
-        <!-- Ativo Afetado -->
-        <div class="form-group">
-          <label>Ativo Afetado</label>
-          {{ form.ativo }}
-          {% if form.ativo.errors %}
-            <p class="form-error">{{ form.ativo.errors|join:", " }}</p>
-          {% endif %}
-        </div>
+      <!-- Ameaça Associada -->
+      <div class="form-group">
+        <label for="{{ form.ameaca.id_for_label }}">
+          <i class="fas fa-map-pin" style="color: #9333ea; margin-right: 0.5rem;"></i>
+          {{ form.ameaca.label }}
+        </label>
+        {{ form.ameaca }}
+        {% if form.ameaca.errors %}
+          <div class="error-message">
+            {% for error in form.ameaca.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
       </div>
 
-      <!-- Three Column Row: Severidade + Prioridade + Status -->
-      <div class="form-row-3">
-        <!-- Nível de Severidade -->
-        <div class="form-group">
-          <label>Nível de Severidade</label>
-          {{ form.nivel_severidade }}
-          {% if form.nivel_severidade.errors %}
-            <p class="form-error">{{ form.nivel_severidade.errors|join:", " }}</p>
-          {% endif %}
-        </div>
+      <!-- Ativo Afetado -->
+      <div class="form-group">
+        <label for="{{ form.ativo.id_for_label }}">
+          <i class="fas fa-server" style="color: #9333ea; margin-right: 0.5rem;"></i>
+          {{ form.ativo.label }}
+        </label>
+        {{ form.ativo }}
+        {% if form.ativo.errors %}
+          <div class="error-message">
+            {% for error in form.ativo.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
 
-        <!-- Prioridade de Correção -->
-        <div class="form-group">
-          <label>Prioridade de Correção</label>
-          {{ form.prioridade_correcao }}
-          {% if form.prioridade_correcao.errors %}
-            <p class="form-error">{{ form.prioridade_correcao.errors|join:", " }}</p>
-          {% endif %}
-        </div>
+      <!-- Nível de Severidade -->
+      <div class="form-group">
+        <label for="{{ form.nivel_severidade.id_for_label }}">
+          <i class="fas fa-exclamation-triangle" style="color: #d97706; margin-right: 0.5rem;"></i>
+          {{ form.nivel_severidade.label }}
+        </label>
+        {{ form.nivel_severidade }}
+        {% if form.nivel_severidade.errors %}
+          <div class="error-message">
+            {% for error in form.nivel_severidade.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
 
-        <!-- Placeholder for 3rd column -->
-        <div class="form-group" style="visibility: hidden;">
-          <label>&nbsp;</label>
-          <input type="hidden">
-        </div>
+      <!-- Prioridade de Correção -->
+      <div class="form-group">
+        <label for="{{ form.prioridade_correcao.id_for_label }}">
+          <i class="fas fa-tasks" style="color: #9333ea; margin-right: 0.5rem;"></i>
+          {{ form.prioridade_correcao.label }}
+        </label>
+        {{ form.prioridade_correcao }}
+        {% if form.prioridade_correcao.errors %}
+          <div class="error-message">
+            {% for error in form.prioridade_correcao.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
       </div>
 
       <!-- Submit Button -->

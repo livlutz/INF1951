@@ -420,6 +420,25 @@ class Ameaca(models.Model):
     can then be associated with one or more risks and with one or more vulnerabilities that it could exploit.
     """
 
+    """The name/title of the threat."""
+    nome = models.CharField(
+        max_length=255,
+        default="Sem nome",
+        help_text="Nome ou título da ameaça (ex: Ransomware Cryptolocker).",
+    )
+
+    """The origin of the threat (external, internal, or hybrid)."""
+    origem = models.CharField(
+        max_length=50,
+        choices=[
+            ('externa', 'Externa'),
+            ('interna', 'Interna'),
+            ('hibrida', 'Híbrida'),
+        ],
+        default='externa',
+        help_text="Origem da ameaça.",
+    )
+
     """The assets that this threat targets. A threat can affect multiple assets."""
     ativos = models.ManyToManyField(
         Ativo,

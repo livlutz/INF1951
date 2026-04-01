@@ -5,10 +5,12 @@
  * - Asset multi-select dropdown
  * - Form validation
  * - Dynamic feedback
+ * - Modal for threats display
  */
 
 document.addEventListener('DOMContentLoaded', function() {
   initializeFormValidation();
+  initializeModal();
 });
 
 /**
@@ -127,4 +129,47 @@ function clearFieldError(field) {
   if (nextEl && nextEl.tagName === 'P' && nextEl.style.color === 'rgb(248, 113, 113)') {
     nextEl.remove();
   }
+}
+
+/**
+ * Open threats modal
+ */
+function openThreatsModal() {
+  const modal = document.getElementById('threatsModal');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+/**
+ * Close threats modal
+ */
+function closeThreatsModal() {
+  const modal = document.getElementById('threatsModal');
+  if (modal) {
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+  }
+}
+
+/**
+ * Initialize modal event listeners
+ */
+function initializeModal() {
+  const modal = document.getElementById('threatsModal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeThreatsModal();
+      }
+    });
+  }
+
+  // Close modal with Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeThreatsModal();
+    }
+  });
 }

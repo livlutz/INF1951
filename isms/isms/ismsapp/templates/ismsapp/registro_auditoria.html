@@ -4,6 +4,7 @@
 {% block title %}Registro de Auditorias{% endblock %}
 
 {% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link href="{% static 'css/ismsapp/registro_auditoria.css' %}" rel="stylesheet">
 {% endblock %}
 
@@ -40,33 +41,83 @@
     <form method="post" action="{% url 'registro_auditoria' %}" class="audit-form">
       {% csrf_token %}
 
-      <!-- Two Column Row: Tipo + Nome -->
-      <div class="form-row-2">
-        <!-- Tipo de Auditoria -->
-        <div class="form-group">
-          <label>Tipo de Auditoria</label>
-          {{ form.tipo_auditoria }}
-          {% if form.tipo_auditoria.errors %}
-            <p class="form-error">{{ form.tipo_auditoria.errors|join:", " }}</p>
-          {% endif %}
-        </div>
+      <!-- Tipo de Auditoria -->
+      <div class="form-group">
+        <label for="{{ form.tipo_auditoria.id_for_label }}">
+          <i class="fas fa-list" style="color: #9333ea; margin-right: 0.5rem;"></i>
+          {{ form.tipo_auditoria.label }}
+        </label>
+        {{ form.tipo_auditoria }}
+        {% if form.tipo_auditoria.errors %}
+          <div class="error-message">
+            {% for error in form.tipo_auditoria.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
 
-        <!-- Nome da Auditoria -->
-        <div class="form-group">
-          <label>Nome da Auditoria</label>
-          {{ form.nome }}
-          {% if form.nome.errors %}
-            <p class="form-error">{{ form.nome.errors|join:", " }}</p>
-          {% endif %}
-        </div>
+      <!-- Nome da Auditoria -->
+      <div class="form-group">
+        <label for="{{ form.nome.id_for_label }}">
+          <i class="fas fa-align-left" style="color: #9333ea; margin-right: 0.5rem;"></i>
+          {{ form.nome.label }}
+        </label>
+        {{ form.nome }}
+        {% if form.nome.errors %}
+          <div class="error-message">
+            {% for error in form.nome.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
       </div>
 
       <!-- Data da Auditoria -->
       <div class="form-group">
-        <label>Data da Auditoria</label>
+        <label for="{{ form.data_auditoria.id_for_label }}">
+          <i class="fas fa-calendar" style="color: #9333ea; margin-right: 0.5rem;"></i>
+          {{ form.data_auditoria.label }}
+        </label>
         {{ form.data_auditoria }}
         {% if form.data_auditoria.errors %}
-          <p class="form-error">{{ form.data_auditoria.errors|join:", " }}</p>
+          <div class="error-message">
+            {% for error in form.data_auditoria.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Não Conformidades (Achados) -->
+      <div class="form-group">
+        <label for="{{ form.nao_conformidades.id_for_label }}">
+          <i class="fas fa-exclamation-triangle" style="color: #d97706; margin-right: 0.5rem;"></i>
+          {{ form.nao_conformidades.label }}
+        </label>
+        {{ form.nao_conformidades }}
+        {% if form.nao_conformidades.errors %}
+          <div class="error-message">
+            {% for error in form.nao_conformidades.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Planos de Ação (Remediação) -->
+      <div class="form-group">
+        <label for="{{ form.plano_acao.id_for_label }}">
+          <i class="fas fa-tasks" style="color: #9333ea; margin-right: 0.5rem;"></i>
+          {{ form.plano_acao.label }}
+        </label>
+        {{ form.plano_acao }}
+        {% if form.plano_acao.errors %}
+          <div class="error-message">
+            {% for error in form.plano_acao.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
         {% endif %}
       </div>
 
@@ -78,24 +129,6 @@
         </label>
         {% if form.nao_conformidades_identificadas.errors %}
           <p class="form-error">{{ form.nao_conformidades_identificadas.errors|join:", " }}</p>
-        {% endif %}
-      </div>
-
-      <!-- Não Conformidades (Achados) -->
-      <div class="form-group">
-        <label>Não Conformidades (Achados)</label>
-        {{ form.nao_conformidades }}
-        {% if form.nao_conformidades.errors %}
-          <p class="form-error">{{ form.nao_conformidades.errors|join:", " }}</p>
-        {% endif %}
-      </div>
-
-      <!-- Planos de Ação (Remediação) -->
-      <div class="form-group">
-        <label>Planos de Ação (Remediação)</label>
-        {{ form.plano_acao }}
-        {% if form.plano_acao.errors %}
-          <p class="form-error">{{ form.plano_acao.errors|join:", " }}</p>
         {% endif %}
       </div>
 

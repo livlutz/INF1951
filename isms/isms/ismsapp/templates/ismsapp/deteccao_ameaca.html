@@ -20,7 +20,7 @@
     </div>
   {% endif %}
 
-  <!-- Ativos Monitorados Section -->
+  <!-- Registrar Nova Ameaça Form -->
   <div class="card">
     <!-- Header -->
     <div class="card-header">
@@ -37,24 +37,8 @@
       </div>
     </div>
 
-  <!-- Registrar Nova Ameaça Form -->
-  <div class="card">
     <form method="post" action="{% url 'deteccao_ameaca' %}" class="threat-form">
       {% csrf_token %}
-
-      <!-- Form Header -->
-      <div class="form-header">
-        <div class="form-header-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b3cf7" stroke-width="2">
-            <circle cx="12" cy="12" r="1"/>
-            <path d="M12 8v-3m0 10v3"/>
-            <path d="M16 12h3m-10 0H5"/>
-            <path d="M18.364 5.636l2.121-2.121m-12.728 12.728l2.121-2.121"/>
-            <path d="M5.636 18.364l-2.121 2.121M18.364 18.364l2.121 2.121"/>
-          </svg>
-        </div>
-        <h2 class="form-title">Registrar Nova Ameaça</h2>
-      </div>
 
       <!-- Nome da Ameaça -->
       <div class="section">
@@ -161,56 +145,64 @@
       <!-- Actions -->
       <div class="actions">
         <a href="{% url 'dashboard' %}" class="btn-cancel">Cancelar</a>
-        <button type="submit" class="btn-confirm">
-          Registrar Ameaça
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M20 6L9 17l-5-5"/>
-          </svg>
-        </button>
+        <div style="display: flex; gap: 1rem;">
+          {% if ameacas %}
+            <button type="button" class="btn-secondary" onclick="openThreatsModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/>
+              </svg>
+              <span style="font-size: 0.8rem;">Ameaças Registradas</span>
+            </button>
+          {% endif %}
+          <button type="submit" class="btn-confirm">
+            Registrar Ameaça
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
     </form>
   </div>
 
-  <!-- Ameaças Registradas Section (if any) -->
+  <!-- Ameaças Registradas Modal -->
   {% if ameacas %}
-    <div class="card threats-list-card">
-      <div class="section">
-        <div class="section-label">
-          <span class="s-icon s-red">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-              <line x1="12" y1="8" x2="12" y2="16"/>
-              <line x1="8" y1="12" x2="16" y2="12"/>
-            </svg>
-          </span>
-          Ameaças Registradas ({{ ameacas.count }})
+    <div id="threatsModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Ameaças Registradas</h2>
+          <button class="modal-close" onclick="closeThreatsModal()">&times;</button>
         </div>
-
-        <div class="threats-list">
-          {% for ameaca in ameacas %}
-            <div class="threat-item">
-              <div class="threat-header">
-                <span class="threat-id">#{{ ameaca.id }}</span>
-              </div>
-              <div class="threat-assets">
-                <strong>Ativos afetados:</strong>
-                {% for ativo in ameaca.ativos.all %}
-                  <span class="asset-badge">{{ ativo.nome }}</span>
-                {% empty %}
-                  <span class="asset-badge empty">Nenhum ativo associado</span>
-                {% endfor %}
-              </div>
-              <div class="threat-description">
-                <strong>Descrição:</strong> {{ ameaca.descricao|truncatewords:20 }}
-              </div>
-              {% if ameaca.impactos %}
-              <div class="threat-impacts">
-                <strong>Possíveis Impactos:</strong> {{ ameaca.impactos|truncatewords:20 }}
-              </div>
-              {% endif %}
-            </div>
-          {% endfor %}
+        <div class="modal-body">
+          <table class="threats-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Origem</th>
+                <th>Ativos Afetados</th>
+                <th>Descrição</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ameaca in ameacas %}
+                <tr>
+                  <td class="threat-id-cell">#{{ ameaca.id }}</td>
+                  <td class="threat-name-cell">{{ ameaca.nome }}</td>
+                  <td class="threat-origin-cell">{{ ameaca.origem }}</td>
+                  <td class="threat-assets-cell">
+                    {% for ativo in ameaca.ativos.all %}
+                      <span class="asset-badge-table">{{ ativo.nome }}</span>
+                    {% empty %}
+                      <span class="asset-badge-table empty">Nenhum</span>
+                    {% endfor %}
+                  </td>
+                  <td class="threat-description-cell">{{ ameaca.descricao|truncatewords:10 }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

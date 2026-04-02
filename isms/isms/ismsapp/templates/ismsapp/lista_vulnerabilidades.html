@@ -1,0 +1,120 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Lista de Vulnerabilidades{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="{% static 'css/ismsapp/gestao_vulnerabilidades.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <!-- Alert Messages -->
+  {% if messages %}
+    <div class="alerts-container">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Vulnerabilidades Registradas Section -->
+  <div class="card" style="max-width: 1400px;">
+    <!-- Header with Title and Add Button -->
+    <div class="card-header-simple" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <div class="header-title-group">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b3cf7" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 8v4m0 4v.01" stroke-width="2.5"/>
+        </svg>
+        <div>
+          <h2 style="margin: 0 0 0.5rem 0; font-size: 1.5rem;">Vulnerabilidades Identificadas</h2>
+          <p style="margin: 0; color: #b0b0b0; font-size: 0.9rem;">Gerenciar e visualizar todas as vulnerabilidades do sistema</p>
+        </div>
+      </div>
+      <a href="{% url 'gestao_vulnerabilidades' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: #8b3cf7; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; white-space: nowrap;">
+        <i class="fas fa-plus"></i> Nova Vulnerabilidade
+      </a>
+    </div>
+
+    <!-- Status Filter Tabs -->
+    <div class="status-tabs">
+      <a href="#" class="status-tab active">
+        <span class="tab-label">Em Aberto</span>
+        <span class="tab-count">{{ count_abertos }}</span>
+      </a>
+      <a href="#" class="status-tab">
+        <span class="tab-label">Resolvidas</span>
+        <span class="tab-count">{{ count_resolvidas }}</span>
+      </a>
+    </div>
+
+    {% if vulnerabilidades %}
+      <div class="vulnerabilities-table-wrapper">
+        <table class="vulnerabilities-table">
+          <thead>
+            <tr>
+              <th>NOME</th>
+              <th>DESCRIÇÃO</th>
+              <th>ATIVO</th>
+              <th>SEVERIDADE</th>
+              <th>PRIORIDADE</th>
+              <th>STATUS</th>
+              <th>AÇÕES</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for vuln in vulnerabilidades %}
+              <tr>
+                <td class="vuln-id-cell">
+                  <div class="vuln-id">{{ vuln.nome }}</div>
+                  <div class="vuln-meta-id">ID: VUL-{{ vuln.id|stringformat:"04d" }}</div>
+                </td>
+                <td class="vuln-name-cell">{{ vuln.descricao|truncatewords:4 }}</td>
+                <td class="asset-cell">{{ vuln.ativo.nome }}</td>
+                <td class="severity-cell">
+                  <span class="severity-badge severity-{{ vuln.nivel_severidade }}">
+                    {{ vuln.get_nivel_severidade_display }}
+                  </span>
+                </td>
+                <td class="priority-cell">
+                  <span class="priority-badge priority-{{ vuln.prioridade_correcao }}">
+                    {{ vuln.get_prioridade_correcao_display }}
+                  </span>
+                </td>
+                <td class="status-cell">
+                  <span class="status-badge status-{{ vuln.status }}">
+                    {{ vuln.get_status_display }}
+                  </span>
+                </td>
+                <td class="actions-cell">
+                  <a href="{% url 'editar_vulnerabilidade' vuln.id %}" class="action-btn action-edit" title="Editar">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  <a href="{% url 'deletar_vulnerabilidade' vuln.id %}" class="action-btn action-delete" title="Deletar">
+                    <i class="fas fa-trash-alt"></i>
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    {% else %}
+      <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #64748b; margin-bottom: 1rem;">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <p>Nenhuma vulnerabilidade registrada</p>
+        <p style="font-size: 0.85rem; color: #94a3b8;">Registre uma nova vulnerabilidade para começar</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script src="{% static 'js/ismsapp/gestao_vulnerabilidades.js' %}"></script>
+{% endblock %}

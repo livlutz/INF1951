@@ -314,10 +314,24 @@
                 <a href="{% url 'gestao_vulnerabilidades' %}" class="dashboard-card-link">
                     <div class="dashboard-card">
                         <div class="card-icon">
-                            <i class="fas fa-exclamation-triangle" style="color: #8b3cf7;"></i>
+                            <i class="fas fa-plus-circle" style="color: #8b3cf7;"></i>
+                        </div>
+                        <h3>Registrar Vulnerabilidade</h3>
+                        <p>Registre novas vulnerabilidades identificadas</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Lista de Vulnerabilidades -->
+                <a href="{% url 'lista_vulnerabilidades' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-list" style="color: #8b3cf7;"></i>
                         </div>
                         <h3>Gestão de Vulnerabilidades</h3>
-                        <p>Registre e acompanhe vulnerabilidades identificadas</p>
+                        <p>Visualize, edite e delete vulnerabilidades</p>
                         <div class="card-footer">
                             <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
                         </div>

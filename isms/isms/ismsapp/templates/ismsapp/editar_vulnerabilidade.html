@@ -1,0 +1,219 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Editar Vulnerabilidade{% endblock %}
+
+{% block extra_css %}
+    <link href="{% static 'css/ismsapp/identificacao_riscos.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <div class="page">
+        <form method="post" action="" class="card">
+            {% csrf_token %}
+
+            <!-- Card Header -->
+            <div class="card-header">
+                <div class="shield-wrap">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b3cf7" stroke-width="1.8">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <circle cx="12" cy="12" r="2"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="card-title">Editar Vulnerabilidade</h1>
+                    <p class="card-description">Atualize as informações da vulnerabilidade identificada</p>
+                </div>
+            </div>
+
+            <!-- Vulnerability Info Display (Read-only) -->
+            <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border-left: 4px solid #8b3cf7;">
+                <div>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-bottom: 0.25rem;">ID da Vulnerabilidade</p>
+                    <p style="color: #1e293b; font-weight: 500;">VUL-{{ vulnerabilidade.id|stringformat:"04d" }}</p>
+                </div>
+            </div>
+
+            <!-- Ativo Field -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="s-icon s-purple">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M4 4h16v2H4V4z"/>
+                            <path d="M4 9h16v2H4V9z"/>
+                            <path d="M4 14h16v2H4v-2z"/>
+                        </svg>
+                    </span>
+                    {{ form.ativo.label }}
+                </div>
+                {{ form.ativo }}
+                {% if form.ativo.errors %}
+                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.ativo.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Nome Field -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="s-icon s-purple">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M4 4h16v2H4V4z"/>
+                            <path d="M4 9h16v2H4V9z"/>
+                            <path d="M4 14h16v2H4v-2z"/>
+                        </svg>
+                    </span>
+                    {{ form.nome.label }}
+                </div>
+                {{ form.nome }}
+                {% if form.nome.errors %}
+                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.nome.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Descrição Field -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="s-icon s-purple">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M4 4h16v2H4V4z"/>
+                            <path d="M4 9h16v2H4V9z"/>
+                            <path d="M4 14h16v2H4v-2z"/>
+                        </svg>
+                    </span>
+                    {{ form.descricao.label }}
+                </div>
+                {{ form.descricao }}
+                {% if form.descricao.errors %}
+                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.descricao.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Ameaças Associadas Field -->
+            {% if form.ameacas %}
+            <div class="section">
+                <div class="section-label">
+                    <span class="s-icon s-purple">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M12 1v22M1 12h22"/>
+                            <circle cx="12" cy="12" r="11"/>
+                        </svg>
+                    </span>
+                    {{ form.ameacas.label }}
+                </div>
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    {{ form.ameacas }}
+                </div>
+                {% if form.ameacas.errors %}
+                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.ameacas.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Nível de Severidade Field -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="s-icon s-purple">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M12 1v22M1 12h22"/>
+                            <circle cx="12" cy="12" r="11"/>
+                        </svg>
+                    </span>
+                    {{ form.nivel_severidade.label }}
+                </div>
+                {{ form.nivel_severidade }}
+                {% if form.nivel_severidade.errors %}
+                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.nivel_severidade.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Prioridade de Correção Field -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="s-icon s-purple">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <circle cx="9" cy="9" r="1"/>
+                            <path d="M9 14h6"/>
+                            <path d="M9 19h6"/>
+                        </svg>
+                    </span>
+                    {{ form.prioridade_correcao.label }}
+                </div>
+                {{ form.prioridade_correcao }}
+                {% if form.prioridade_correcao.errors %}
+                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.prioridade_correcao.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Status Field -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="s-icon s-purple">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </span>
+                    {{ form.status.label }}
+                </div>
+                {{ form.status }}
+                {% if form.status.errors %}
+                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.status.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Buttons -->
+            <div class="form-buttons">
+                <a href="{% url 'lista_vulnerabilidades' %}" class="btn btn-cancel">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-confirm">
+                    <i class="fas fa-save"></i> Salvar Alterações
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <style>
+        .form-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-cancel:hover {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-confirm {
+            background: #8b3cf7;
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            background: #7c3aed;
+        }
+    </style>
+{% endblock %}

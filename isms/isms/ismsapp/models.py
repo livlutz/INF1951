@@ -466,14 +466,12 @@ class Ameaca(models.Model):
 
 class Vulnerabilidade(models.Model):
     """
-    A weakness in an asset that a particular threat could exploit.
+    A weakness in an asset that one or more threats could exploit.
 
-    A vulnerability only makes sense in the context of a specific asset and a
-    specific threat — it answers the question 'how could *this* threat harm
-    *this* asset?'. The combination of asset and threat is unique (enforced by
-    the database constraint), so each vulnerability record is distinct.
+    A vulnerability is linked to an asset and can be associated with one or more threats.
+    This allows tracking how multiple threats could potentially exploit the same vulnerability.
 
-    Example: Asset = 'Portal de clientes', Threat = 'Injeção de SQL',
+    Example: Asset = 'Portal de clientes', Threats = ['Injeção de SQL', 'XSS'],
     Vulnerability = 'Falta de validação de entradas no formulário de login'.
     """
 
@@ -485,12 +483,18 @@ class Vulnerabilidade(models.Model):
         help_text = "O ativo que contém esta vulnerabilidade.",
     )
 
-    """The threat that could exploit this vulnerability. Each vulnerability is linked to exactly one threat, but a threat can be associated with multiple vulnerabilities."""
-    ameaca = models.ForeignKey(
+    """The threats that could exploit this vulnerability. Each vulnerability can be linked to multiple threats."""
+    ameacas = models.ManyToManyField(
         Ameaca,
-        on_delete = models.CASCADE,
         related_name = "vulnerabilidades",
-        help_text = "A ameaça que poderia explorar esta vulnerabilidade.",
+        help_text = "As ameaças que poderiam explorar esta vulnerabilidade.",
+    )
+
+    """Name/title of the vulnerability for easy identification."""
+    nome = models.CharField(
+        max_length=255,
+        default="Sem nome",
+        help_text="Nome ou título da vulnerabilidade identificada (ex: Falta de validação de entradas).",
     )
 
     """Optional free-text description of the specific vulnerability and how it could be exploited. This should provide enough detail to understand the nature of the weakness and its relationship to the associated threat and asset."""
@@ -544,10 +548,10 @@ class Vulnerabilidade(models.Model):
     class Meta:
         verbose_name = "Vulnerabilidade"
         verbose_name_plural = "Vulnerabilidades"
-        unique_together = ("ativo", "ameaca")  # one vulnerability record per asset/threat pair
 
     def __str__(self):
-        return f"Vulnerabilidade #{self.pk} ({self.ativo} / {self.ameaca})"
+        ameacas_list = ", ".join([str(a) for a in self.ameacas.all()]) or "Sem ameaças"
+        return f"Vulnerabilidade #{self.pk} ({self.ativo} / {ameacas_list})"
 
 
 class Risco(models.Model):

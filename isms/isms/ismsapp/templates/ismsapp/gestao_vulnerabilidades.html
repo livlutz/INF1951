@@ -43,6 +43,22 @@
     <form method="post" action="{% url 'gestao_vulnerabilidades' %}" class="vulnerability-form">
       {% csrf_token %}
 
+      <!-- Nome da Vulnerabilidade -->
+      <div class="form-group">
+        <label for="{{ form.nome.id_for_label }}">
+          <i class="fas fa-tag" style="color: #9333ea; margin-right: 0.5rem;"></i>
+          {{ form.nome.label }}
+        </label>
+        {{ form.nome }}
+        {% if form.nome.errors %}
+          <div class="error-message">
+            {% for error in form.nome.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
       <!-- Descrição da Vulnerabilidade -->
       <div class="form-group">
         <label for="{{ form.descricao.id_for_label }}">
@@ -59,16 +75,18 @@
         {% endif %}
       </div>
 
-      <!-- Ameaça Associada -->
+      <!-- Ameaças Associadas (Múltipla Seleção) -->
       <div class="form-group">
-        <label for="{{ form.ameaca.id_for_label }}">
+        <label for="{{ form.ameacas.id_for_label }}">
           <i class="fas fa-map-pin" style="color: #9333ea; margin-right: 0.5rem;"></i>
-          {{ form.ameaca.label }}
+          {{ form.ameacas.label }}
         </label>
-        {{ form.ameaca }}
-        {% if form.ameaca.errors %}
+        <div class="checkboxes-container">
+          {{ form.ameacas }}
+        </div>
+        {% if form.ameacas.errors %}
           <div class="error-message">
-            {% for error in form.ameaca.errors %}
+            {% for error in form.ameacas.errors %}
               {{ error }}<br>
             {% endfor %}
           </div>
@@ -133,77 +151,6 @@
         </button>
       </div>
     </form>
-  </div>
-
-  <!-- Vulnerabilidades Registradas Section -->
-  <div class="card">
-    <div class="card-header-simple">
-      <div class="header-title-group">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b3cf7" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 8v4m0 4v.01" stroke-width="2.5"/>
-        </svg>
-        <h2>Acompanhamento e Histórico</h2>
-      </div>
-    </div>
-
-    <!-- Status Filter Tabs -->
-    <div class="status-tabs">
-      <a href="#" class="status-tab active">
-        <span class="tab-label">Em Aberto</span>
-        <span class="tab-count">{{ count_abertos }}</span>
-      </a>
-      <a href="#" class="status-tab">
-        <span class="tab-label">Resolvidas</span>
-        <span class="tab-count">{{ count_resolvidas }}</span>
-      </a>
-    </div>
-
-    {% if vulnerabilidades %}
-      <div class="vulnerabilities-table-wrapper">
-        <table class="vulnerabilities-table">
-          <thead>
-            <tr>
-              <th>VULNERABILIDADE</th>
-              <th>ATIVO</th>
-              <th>SEVERIDADE</th>
-              <th>STATUS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for vuln in vulnerabilidades %}
-              <tr>
-                <td class="vuln-id-cell">
-                  <div class="vuln-id">{{ vuln.descricao|truncatewords:4 }}</div>
-                  <div class="vuln-meta-id">ID: VUL-{{ vuln.id|stringformat:"04d" }}</div>
-                </td>
-                <td class="asset-cell">{{ vuln.ativo.nome }}</td>
-                <td class="severity-cell">
-                  <span class="severity-badge severity-{{ vuln.nivel_severidade }}">
-                    {{ vuln.get_nivel_severidade_display }}
-                  </span>
-                </td>
-                <td class="status-cell">
-                  <span class="status-badge status-{{ vuln.status }}">
-                    {{ vuln.get_status_display }}
-                  </span>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-
-    {% else %}
-      <div class="empty-state">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #64748b; margin-bottom: 1rem;">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
-        <p>Nenhuma vulnerabilidade registrada</p>
-        <p style="font-size: 0.85rem; color: #94a3b8;">Registre uma nova vulnerabilidade para começar</p>
-      </div>
-    {% endif %}
   </div>
 </div>
 

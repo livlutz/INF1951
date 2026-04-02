@@ -2791,7 +2791,7 @@ class DeleteAmeacaView(View):
         except Ameaca.DoesNotExist:
             return redirect('lista_ameacas')
 
-
+#vulnerabilidades CRUD
 class VulnerabilidadeView(View):
     """View for vulnerability management (Gestão de Vulnerabilidades).
 
@@ -2870,35 +2870,39 @@ class VulnerabilidadeView(View):
         if form.is_valid():
             try:
                 # Extract the data
-                ameaca = form.cleaned_data.get('ameaca')
+                ameacas = form.cleaned_data.get('ameacas')
                 ativo = form.cleaned_data.get('ativo')
+                nome = form.cleaned_data.get('nome')
                 descricao = form.cleaned_data.get('descricao')
                 nivel_severidade = form.cleaned_data.get('nivel_severidade')
                 prioridade_correcao = form.cleaned_data.get('prioridade_correcao')
 
-                # Check if vulnerability already exists (Fluxo Alternativo A)
-                # Unique constraint is on (ativo, ameaca) pair
+                # Check if vulnerability with same ativo and nome already exists
                 existing = Vulnerabilidade.objects.filter(
                     ativo=ativo,
-                    ameaca=ameaca
+                    nome=nome
                 ).first()
 
                 if existing:
                     messages.warning(
                         request,
-                        f"Vulnerabilidade já registrada para este ativo e ameaça. "
-                        f"ID: {existing.pk} | Severidade: {existing.get_nivel_severidade_display()}"
+                        f"Vulnerabilidade '{nome}' já registrada para este ativo. "
+                        f"ID: VUL-{existing.pk:04d} | Severidade: {existing.get_nivel_severidade_display()}"
                     )
                 else:
                     # Create the vulnerability
                     vulnerabilidade = Vulnerabilidade.objects.create(
-                        ameaca=ameaca,
                         ativo=ativo,
+                        nome=nome,
                         descricao=descricao,
                         nivel_severidade=nivel_severidade,
                         prioridade_correcao=prioridade_correcao,
                         status=Vulnerabilidade.StatusChoice.REGISTRADA
                     )
+
+                    # Set the multiple threats
+                    if ameacas:
+                        vulnerabilidade.ameacas.set(ameacas)
 
                     messages.success(
                         request,
@@ -2917,6 +2921,209 @@ class VulnerabilidadeView(View):
 
         # Redirect to the same page
         return redirect('gestao_vulnerabilidades')
+
+class ReadVulnerabilidadeView(View):
+    """View for reading/listing vulnerabilities.
+
+    This view displays all registered vulnerabilities with filtering options.
+    Requires user authentication and appropriate permissions.
+    """
+    template_name = "ismsapp/lista_vulnerabilidades.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to view vulnerabilities."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        """Display all vulnerabilities."""
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Vulnerabilidade
+
+        vulnerabilidades = Vulnerabilidade.objects.select_related('ativo').prefetch_related('ameacas').order_by('-nivel_severidade', '-prioridade_correcao')
+
+        abertos = vulnerabilidades.filter(
+            status__in=['registrada', 'em_tratamento']
+        ).count()
+        resolvidas = vulnerabilidades.filter(
+            status__in=['resolvida', 'descartada']
+        ).count()
+        total = vulnerabilidades.count()
+
+        contexto = {
+            'vulnerabilidades': vulnerabilidades,
+            'count_abertos': abertos,
+            'count_resolvidas': resolvidas,
+            'total_vulnerabilidades': total,
+        }
+        return render(request, self.template_name, contexto)
+
+
+class UpdateVulnerabilidadeView(View):
+    """View for updating/editing vulnerabilities.
+
+    This view allows authorized users (Security Analysts and Auditors) to edit
+    existing vulnerabilities including severity, priority, status, and description.
+
+    Requires user authentication and appropriate permissions.
+    """
+    form_class = VulnerabilidadeUpdateForm
+    template_name = "ismsapp/editar_vulnerabilidade.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to update vulnerabilities."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, vulnerabilidade_id=None, *args, **kwargs):
+        """Display vulnerability edit form."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Vulnerabilidade
+
+        if not vulnerabilidade_id:
+            return redirect('lista_vulnerabilidades')
+
+        try:
+            vulnerabilidade = Vulnerabilidade.objects.select_related('ativo').prefetch_related('ameacas').get(id=vulnerabilidade_id)
+        except Vulnerabilidade.DoesNotExist:
+            messages.error(request, "Vulnerabilidade não encontrada.")
+            return redirect('lista_vulnerabilidades')
+
+        form = self.form_class(instance=vulnerabilidade)
+        contexto = {
+            'form': form,
+            'vulnerabilidade': vulnerabilidade,
+            'vulnerabilidade_id': vulnerabilidade_id,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, vulnerabilidade_id=None, *args, **kwargs):
+        """Handle vulnerability update."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Vulnerabilidade
+
+        if not vulnerabilidade_id:
+            return redirect('lista_vulnerabilidades')
+
+        try:
+            vulnerabilidade = Vulnerabilidade.objects.get(id=vulnerabilidade_id)
+        except Vulnerabilidade.DoesNotExist:
+            messages.error(request, "Vulnerabilidade não encontrada.")
+            return redirect('lista_vulnerabilidades')
+
+        form = self.form_class(request.POST, instance=vulnerabilidade)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Vulnerabilidade VUL-{vulnerabilidade.id:04d} atualizada com sucesso!")
+            return redirect('lista_vulnerabilidades')
+
+        contexto = {
+            'form': form,
+            'vulnerabilidade': vulnerabilidade,
+            'vulnerabilidade_id': vulnerabilidade_id,
+        }
+        return render(request, self.template_name, contexto)
+
+
+class DeleteVulnerabilidadeView(View):
+    """View for deleting vulnerabilities.
+
+    This view allows authorized users (Security Analysts and Auditors) to delete
+    existing vulnerabilities. Displays confirmation page before deletion.
+
+    Requires user authentication and appropriate permissions.
+    """
+    template_name = "ismsapp/deletar_vulnerabilidade.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to delete vulnerabilities."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, vulnerabilidade_id=None, *args, **kwargs):
+        """Display vulnerability deletion confirmation page."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Vulnerabilidade
+
+        if not vulnerabilidade_id:
+            return redirect('lista_vulnerabilidades')
+
+        try:
+            vulnerabilidade = Vulnerabilidade.objects.select_related('ativo').prefetch_related('ameacas').get(id=vulnerabilidade_id)
+        except Vulnerabilidade.DoesNotExist:
+            messages.error(request, "Vulnerabilidade não encontrada.")
+            return redirect('lista_vulnerabilidades')
+
+        contexto = {
+            'vulnerabilidade': vulnerabilidade,
+            'vulnerabilidade_id': vulnerabilidade_id,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, vulnerabilidade_id=None, *args, **kwargs):
+        """Handle vulnerability deletion."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Vulnerabilidade
+
+        if not vulnerabilidade_id:
+            return redirect('lista_vulnerabilidades')
+
+        try:
+            vulnerabilidade = Vulnerabilidade.objects.get(id=vulnerabilidade_id)
+            vuln_id = vulnerabilidade.id
+            vulnerabilidade.delete()
+            messages.success(request, f"Vulnerabilidade VUL-{vuln_id:04d} deletada com sucesso!")
+            return redirect('lista_vulnerabilidades')
+        except Vulnerabilidade.DoesNotExist:
+            messages.error(request, "Vulnerabilidade não encontrada.")
+            return redirect('lista_vulnerabilidades')
+
 
 class RegistroAuditoriaView(View):
     """View for audit registration and tracking (Registro de Auditorias).

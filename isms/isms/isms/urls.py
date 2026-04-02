@@ -56,5 +56,8 @@ urlpatterns = [
     path("editar_ameaca/<int:ameaca_id>/", views.UpdateAmeacaView.as_view(), name="editar_ameaca"),
     path("deletar_ameaca/<int:ameaca_id>/", views.DeleteAmeacaView.as_view(), name="deletar_ameaca"),
     path("gestao_vulnerabilidades/", views.VulnerabilidadeView.as_view(), name="gestao_vulnerabilidades"),
+    path("lista_vulnerabilidades/", views.ReadVulnerabilidadeView.as_view(), name="lista_vulnerabilidades"),
+    path("editar_vulnerabilidade/<int:vulnerabilidade_id>/", views.UpdateVulnerabilidadeView.as_view(), name="editar_vulnerabilidade"),
+    path("deletar_vulnerabilidade/<int:vulnerabilidade_id>/", views.DeleteVulnerabilidadeView.as_view(), name="deletar_vulnerabilidade"),
     path("registro_auditoria/", views.RegistroAuditoriaView.as_view(), name="registro_auditoria"),
 ]

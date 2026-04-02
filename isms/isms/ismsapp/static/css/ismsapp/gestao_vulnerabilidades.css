@@ -394,8 +394,57 @@ html, body {
   width: 140px;
 }
 
+.vuln-name-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .actions-cell {
-  width: 60px;
+  width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* ============================================================================
+   Action Buttons
+   ============================================================================ */
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(147, 51, 234, 0.1);
+  color: var(--purple);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.action-btn:hover {
+  background: rgba(147, 51, 234, 0.2);
+  transform: translateY(-2px);
+}
+
+.action-btn i {
+  font-size: 0.85rem;
+}
+
+.action-delete {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.action-delete:hover {
+  background: rgba(239, 68, 68, 0.2);
 }
 
 /* ============================================================================
@@ -624,6 +673,50 @@ html, body {
 .empty-state p:last-of-type {
   color: var(--text-muted);
   font-size: 0.85rem;
+}
+
+/* ============================================================================
+   Checkbox Styling for Multiple Threat Selection
+   ============================================================================ */
+
+.checkboxes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: rgba(147, 51, 234, 0.05);
+  border: 1.5px solid var(--border-soft);
+  border-radius: 8px;
+  margin: 0.5rem 0;
+}
+
+.checkboxes-container input[type="checkbox"] {
+  margin-right: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.checkboxes-container label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  text-transform: none;
+  text-align: left;
+  font-weight: 400;
+}
+
+.checkboxes-container label:hover {
+  background-color: rgba(147, 51, 234, 0.1);
+}
+
+.checkboxes-container input[type="checkbox"]:checked + label {
+  color: var(--purple);
+  font-weight: 500;
 }
 
 /* ============================================================================

@@ -1,0 +1,52 @@
+/* ============================================================================
+   Editar Auditoria - Audit Edit Form Styling
+   ============================================================================ */
+
+.form-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    height: 46px;
+}
+
+.btn-cancel {
+    background: none;
+    color: var(--text-secondary, #b0b0b0);
+}
+
+.btn-cancel:hover {
+    color: var(--text-primary, #ffffff);
+}
+
+.btn-confirm {
+    background: var(--purple, #9333ea);
+    color: white;
+    box-shadow: 0 4px 18px rgba(139,60,247,.4);
+}
+
+.btn-confirm:hover {
+    background: var(--purple-hover, #a855f7);
+    box-shadow: 0 6px 24px rgba(139,60,247,.55);
+    transform: translateY(-1px);
+}
+
+.btn-confirm:active {
+    transform: scale(.97);
+}

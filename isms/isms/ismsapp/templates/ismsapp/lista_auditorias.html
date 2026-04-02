@@ -1,0 +1,102 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Lista de Auditorias{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="{% static 'css/ismsapp/registro_auditoria.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <!-- Alert Messages -->
+  {% if messages %}
+    <div class="alerts-container">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Auditorias Registradas Section -->
+  <div class="card" style="max-width: 1400px;">
+    <!-- Header with Title and Add Button -->
+    <div class="card-header-simple" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <div class="header-title-group">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b3cf7" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 8v4m0 4v.01" stroke-width="2.5"/>
+        </svg>
+        <div>
+          <h2 style="margin: 0 0 0.5rem 0; font-size: 1.5rem;">Auditorias Registradas</h2>
+          <p style="margin: 0; color: #b0b0b0; font-size: 0.9rem;">Gerenciar e visualizar todas as auditorias do sistema</p>
+        </div>
+      </div>
+      <a href="{% url 'registro_auditoria' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: #8b3cf7; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; white-space: nowrap;">
+        <i class="fas fa-plus"></i> Nova Auditoria
+      </a>
+    </div>
+
+
+
+    {% if auditorias %}
+      <div class="audits-table-wrapper">
+        <table class="audits-table">
+          <thead>
+            <tr>
+              <th>NOME</th>
+              <th>TIPO</th>
+              <th>DATA</th>
+              <th>STATUS</th>
+              <th>AÇÕES</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for auditoria in auditorias %}
+              <tr>
+                <td class="audit-id-cell">
+                  <div class="audit-id">{{ auditoria.nome }}</div>
+                  <div class="audit-meta-id">ID: AUD-{{ auditoria.id|stringformat:"04d" }}</div>
+                </td>
+                <td class="type-cell">
+                  <span class="type-badge type-{{ auditoria.tipo_auditoria }}">
+                    {{ auditoria.get_tipo_auditoria_display }}
+                  </span>
+                </td>
+                <td class="date-cell">{{ auditoria.data_auditoria|date:"d/m/Y" }}</td>
+                <td class="status-cell">
+                  <span class="status-badge status-{{ auditoria.status }}">
+                    {{ auditoria.get_status_display }}
+                  </span>
+                </td>
+                <td class="actions-cell">
+                  <a href="{% url 'editar_auditoria' auditoria.id %}" class="action-btn action-edit" title="Editar">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  <a href="{% url 'deletar_auditoria' auditoria.id %}" class="action-btn action-delete" title="Deletar">
+                    <i class="fas fa-trash-alt"></i>
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    {% else %}
+      <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #64748b; margin-bottom: 1rem;">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <p>Nenhuma auditoria registrada</p>
+        <p style="font-size: 0.85rem; color: #94a3b8;">Registre uma nova auditoria para começar</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script src="{% static 'js/ismsapp/registro_auditoria.js' %}"></script>
+{% endblock %}

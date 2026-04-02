@@ -3124,7 +3124,7 @@ class DeleteVulnerabilidadeView(View):
             messages.error(request, "Vulnerabilidade não encontrada.")
             return redirect('lista_vulnerabilidades')
 
-
+#auditorias CRUD
 class RegistroAuditoriaView(View):
     """View for audit registration and tracking (Registro de Auditorias).
 
@@ -3157,27 +3157,13 @@ class RegistroAuditoriaView(View):
 
     @method_decorator(login_required(login_url="login"))
     def get(self, request, *args, **kwargs):
-        """Display audit registration page with form and audit history."""
+        """Display audit registration page with form."""
         if not self._check_permission(request.user):
             messages.error(request, "Você não tem permissão para acessar esta página.")
             return redirect('dashboard')
 
-        from .models import Auditoria
-
-        # Get all audits ordered by date (most recent first)
-        auditorias = Auditoria.objects.all().order_by('-data_auditoria')
-
-        # Calculate status counts
-        pendentes = auditorias.filter(status='pendente').count()
-        concluidas = auditorias.filter(status='concluida').count()
-        total = auditorias.count()
-
         contexto = {
             'form': self.form_class(),
-            'auditorias': auditorias,
-            'count_pendentes': pendentes,
-            'count_concluidas': concluidas,
-            'total_auditorias': total,
         }
         return render(request, self.template_name, contexto)
 
@@ -3246,17 +3232,190 @@ class RegistroAuditoriaView(View):
                 for error in errors:
                     messages.error(request, f"{field}: {error}")
 
-        # Reload the page with updated data
+        # Redirect to the list page after registration
+        return redirect('lista_auditorias')
+
+
+class ReadAuditoriaView(View):
+    """View for reading/listing auditorias.
+
+    This view displays all registered audits with filtering options.
+    Requires user authentication and appropriate permissions (Auditor only).
+    """
+    template_name = "ismsapp/lista_auditorias.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to view audits."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        return user_profile.actor_type == UserProfile.Actor.AUDITOR
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        """Display all audits."""
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        from .models import Auditoria
+
         auditorias = Auditoria.objects.all().order_by('-data_auditoria')
+
         pendentes = auditorias.filter(status='pendente').count()
         concluidas = auditorias.filter(status='concluida').count()
-        total = auditorias.count()
 
         contexto = {
-            'form': self.form_class(),
             'auditorias': auditorias,
             'count_pendentes': pendentes,
             'count_concluidas': concluidas,
-            'total_auditorias': total,
         }
         return render(request, self.template_name, contexto)
+
+
+class UpdateAuditoriaView(View):
+    """View for updating/editing audits.
+
+    This view allows authorized users (Auditors) to edit
+    existing audits including type, name, date, findings, and action plans.
+
+    Requires user authentication and appropriate permissions.
+    """
+    form_class = AuditoriaForm
+    template_name = "ismsapp/editar_auditoria.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to update audits."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        return user_profile.actor_type == UserProfile.Actor.AUDITOR
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, auditoria_id=None, *args, **kwargs):
+        """Display audit edit form."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Auditoria
+
+        if not auditoria_id:
+            return redirect('lista_auditorias')
+
+        try:
+            auditoria = Auditoria.objects.get(id=auditoria_id)
+        except Auditoria.DoesNotExist:
+            messages.error(request, "Auditoria não encontrada.")
+            return redirect('lista_auditorias')
+
+        form = self.form_class(instance=auditoria)
+        contexto = {
+            'form': form,
+            'auditoria': auditoria,
+            'auditoria_id': auditoria_id,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, auditoria_id=None, *args, **kwargs):
+        """Handle audit update."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Auditoria
+
+        if not auditoria_id:
+            return redirect('lista_auditorias')
+
+        try:
+            auditoria = Auditoria.objects.get(id=auditoria_id)
+        except Auditoria.DoesNotExist:
+            messages.error(request, "Auditoria não encontrada.")
+            return redirect('lista_auditorias')
+
+        form = self.form_class(request.POST, instance=auditoria)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Auditoria '{auditoria.nome}' atualizada com sucesso!")
+            return redirect('lista_auditorias')
+
+        contexto = {
+            'form': form,
+            'auditoria': auditoria,
+            'auditoria_id': auditoria_id,
+        }
+        return render(request, self.template_name, contexto)
+
+
+class DeleteAuditoriaView(View):
+    """View for deleting audits.
+
+    This view allows authorized users (Auditors) to delete
+    existing audits. Displays confirmation page before deletion.
+
+    Requires user authentication and appropriate permissions.
+    """
+    template_name = "ismsapp/deletar_auditoria.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to delete audits."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        return user_profile.actor_type == UserProfile.Actor.AUDITOR
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, auditoria_id=None, *args, **kwargs):
+        """Display audit deletion confirmation page."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Auditoria
+
+        if not auditoria_id:
+            return redirect('lista_auditorias')
+
+        try:
+            auditoria = Auditoria.objects.get(id=auditoria_id)
+        except Auditoria.DoesNotExist:
+            messages.error(request, "Auditoria não encontrada.")
+            return redirect('lista_auditorias')
+
+        contexto = {
+            'auditoria': auditoria,
+            'auditoria_id': auditoria_id,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, auditoria_id=None, *args, **kwargs):
+        """Handle audit deletion."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Auditoria
+
+        if not auditoria_id:
+            return redirect('lista_auditorias')
+
+        try:
+            auditoria = Auditoria.objects.get(id=auditoria_id)
+            audit_name = auditoria.nome
+            auditoria.delete()
+            messages.success(request, f"Auditoria '{audit_name}' deletada com sucesso!")
+            return redirect('lista_auditorias')
+        except Auditoria.DoesNotExist:
+            messages.error(request, "Auditoria não encontrada.")
+            return redirect('lista_auditorias')

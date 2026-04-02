@@ -60,4 +60,7 @@ urlpatterns = [
     path("editar_vulnerabilidade/<int:vulnerabilidade_id>/", views.UpdateVulnerabilidadeView.as_view(), name="editar_vulnerabilidade"),
     path("deletar_vulnerabilidade/<int:vulnerabilidade_id>/", views.DeleteVulnerabilidadeView.as_view(), name="deletar_vulnerabilidade"),
     path("registro_auditoria/", views.RegistroAuditoriaView.as_view(), name="registro_auditoria"),
+    path("lista_auditorias/", views.ReadAuditoriaView.as_view(), name="lista_auditorias"),
+    path("editar_auditoria/<int:auditoria_id>/", views.UpdateAuditoriaView.as_view(), name="editar_auditoria"),
+    path("deletar_auditoria/<int:auditoria_id>/", views.DeleteAuditoriaView.as_view(), name="deletar_auditoria"),
 ]

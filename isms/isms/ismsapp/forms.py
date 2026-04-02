@@ -1009,14 +1009,15 @@ class AuditoriaForm(forms.ModelForm):
 
     class Meta:
         model = Auditoria
-        fields = ['tipo_auditoria', 'nome', 'data_auditoria', 'nao_conformidades_identificadas', 'nao_conformidades', 'plano_acao']
+        fields = ['tipo_auditoria', 'nome', 'data_auditoria', 'nao_conformidades_identificadas', 'nao_conformidades', 'plano_acao', 'status']
         labels = {
             'tipo_auditoria': 'Tipo de Auditoria',
             'nome': 'Nome da Auditoria',
             'data_auditoria': 'Data da Auditoria',
             'nao_conformidades_identificadas': 'Não foram identificadas não conformidades',
             'nao_conformidades': 'Não Conformidades (Achados)',
-            'plano_acao': 'Planos de Ação (Remediação)'
+            'plano_acao': 'Planos de Ação (Remediação)',
+            'status': 'Status da Auditoria'
         }
         widgets = {
             'tipo_auditoria': forms.Select(attrs={
@@ -1036,6 +1037,9 @@ class AuditoriaForm(forms.ModelForm):
             'plano_acao': forms.Textarea(attrs={
                 'placeholder': 'Defina os passos para mitigação e correção das falhas...',
                 'rows': 5
+            }),
+            'status': forms.Select(attrs={
+                'placeholder': 'Selecione o status'
             })
         }
 

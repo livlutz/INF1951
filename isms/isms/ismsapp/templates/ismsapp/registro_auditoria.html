@@ -41,22 +41,6 @@
     <form method="post" action="{% url 'registro_auditoria' %}" class="audit-form">
       {% csrf_token %}
 
-      <!-- Tipo de Auditoria -->
-      <div class="form-group">
-        <label for="{{ form.tipo_auditoria.id_for_label }}">
-          <i class="fas fa-list" style="color: #9333ea; margin-right: 0.5rem;"></i>
-          {{ form.tipo_auditoria.label }}
-        </label>
-        {{ form.tipo_auditoria }}
-        {% if form.tipo_auditoria.errors %}
-          <div class="error-message">
-            {% for error in form.tipo_auditoria.errors %}
-              {{ error }}<br>
-            {% endfor %}
-          </div>
-        {% endif %}
-      </div>
-
       <!-- Nome da Auditoria -->
       <div class="form-group">
         <label for="{{ form.nome.id_for_label }}">
@@ -67,6 +51,22 @@
         {% if form.nome.errors %}
           <div class="error-message">
             {% for error in form.nome.errors %}
+              {{ error }}<br>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Tipo de Auditoria -->
+      <div class="form-group">
+        <label for="{{ form.tipo_auditoria.id_for_label }}">
+          <i class="fas fa-list" style="color: #9333ea; margin-right: 0.5rem;"></i>
+          {{ form.tipo_auditoria.label }}
+        </label>
+        {{ form.tipo_auditoria }}
+        {% if form.tipo_auditoria.errors %}
+          <div class="error-message">
+            {% for error in form.tipo_auditoria.errors %}
               {{ error }}<br>
             {% endfor %}
           </div>
@@ -142,76 +142,6 @@
         </button>
       </div>
     </form>
-  </div>
-
-  <!-- Auditorias Registradas Section -->
-  <div class="card">
-    <div class="card-header-simple">
-      <div class="header-title-group">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b3cf7" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 8v4m0 4v.01" stroke-width="2.5"/>
-        </svg>
-        <h2>Acompanhamento e Histórico</h2>
-      </div>
-    </div>
-
-    <!-- Status Filter Tabs -->
-    <div class="status-tabs">
-      <a href="#" class="status-tab active">
-        <span class="tab-label">Pendentes</span>
-        <span class="tab-count">{{ count_pendentes }}</span>
-      </a>
-      <a href="#" class="status-tab">
-        <span class="tab-label">Concluídas</span>
-        <span class="tab-count">{{ count_concluidas }}</span>
-      </a>
-    </div>
-
-    {% if auditorias %}
-      <div class="audits-table-wrapper">
-        <table class="audits-table">
-          <thead>
-            <tr>
-              <th>AUDITORIA</th>
-              <th>TIPO</th>
-              <th>DATA</th>
-              <th>STATUS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for auditoria in auditorias %}
-              <tr>
-                <td class="audit-id-cell">
-                  <div class="audit-id">{{ auditoria.nome }}</div>
-                  <div class="audit-meta-id">ID: AUD-{{ auditoria.id|stringformat:"04d" }}</div>
-                </td>
-                <td class="type-cell">
-                  <span class="type-badge type-{{ auditoria.tipo_auditoria }}">
-                    {{ auditoria.get_tipo_auditoria_display }}
-                  </span>
-                </td>
-                <td class="date-cell">{{ auditoria.data_auditoria|date:"d/m/Y" }}</td>
-                <td class="status-cell">
-                  <span class="status-badge status-{{ auditoria.status }}">
-                    {{ auditoria.get_status_display }}
-                  </span>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-    {% else %}
-      <div class="empty-state">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #64748b; margin-bottom: 1rem;">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
-        <p>Nenhuma auditoria registrada</p>
-        <p style="font-size: 0.85rem; color: #94a3b8;">Registre uma nova auditoria para começar</p>
-      </div>
-    {% endif %}
   </div>
 </div>
 

@@ -557,6 +557,44 @@ html, body {
 }
 
 /* ============================================================================
+   Action Buttons
+   ============================================================================ */
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(147, 51, 234, 0.1);
+  color: var(--purple);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.action-btn:hover {
+  background: rgba(147, 51, 234, 0.2);
+  transform: translateY(-2px);
+}
+
+.action-btn i {
+  font-size: 0.85rem;
+}
+
+.action-delete {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.action-delete:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* ============================================================================
    Responsive Design
    ============================================================================ */
 

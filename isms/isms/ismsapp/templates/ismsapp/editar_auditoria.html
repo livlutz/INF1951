@@ -1,0 +1,171 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Editar Auditoria{% endblock %}
+
+{% block extra_css %}
+    <link href="{% static 'css/ismsapp/identificacao_riscos.css' %}" rel="stylesheet">
+    <link href="{% static 'css/ismsapp/editar_auditoria.css' %}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <div class="page">
+        <form method="post" action="" class="card">
+            {% csrf_token %}
+
+            <!-- Card Header -->
+            <div class="card-header">
+                <div class="shield-wrap">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8b3cf7" stroke-width="1.8">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <circle cx="12" cy="12" r="2"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="card-title">Editar Auditoria</h1>
+                    <p class="card-description">Atualize as informações da auditoria realizada</p>
+                </div>
+            </div>
+
+            <!-- Auditoria Info Display (Read-only) -->
+            <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border-left: 4px solid #8b3cf7;">
+                <div>
+                    <p style="color: #64748b; font-size: 0.875rem; margin-bottom: 0.25rem;">ID da Auditoria</p>
+                    <p style="color: #1e293b; font-weight: 500;">AUD-{{ auditoria.id|stringformat:"04d" }}</p>
+                </div>
+            </div>
+
+            <!-- Nome Field -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="s-icon s-purple">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M4 4h16v2H4V4z"/>
+                            <path d="M4 9h16v2H4V9z"/>
+                            <path d="M4 14h16v2H4v-2z"/>
+                        </svg>
+                    </span>
+                    {{ form.nome.label }}
+                </div>
+                {{ form.nome }}
+                {% if form.nome.errors %}
+                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.nome.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Tipo de Auditoria Field -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="s-icon s-purple">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M12 1v22M1 12h22"/>
+                            <circle cx="12" cy="12" r="11"/>
+                        </svg>
+                    </span>
+                    {{ form.tipo_auditoria.label }}
+                </div>
+                {{ form.tipo_auditoria }}
+                {% if form.tipo_auditoria.errors %}
+                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.tipo_auditoria.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Data da Auditoria Field -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="s-icon s-purple">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </span>
+                    {{ form.data_auditoria.label }}
+                </div>
+                {{ form.data_auditoria }}
+                {% if form.data_auditoria.errors %}
+                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.data_auditoria.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Não Conformidades Identificadas Checkbox -->
+            <div class="section">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    {{ form.nao_conformidades_identificadas }}
+                    <label for="{{ form.nao_conformidades_identificadas.id_for_label }}" style="margin: 0; cursor: pointer;">
+                        {{ form.nao_conformidades_identificadas.label }}
+                    </label>
+                </div>
+                {% if form.nao_conformidades_identificadas.errors %}
+                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.nao_conformidades_identificadas.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Não Conformidades Field -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="s-icon s-purple">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M4 4h16v2H4V4z"/>
+                            <path d="M4 9h16v2H4V9z"/>
+                            <path d="M4 14h16v2H4v-2z"/>
+                        </svg>
+                    </span>
+                    {{ form.nao_conformidades.label }}
+                </div>
+                {{ form.nao_conformidades }}
+                {% if form.nao_conformidades.errors %}
+                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.nao_conformidades.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Plano de Ação Field -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="s-icon s-purple">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <circle cx="9" cy="9" r="1"/>
+                            <path d="M9 14h6"/>
+                            <path d="M9 19h6"/>
+                        </svg>
+                    </span>
+                    {{ form.plano_acao.label }}
+                </div>
+                {{ form.plano_acao }}
+                {% if form.plano_acao.errors %}
+                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.plano_acao.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Status Field -->
+            <div class="section">
+                <div class="section-label">
+                    <span class="s-icon s-purple">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </span>
+                    {{ form.status.label }}
+                </div>
+                {{ form.status }}
+                {% if form.status.errors %}
+                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.status.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Buttons -->
+            <div class="form-buttons">
+                <a href="{% url 'lista_auditorias' %}" class="btn btn-cancel">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-confirm">
+                    <i class="fas fa-save"></i> Salvar Alterações
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="{% static 'js/ismsapp/registro_auditoria.js' %}"></script>
+{% endblock %}

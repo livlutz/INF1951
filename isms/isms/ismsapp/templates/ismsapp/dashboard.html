@@ -396,14 +396,28 @@
 
                 <div class="module-content">
                     <div class="dashboard-grid">
-                <!-- Registro de Auditorias -->
+                <!-- Registrar Auditoria -->
                 <a href="{% url 'registro_auditoria' %}" class="dashboard-card-link">
                     <div class="dashboard-card">
                         <div class="card-icon">
-                            <i class="fas fa-clipboard-list" style="color: #8b3cf7;"></i>
+                            <i class="fas fa-plus-circle" style="color: #8b3cf7;"></i>
                         </div>
-                        <h3>Registro de Auditorias</h3>
-                        <p>Registre auditorias e acompanhe não conformidades</p>
+                        <h3>Registrar Auditoria</h3>
+                        <p>Registre novas auditorias e avaliações de conformidade</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Gestão de Auditorias -->
+                <a href="{% url 'lista_auditorias' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-list" style="color: #8b3cf7;"></i>
+                        </div>
+                        <h3>Gestão de Auditorias</h3>
+                        <p>Visualize, edite e delete auditorias</p>
                         <div class="card-footer">
                             <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
                         </div>

@@ -13,9 +13,7 @@
     <div class="report-container">
         <!-- Report Header -->
         <div class="report-header">
-            <h1>
-                <i class="fas fa-file-pdf"></i> RELATÓRIO FINAL
-            </h1>
+            <h1>RELATÓRIO FINAL</h1>
             <div class="subtitle">Incidente de Segurança {{ incidente.numero_incidente }}</div>
 
             <div class="report-details">
@@ -88,7 +86,7 @@
                         <div class="asset-item">
                             <strong>{{ ativo.nome }}</strong>
                             {% if ativo.categoria %}
-                            <br><small style="color: #7f8c8d;">Categoria: {{ ativo.categoria.nome }}</small>
+                            <br><small style="color: #9ca3af;">Categoria: {{ ativo.categoria.nome }}</small>
                             {% endif %}
                         </div>
                         {% endfor %}
@@ -125,7 +123,7 @@
                         </div>
                     </div>
                     {% else %}
-                    <p style="color: #7f8c8d;">Não atribuído</p>
+                    <p style="color: #9ca3af;">Não atribuído</p>
                     {% endif %}
                 </div>
             </div>
@@ -139,7 +137,7 @@
                     {% if relatorio.analise_causa_raiz %}
                     <p>{{ relatorio.analise_causa_raiz|linebreaks }}</p>
                     {% else %}
-                    <p style="color: #7f8c8d;"><em>Análise não registrada</em></p>
+                    <p style="color: #9ca3af;"><em>Análise não registrada</em></p>
                     {% endif %}
                 </div>
             </div>
@@ -160,14 +158,14 @@
                     {% endif %}
 
                     {% if relatorio.impacto_operacional %}
-                    <div class="section-content" style="margin-top: 1rem;">
+                    <div class="section-content" style="margin-top: 1rem; margin-left: 0;">
                         <strong>Impacto Operacional:</strong>
                         <p>{{ relatorio.impacto_operacional|linebreaks }}</p>
                     </div>
                     {% endif %}
 
                     {% if relatorio.impacto_imagem %}
-                    <div class="section-content" style="margin-top: 1rem;">
+                    <div class="section-content" style="margin-top: 1rem; margin-left: 0;">
                         <strong>Impacto à Imagem/Reputação:</strong>
                         <p>{{ relatorio.impacto_imagem|linebreaks }}</p>
                     </div>
@@ -184,13 +182,13 @@
                     {% if relatorio.licoes_aprendidas %}
                     <p>{{ relatorio.licoes_aprendidas|linebreaks }}</p>
                     {% else %}
-                    <p style="color: #7f8c8d;"><em>Lições não registradas</em></p>
+                    <p style="color: #9ca3af;"><em>Lições não registradas</em></p>
                     {% endif %}
                 </div>
             </div>
 
             <!-- Report Footer -->
-            <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #e9ecef; text-align: center; color: #7f8c8d; font-size: 0.9rem;">
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #444; text-align: center; color: #9ca3af; font-size: 0.85rem;">
                 <p>
                     <strong>Relatório Gerado:</strong> {{ relatorio.data_criacao|date:"d/m/Y H:i" }}<br>
                     <strong>Última Atualização:</strong> {{ relatorio.data_atualizacao|date:"d/m/Y H:i" }}<br>

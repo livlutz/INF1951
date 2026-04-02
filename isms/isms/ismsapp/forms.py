@@ -724,6 +724,8 @@ class AtribuirResponsavelIncidenteForm(forms.ModelForm):
     """Form for assigning responsible person and updating incident status.
 
     This form allows the Security Auditor to:
+    - Update the incident description
+    - Add or modify affected assets
     - Assign a responsible person for incident treatment
     - Update the incident status (registered, investigating, resolved, closed)
     """
@@ -731,12 +733,22 @@ class AtribuirResponsavelIncidenteForm(forms.ModelForm):
     class Meta:
 
         model = Incidente
-        fields = ['responsavel_tratamento', 'status']
+        fields = ['descricao', 'ativos_afetados', 'responsavel_tratamento', 'status']
         labels = {
+            'descricao': 'Descrição do Incidente',
+            'ativos_afetados': 'Ativos Afetados',
             'responsavel_tratamento': 'Responsável pelo Tratamento',
             'status': 'Status do Incidente'
         }
         widgets = {
+            'descricao': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descreva detalhadamente o incidente de segurança...',
+                'rows': 5
+            }),
+            'ativos_afetados': forms.CheckboxSelectMultiple(attrs={
+                'class': 'form-check-input'
+            }),
             'responsavel_tratamento': forms.Select(attrs={
                 'class': 'form-control'
             }),

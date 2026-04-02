@@ -2455,6 +2455,75 @@ class RelatórioIncidenteView(View):
         }
         return render(request, self.template_name, contexto)
 
+class DeleteIncidenteView(View):
+    """View for deleting incidents with confirmation.
+
+    Allows authorized users to:
+    - View incident details
+    - Confirm deletion
+    - Delete the incident permanently
+
+    Authorized users:
+    - Information Security Auditor (AUDITOR)
+    - Security Analyst (ANALISTA)
+    """
+    template_name = "ismsapp/deletar_incidente.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to delete incidents."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, incidente_id, *args, **kwargs):
+        """Display incident deletion confirmation page."""
+
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        try:
+            from .models import Incidente
+            incidente = Incidente.objects.prefetch_related('ativos_afetados').get(id=incidente_id)
+        except:
+            messages.error(request, "Incidente não encontrado.")
+            return redirect('gestao_incidentes')
+
+        contexto = {
+            'incidente': incidente,
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, incidente_id, *args, **kwargs):
+        """Process incident deletion."""
+
+        if not self._check_permission(request.user):
+            messages.error(request, "Você não tem permissão para acessar esta página.")
+            return redirect('dashboard')
+
+        try:
+            from .models import Incidente
+            incidente = Incidente.objects.get(id=incidente_id)
+            numero_incidente = incidente.numero_incidente
+            incidente.delete()
+            messages.success(request, f"Incidente {numero_incidente} deletado com sucesso!")
+            return redirect('gestao_incidentes')
+        except Exception as e:
+            messages.error(request, f"Erro ao deletar incidente: {str(e)}")
+            return redirect('gestao_incidentes')
+
+
 #Threats CRUD
 class DeteccaoAmeacaView(View):
     """View for threat detection (Detecção de Ameaças).

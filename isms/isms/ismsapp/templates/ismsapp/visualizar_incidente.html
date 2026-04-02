@@ -67,51 +67,60 @@
             </div>
 
             <!-- Description Section -->
-            <div class="section">
-                <h3 class="section-title">
-                    <i class="fas fa-align-left"></i> Descrição do Incidente
-                </h3>
-                <p style="color: #7f8c8d; line-height: 1.6;">{{ incidente.descricao }}</p>
-            </div>
+            <form method="POST" class="form-section">
+                {% csrf_token %}
 
-            <!-- Affected Assets Section -->
-            <div class="section">
-                <h3 class="section-title">
-                    <i class="fas fa-server"></i> Ativos Afetados
-                </h3>
-                {% if incidente.ativos_afetados.all %}
-                <div class="assets-list">
-                    {% for ativo in incidente.ativos_afetados.all %}
-                    <div class="asset-tag">
-                        <i class="fas fa-cube"></i> {{ ativo.nome }}
+                <div class="section">
+                    <h3 class="section-title">
+                        <i class="fas fa-align-left"></i> Descrição do Incidente
+                    </h3>
+
+                    <div class="form-group">
+                        {{ form.descricao }}
+                        {% if form.descricao.errors %}
+                            <div class="form-error">{{ form.descricao.errors }}</div>
+                        {% endif %}
                     </div>
-                    {% endfor %}
                 </div>
-                {% else %}
-                <p class="empty-responsible">Nenhum ativo afetado registrado.</p>
-                {% endif %}
-            </div>
 
-            <!-- Treatment Assignment Section -->
-            <div class="section">
-                <h3 class="section-title">
-                    <i class="fas fa-user-check"></i> Atribuição de Responsável
-                </h3>
+                <!-- Affected Assets Section -->
+                <div class="section">
+                    <h3 class="section-title">
+                        <i class="fas fa-server"></i> Ativos Afetados
+                    </h3>
 
-                {% if incidente.responsavel_tratamento %}
-                <div class="info-pair">
-                    <label>Responsável Atual:</label>
-                    <span>{{ incidente.responsavel_tratamento.get_full_name|default:incidente.responsavel_tratamento.username }}</span>
+                    <div class="form-group">
+                        <div class="assets-checkbox-group">
+                            {% for checkbox in form.ativos_afetados %}
+                                <label class="checkbox-label">
+                                    {{ checkbox.tag }}
+                                    <span>{{ checkbox.choice_label }}</span>
+                                </label>
+                            {% endfor %}
+                            {% if form.ativos_afetados.errors %}
+                                <div class="form-error">{{ form.ativos_afetados.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                {% else %}
-                <div class="info-pair">
-                    <label>Responsável Atual:</label>
-                    <span class="empty-responsible">Não atribuído</span>
-                </div>
-                {% endif %}
 
-                <form method="POST" class="form-section">
-                    {% csrf_token %}
+                <!-- Treatment Assignment Section -->
+                <div class="section">
+                    <h3 class="section-title">
+                        <i class="fas fa-user-check"></i> Atribuição de Responsável
+                    </h3>
+
+                    {% if incidente.responsavel_tratamento %}
+                    <div class="info-pair">
+                        <label>Responsável Atual:</label>
+                        <span>{{ incidente.responsavel_tratamento.get_full_name|default:incidente.responsavel_tratamento.username }}</span>
+                    </div>
+                    {% else %}
+                    <div class="info-pair">
+                        <label>Responsável Atual:</label>
+                        <span class="empty-responsible">Não atribuído</span>
+                    </div>
+                    {% endif %}
 
                     <div class="form-group">
                         <label for="{{ form.responsavel_tratamento.id_for_label }}">
@@ -126,17 +135,17 @@
                         </label>
                         {{ form.status }}
                     </div>
+                </div>
 
-                    <div class="btn-group-form">
-                        <button type="submit" class="btn-submit">
-                            <i class="fas fa-save"></i> Salvar Alterações
-                        </button>
-                        <a href="{% url 'gestao_incidentes' %}" class="btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Voltar
-                        </a>
-                    </div>
-                </form>
-            </div>
+                <div class="btn-group-form">
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-save"></i> Salvar Alterações
+                    </button>
+                    <a href="{% url 'gestao_incidentes' %}" class="btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </form>
 
             <!-- Action Buttons -->
             <div class="action-buttons">

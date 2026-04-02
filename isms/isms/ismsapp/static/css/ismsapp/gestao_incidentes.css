@@ -160,6 +160,10 @@
     background-color: #27ae60;
 }
 
+.btn-delete {
+    background-color: #dc2626;
+}
+
 .empty-state {
     text-align: center;
     padding: 3rem;

@@ -21,72 +21,72 @@
 
         <!-- ENHANCED SECURITY MONITORING DASHBOARD-->
 
-        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid rgba(139, 60, 247, 0.2);">
+        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 2px solid rgba(139, 60, 247, 0.2);">
             <!-- ROW 1: Risk Treatment Status + Incident Trend -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
 
                 <!-- SECTION 1: Risk Treatment Status (Left) -->
                 <div>
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-                        <i class="fas fa-heartbeat" style="font-size: 1.8rem; color: #8b3cf7;"></i>
-                        <h3 style="margin: 0; font-size: 1.3rem; color: #ffffff;">Tratamento de Riscos</h3>
+                    <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem;">
+                        <i class="fas fa-heartbeat" style="font-size: 1.3rem; color: #8b3cf7;"></i>
+                        <h3 style="margin: 0; font-size: 1.1rem; color: #ffffff;">Tratamento de Riscos</h3>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
                         <!-- Mitigate -->
-                        <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 1.2rem;">
-                            <p style="margin: 0; font-size: 0.8rem; color: #86efac; font-weight: 600;">MITIGAR</p>
-                            <p style="margin: 0.5rem 0 0 0; font-size: 2rem; font-weight: 700; color: #86efac;">{{ tratamento_status.mitigar }}</p>
+                        <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 0.8rem;">
+                            <p style="margin: 0; font-size: 0.65rem; color: #86efac; font-weight: 600;">MITIGAR</p>
+                            <p style="margin: 0.4rem 0 0 0; font-size: 1.4rem; font-weight: 700; color: #86efac;">{{ tratamento_status.mitigar }}</p>
                         </div>
                         <!-- Accept -->
-                        <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 1.2rem;">
-                            <p style="margin: 0; font-size: 0.8rem; color: #93c5fd; font-weight: 600;">ACEITAR</p>
-                            <p style="margin: 0.5rem 0 0 0; font-size: 2rem; font-weight: 700; color: #93c5fd;">{{ tratamento_status.aceitar }}</p>
+                        <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 0.8rem;">
+                            <p style="margin: 0; font-size: 0.65rem; color: #93c5fd; font-weight: 600;">ACEITAR</p>
+                            <p style="margin: 0.4rem 0 0 0; font-size: 1.4rem; font-weight: 700; color: #93c5fd;">{{ tratamento_status.aceitar }}</p>
                         </div>
                         <!-- Avoid -->
-                        <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 1.2rem;">
-                            <p style="margin: 0; font-size: 0.8rem; color: #fca5a5; font-weight: 600;">EVITAR</p>
-                            <p style="margin: 0.5rem 0 0 0; font-size: 2rem; font-weight: 700; color: #fca5a5;">{{ tratamento_status.evitar }}</p>
+                        <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 0.8rem;">
+                            <p style="margin: 0; font-size: 0.65rem; color: #fca5a5; font-weight: 600;">EVITAR</p>
+                            <p style="margin: 0.4rem 0 0 0; font-size: 1.4rem; font-weight: 700; color: #fca5a5;">{{ tratamento_status.evitar }}</p>
                         </div>
                         <!-- Share -->
-                        <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 1.2rem;">
-                            <p style="margin: 0; font-size: 0.8rem; color: #fcd34d; font-weight: 600;">COMPARTILHAR</p>
-                            <p style="margin: 0.5rem 0 0 0; font-size: 2rem; font-weight: 700; color: #fcd34d;">{{ tratamento_status.compartilhar }}</p>
+                        <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 0.8rem;">
+                            <p style="margin: 0; font-size: 0.65rem; color: #fcd34d; font-weight: 600;">COMPARTILHAR</p>
+                            <p style="margin: 0.4rem 0 0 0; font-size: 1.4rem; font-weight: 700; color: #fcd34d;">{{ tratamento_status.compartilhar }}</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- SECTION 2: Incident Trend (Right) -->
                 <div>
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-                        <i class="fas fa-chart-line" style="font-size: 1.8rem; color: #8b3cf7;"></i>
-                        <h3 style="margin: 0; font-size: 1.3rem; color: #ffffff;">Tendência de Incidentes</h3>
+                    <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem;">
+                        <i class="fas fa-chart-line" style="font-size: 1.3rem; color: #8b3cf7;"></i>
+                        <h3 style="margin: 0; font-size: 1.1rem; color: #ffffff;">Tendência de Incidentes</h3>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 0.8rem;">
                     <!-- Registrado -->
-                    <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 1rem;">
-                        <p style="margin: 0; font-size: 0.75rem; color: #93c5fd; font-weight: 600;">REGISTRADOS</p>
-                        <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem;">
-                            <div><p style="margin: 0; font-size: 0.7rem; color: #9ca3af;">Total: {{ incident_trend.registrado.total }}</p></div>
-                            <div><p style="margin: 0; font-size: 0.7rem; color: #93c5fd;">30d: {{ incident_trend.registrado.dias_30 }}</p></div>
+                    <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 0.7rem;">
+                        <p style="margin: 0; font-size: 0.65rem; color: #93c5fd; font-weight: 600;">REGISTRADOS</p>
+                        <div style="display: flex; gap: 1rem; margin-top: 0.4rem;">
+                            <div><p style="margin: 0; font-size: 0.6rem; color: #9ca3af;">Total: {{ incident_trend.registrado.total }}</p></div>
+                            <div><p style="margin: 0; font-size: 0.6rem; color: #93c5fd;">30d: {{ incident_trend.registrado.dias_30 }}</p></div>
                         </div>
                     </div>
 
                     <!-- Em Investigação -->
-                    <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 1rem;">
-                        <p style="margin: 0; font-size: 0.75rem; color: #fcd34d; font-weight: 600;">EM INVESTIGAÇÃO</p>
-                        <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem;">
-                            <div><p style="margin: 0; font-size: 0.7rem; color: #9ca3af;">Total: {{ incident_trend.em_investigacao.total }}</p></div>
-                            <div><p style="margin: 0; font-size: 0.7rem; color: #fcd34d;">30d: {{ incident_trend.em_investigacao.dias_30 }}</p></div>
+                    <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 0.7rem;">
+                        <p style="margin: 0; font-size: 0.65rem; color: #fcd34d; font-weight: 600;">EM INVESTIGAÇÃO</p>
+                        <div style="display: flex; gap: 1rem; margin-top: 0.4rem;">
+                            <div><p style="margin: 0; font-size: 0.6rem; color: #9ca3af;">Total: {{ incident_trend.em_investigacao.total }}</p></div>
+                            <div><p style="margin: 0; font-size: 0.6rem; color: #fcd34d;">30d: {{ incident_trend.em_investigacao.dias_30 }}</p></div>
                         </div>
                     </div>
 
                     <!-- Resolvido -->
-                    <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 1rem;">
-                        <p style="margin: 0; font-size: 0.75rem; color: #6ee7b7; font-weight: 600;">RESOLVIDOS</p>
-                        <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem;">
-                            <div><p style="margin: 0; font-size: 0.7rem; color: #9ca3af;">Total: {{ incident_trend.resolvido.total }}</p></div>
-                            <div><p style="margin: 0; font-size: 0.7rem; color: #6ee7b7;">30d: {{ incident_trend.resolvido.dias_30 }}</p></div>
+                    <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 0.7rem;">
+                        <p style="margin: 0; font-size: 0.65rem; color: #6ee7b7; font-weight: 600;">RESOLVIDOS</p>
+                        <div style="display: flex; gap: 1rem; margin-top: 0.4rem;">
+                            <div><p style="margin: 0; font-size: 0.6rem; color: #9ca3af;">Total: {{ incident_trend.resolvido.total }}</p></div>
+                            <div><p style="margin: 0; font-size: 0.6rem; color: #6ee7b7;">30d: {{ incident_trend.resolvido.dias_30 }}</p></div>
                         </div>
                     </div>
                 </div>
@@ -94,61 +94,61 @@
             </div>
 
             <!-- ROW 2: Vulnerabilities & High-Priority Risks -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
                 <!-- SECTION 3: Vulnerabilities/Artifact Compliance (Left) -->
                 <div>
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-                        <i class="fas fa-shield-alt" style="font-size: 1.8rem; color: #ec4899;"></i>
-                        <h3 style="margin: 0; font-size: 1.3rem; color: #ffffff;">Conformidade de Artefatos</h3>
+                    <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem;">
+                        <i class="fas fa-shield-alt" style="font-size: 1.3rem; color: #ec4899;"></i>
+                        <h3 style="margin: 0; font-size: 1.1rem; color: #ffffff;">Conformidade de Artefatos</h3>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
                         <!-- Crítico -->
-                        <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 1.2rem; text-align: center;">
-                            <p style="margin: 0; font-size: 0.75rem; color: #fca5a5; font-weight: 600;">CRÍTICO</p>
-                            <p style="margin: 0.5rem 0 0 0; font-size: 2rem; font-weight: 700; color: #fca5a5;">{{ vulnerability_summary.critico }}</p>
+                        <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 0.8rem; text-align: center;">
+                            <p style="margin: 0; font-size: 0.65rem; color: #fca5a5; font-weight: 600;">CRÍTICO</p>
+                            <p style="margin: 0.4rem 0 0 0; font-size: 1.4rem; font-weight: 700; color: #fca5a5;">{{ vulnerability_summary.critico }}</p>
                         </div>
 
                         <!-- Alto -->
-                        <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 8px; padding: 1.2rem; text-align: center;">
-                            <p style="margin: 0; font-size: 0.75rem; color: #fdba74; font-weight: 600;">ALTO</p>
-                            <p style="margin: 0.5rem 0 0 0; font-size: 2rem; font-weight: 700; color: #fdba74;">{{ vulnerability_summary.alto }}</p>
+                        <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 8px; padding: 0.8rem; text-align: center;">
+                            <p style="margin: 0; font-size: 0.65rem; color: #fdba74; font-weight: 600;">ALTO</p>
+                            <p style="margin: 0.4rem 0 0 0; font-size: 1.4rem; font-weight: 700; color: #fdba74;">{{ vulnerability_summary.alto }}</p>
                         </div>
 
                         <!-- Médio -->
-                        <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 1.2rem; text-align: center;">
-                            <p style="margin: 0; font-size: 0.75rem; color: #fcd34d; font-weight: 600;">MÉDIO</p>
-                            <p style="margin: 0.5rem 0 0 0; font-size: 2rem; font-weight: 700; color: #fcd34d;">{{ vulnerability_summary.medio }}</p>
+                        <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 0.8rem; text-align: center;">
+                            <p style="margin: 0; font-size: 0.65rem; color: #fcd34d; font-weight: 600;">MÉDIO</p>
+                            <p style="margin: 0.4rem 0 0 0; font-size: 1.4rem; font-weight: 700; color: #fcd34d;">{{ vulnerability_summary.medio }}</p>
                         </div>
 
                         <!-- Baixo -->
-                        <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 1.2rem; text-align: center;">
-                            <p style="margin: 0; font-size: 0.75rem; color: #86efac; font-weight: 600;">BAIXO</p>
-                            <p style="margin: 0.5rem 0 0 0; font-size: 2rem; font-weight: 700; color: #86efac;">{{ vulnerability_summary.baixo }}</p>
+                        <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 0.8rem; text-align: center;">
+                            <p style="margin: 0; font-size: 0.65rem; color: #86efac; font-weight: 600;">BAIXO</p>
+                            <p style="margin: 0.4rem 0 0 0; font-size: 1.4rem; font-weight: 700; color: #86efac;">{{ vulnerability_summary.baixo }}</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- SECTION 4: High-Priority Risks (Right) -->
                 <div>
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 1.8rem; color: #f97316;"></i>
-                        <h3 style="margin: 0; font-size: 1.3rem; color: #ffffff;">Riscos Prioritários</h3>
+                    <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 1.3rem; color: #f97316;"></i>
+                        <h3 style="margin: 0; font-size: 1.1rem; color: #ffffff;">Riscos Prioritários</h3>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem; max-height: 320px; overflow-y: auto;">
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 0.6rem; max-height: 300px; overflow-y: auto;">
                         {% if riscos_prioritarios %}
                             {% for risco in riscos_prioritarios %}
-                            <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 1rem;">
+                            <div style="background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 0.7rem;">
                                 <!-- Risk Name & Asset -->
-                                <div style="margin-bottom: 0.5rem;">
-                                    <p style="margin: 0; font-size: 0.9rem; font-weight: 600; color: #ffffff;">{{ risco.nome|truncatewords:4 }}</p>
-                                    <p style="margin: 0.25rem 0 0 0; font-size: 0.75rem; color: #9ca3af;">{{ risco.ativo.nome }}</p>
+                                <div style="margin-bottom: 0.4rem;">
+                                    <p style="margin: 0; font-size: 0.8rem; font-weight: 600; color: #ffffff;">{{ risco.nome|truncatewords:4 }}</p>
+                                    <p style="margin: 0.2rem 0 0 0; font-size: 0.65rem; color: #9ca3af;">{{ risco.ativo.nome }}</p>
                                 </div>
 
                                 <!-- Level Badge & Value -->
-                                <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem;">
+                                <div style="display: flex; align-items: center; gap: 0.8rem; margin-top: 0.4rem;">
                                     {% if risco.nivel_inerente %}
-                                        <span style="display: inline-block; padding: 0.25rem 0.6rem; border-radius: 3px; font-size: 0.7rem; font-weight: 700;
+                                        <span style="display: inline-block; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.6rem; font-weight: 700;
                                             {% if 'Crítico' in risco.nivel_inerente.categoria or 'crítico' in risco.nivel_inerente.categoria|lower %}
                                                 background: rgba(239, 68, 68, 0.2); color: #fca5a5;
                                             {% elif 'Alto' in risco.nivel_inerente.categoria or 'alto' in risco.nivel_inerente.categoria|lower %}
@@ -160,12 +160,12 @@
                                             {% endif %}
                                         ">{{ risco.nivel_inerente.categoria }}</span>
                                     {% endif %}
-                                    <span style="margin-left: auto; font-size: 1.2rem; font-weight: 700; color: #ffffff;">{{ risco.valor_risco_inerente|floatformat:"0" }}</span>
+                                    <span style="margin-left: auto; font-size: 1rem; font-weight: 700; color: #ffffff;">{{ risco.valor_risco_inerente|floatformat:"0" }}</span>
                                 </div>
                             </div>
                             {% endfor %}
                         {% else %}
-                            <p style="text-align: center; color: #9ca3af; padding: 2rem 1rem;">Nenhum risco encontrado</p>
+                            <p style="text-align: center; color: #9ca3af; padding: 1.5rem 1rem; font-size: 0.85rem;">Nenhum risco encontrado</p>
                         {% endif %}
                     </div>
                 </div>
@@ -174,12 +174,12 @@
         </div>
 
         <!-- SYSTEM FUNCTIONALITIES SECTION HEADER -->
-        <div style="margin-top: 4rem; padding: 2rem 0; text-align: center; border-top: 2px solid rgba(139, 60, 247, 0.2);">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 0.5rem;">
-                <i class="fas fa-cubes" style="font-size: 2rem; color: #8b3cf7;"></i>
-                <h2 style="margin: 0; font-size: 1.8rem; color: #ffffff; font-weight: 700;">Funcionalidades do Sistema</h2>
+        <div style="margin-top: 2.5rem; padding: 1.5rem 0; text-align: center; border-top: 2px solid rgba(139, 60, 247, 0.2);">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 0.8rem; margin-bottom: 0.4rem;">
+                <i class="fas fa-cubes" style="font-size: 1.4rem; color: #8b3cf7;"></i>
+                <h2 style="margin: 0; font-size: 1.4rem; color: #ffffff; font-weight: 700;">Funcionalidades do Sistema</h2>
             </div>
-            <p style="margin: 0.5rem 0 0 0; color: #b0b0b0; font-size: 0.95rem;">Acesse módulos e funcionalidades disponíveis</p>
+            <p style="margin: 0.4rem 0 0 0; color: #b0b0b0; font-size: 0.85rem;">Acesse módulos e funcionalidades disponíveis</p>
         </div>
 
         <div class="modules-container">

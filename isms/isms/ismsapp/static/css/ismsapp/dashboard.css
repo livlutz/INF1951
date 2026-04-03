@@ -13,13 +13,13 @@ body {
 .dashboard-container {
     width: 100%;
     max-width: 1200px;
-    padding: 40px 20px;
+    padding: 30px 20px;
     margin: 0 auto;
 }
 
 .dashboard-header {
     text-align: center;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
 }
 
 .dashboard-header h1 {
@@ -40,13 +40,13 @@ body {
 .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 30px;
+    gap: 15px;
 }
 
 .dashboard-card {
     background: rgba(30, 30, 30, 0.95);
     border-radius: 12px;
-    padding: 30px;
+    padding: 15px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.08);
     transition: all 0.3s ease;
@@ -67,31 +67,31 @@ body {
 }
 
 .card-icon {
-    font-size: 48px;
+    font-size: 32px;
     color: #9333ea;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     display: inline-block;
 }
 
 .dashboard-card h3 {
     color: #ffffff;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 600;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 .dashboard-card p {
     color: #a0a0a0;
-    font-size: 14px;
-    margin-bottom: 20px;
+    font-size: 12px;
+    margin-bottom: 10px;
     flex-grow: 1;
-    line-height: 1.6;
+    line-height: 1.4;
 }
 
 .card-footer {
     display: flex;
     justify-content: flex-end;
-    padding-top: 15px;
+    padding-top: 8px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -116,8 +116,8 @@ body {
 /* Modules Container */
 .modules-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
+    grid-template-columns: 1fr;
+    gap: 20px;
 }
 
 /* Module Card Styles */
@@ -136,7 +136,7 @@ body {
 }
 
 .module-card-header {
-    padding: 25px 30px;
+    padding: 15px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -156,19 +156,19 @@ body {
 .module-title-container {
     display: flex;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 10px;
+    gap: 10px;
+    margin-bottom: 6px;
 }
 
 .module-icon {
-    font-size: 32px;
+    font-size: 24px;
     color: #9333ea;
     flex-shrink: 0;
 }
 
 .module-title {
     color: #ffffff;
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 700;
     margin: 0;
     letter-spacing: 0.5px;
@@ -176,8 +176,8 @@ body {
 
 .module-description {
     color: #a0a0a0;
-    font-size: 14px;
-    margin: 8px 0 0 47px;
+    font-size: 12px;
+    margin: 6px 0 0 34px;
     font-weight: 400;
 }
 
@@ -185,16 +185,16 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     background-color: rgba(147, 51, 234, 0.1);
     border-radius: 8px;
-    margin-left: 20px;
+    margin-left: 12px;
     flex-shrink: 0;
 }
 
 .toggle-icon {
-    font-size: 18px;
+    font-size: 16px;
     color: #9333ea;
     transition: transform 0.3s ease;
 }
@@ -205,7 +205,7 @@ body {
 
 /* Module Content Styles */
 .module-content {
-    padding: 0 30px 30px 30px;
+    padding: 0 20px 20px 20px;
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.4s ease, opacity 0.3s ease;
@@ -234,58 +234,58 @@ body {
 
     .modules-container {
         gap: 20px;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
     }
 
     .module-card-header {
-        padding: 20px;
+        padding: 15px;
     }
 
     .module-title-container {
         gap: 10px;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
     }
 
     .module-icon {
-        font-size: 28px;
+        font-size: 22px;
     }
 
     .module-title {
-        font-size: 18px;
+        font-size: 16px;
     }
 
     .module-description {
-        font-size: 13px;
-        margin-left: 38px;
+        font-size: 11px;
+        margin-left: 32px;
     }
 
     .module-toggle {
-        width: 36px;
-        height: 36px;
-        margin-left: 15px;
+        width: 32px;
+        height: 32px;
+        margin-left: 10px;
     }
 
     .module-content {
-        padding: 0 20px 20px 20px;
+        padding: 0 15px 15px 15px;
     }
 
     .dashboard-grid {
         grid-template-columns: 1fr 1fr;
-        gap: 20px;
+        gap: 15px;
     }
 
     .dashboard-card {
-        padding: 20px;
+        padding: 15px;
     }
 
     .card-icon {
-        font-size: 36px;
-        margin-bottom: 15px;
+        font-size: 28px;
+        margin-bottom: 10px;
     }
 
     .dashboard-card h3 {
-        font-size: 18px;
-        margin-bottom: 10px;
+        font-size: 15px;
+        margin-bottom: 8px;
     }
 
     .dashboard-card p {
@@ -326,7 +326,7 @@ body {
     }
 
     .module-icon {
-        font-size: 24px;
+        font-size: 20px;
     }
 
     .module-title {
@@ -357,10 +357,10 @@ body {
     }
 
     .card-icon {
-        font-size: 32px;
+        font-size: 24px;
     }
 
     .dashboard-card h3 {
-        font-size: 16px;
+        font-size: 14px;
     }
 }

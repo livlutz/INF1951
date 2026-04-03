@@ -39,7 +39,7 @@ body {
 
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: 1fr 1fr;
     gap: 30px;
 }
 
@@ -115,9 +115,9 @@ body {
 
 /* Modules Container */
 .modules-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
 }
 
 /* Module Card Styles */
@@ -233,7 +233,8 @@ body {
     }
 
     .modules-container {
-        gap: 15px;
+        gap: 20px;
+        grid-template-columns: 1fr 1fr;
     }
 
     .module-card-header {
@@ -269,7 +270,7 @@ body {
     }
 
     .dashboard-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-template-columns: 1fr 1fr;
         gap: 20px;
     }
 
@@ -303,6 +304,7 @@ body {
 
     .modules-container {
         gap: 12px;
+        grid-template-columns: 1fr;
     }
 
     .module-card-header {

@@ -305,6 +305,67 @@ class DashboardView(View):
         pode_gerenciar_auditorias = actor_type in self.gestao_de_auditorias if actor_type else False
         pode_registrar_auditorias = actor_type in self.gestao_de_auditorias if actor_type else False
 
+        # Get monitoring data for UC-12
+        from .models import Incidente, Risco, Vulnerabilidade
+        from datetime import timedelta
+        from django.utils import timezone
+        from django.db.models import Count, Q
+
+        # 1. RISK TREATMENT STATUS - Count treatments by type
+        tratamentos_por_tipo = Tratamento.objects.values('tipo_tratamento').annotate(count=Count('id')).order_by('tipo_tratamento')
+        tratamento_status = {
+            'aceitar': 0,
+            'mitigar': 0,
+            'evitar': 0,
+            'compartilhar': 0
+        }
+        for t in tratamentos_por_tipo:
+            tratamento_status[t['tipo_tratamento']] = t['count']
+
+        # 2. INCIDENT TREND - Get incidents by status (last 30 days and all time)
+        dias_atras_30 = timezone.now() - timedelta(days=30)
+
+        # Total counts by status (all time)
+        incidente_status_total = Incidente.objects.filter(status__isnull=False).values('status').annotate(count=Count('id')).order_by('status')
+
+        # Last 30 days by status
+        incidente_status_30dias = Incidente.objects.filter(
+            data_registro__gte=dias_atras_30,
+            status__isnull=False
+        ).values('status').annotate(count=Count('id')).order_by('status')
+
+        # Format for template
+        incident_trend = {
+            'registrado': {'total': 0, 'dias_30': 0},
+            'em_investigacao': {'total': 0, 'dias_30': 0},
+            'resolvido': {'total': 0, 'dias_30': 0}
+        }
+
+        for item in incidente_status_total:
+            if item['status'] in incident_trend:
+                incident_trend[item['status']]['total'] = item['count']
+
+        for item in incidente_status_30dias:
+            if item['status'] in incident_trend:
+                incident_trend[item['status']]['dias_30'] = item['count']
+
+        # 3. ARTIFACT COMPLIANCE SUMMARY - Vulnerabilities by severity level
+        vulnerabilidades_por_severidade = Vulnerabilidade.objects.values('nivel_severidade').annotate(count=Count('id')).order_by('nivel_severidade')
+        vulnerability_summary = {
+            'critico': 0,
+            'alto': 0,
+            'medio': 0,
+            'baixo': 0
+        }
+        for v in vulnerabilidades_por_severidade:
+            if v['nivel_severidade'] in vulnerability_summary:
+                vulnerability_summary[v['nivel_severidade']] = v['count']
+
+        # 4. HIGH-PRIORITY RISKS - Top 5 risks by inherent risk value
+        riscos_prioritarios = Risco.objects.filter(
+            Q(valor_risco_inerente__isnull=False) | Q(nivel_inerente__isnull=False)
+        ).select_related('ativo', 'nivel_inerente').order_by('-valor_risco_inerente')[:5]
+
         contexto = {
             "usuario": request.user,
             "actor_tipo": actor_tipo,
@@ -324,6 +385,11 @@ class DashboardView(View):
             "pode_auditar_e_revisar": pode_auditar_e_revisar,
             "pode_gerenciar_auditorias": pode_gerenciar_auditorias,
             "pode_registrar_auditorias": pode_registrar_auditorias,
+            # New monitoring data - UC-12 Enhanced
+            "tratamento_status": tratamento_status,
+            "incident_trend": incident_trend,
+            "vulnerability_summary": vulnerability_summary,
+            "riscos_prioritarios": riscos_prioritarios,
         }
 
         return render(request, self.template_name, contexto)
@@ -3331,17 +3397,51 @@ class ReadAuditoriaView(View):
             messages.error(request, "Você não tem permissão para acessar esta página.")
             return redirect('dashboard')
 
-        from .models import Auditoria
+        from .models import Auditoria, Incidente, Risco, Controle
+        from datetime import timedelta
+        from django.utils import timezone
 
+        # Risks
+        riscos = Risco.objects.filter(nivel_inerente__isnull=False).order_by('-id')
+
+        # Audits
         auditorias = Auditoria.objects.all().order_by('-data_auditoria')
 
+        # Incidents - get recent incidents (last 30 days)
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        incidentes = Incidente.objects.filter(
+            data_registro__gte=thirty_days_ago
+        ).order_by('-data_incidente')
+
+        # Metrics
+        # Active risks (all risks with inerente level assigned)
+        try:
+            count_active_risks = Risco.objects.filter(nivel_inerente__isnull=False).count()
+        except:
+            count_active_risks = 0
+
+        # Implemented controls (all controls)
+        try:
+            count_controls = Controle.objects.count()
+        except:
+            count_controls = 0
+
+        # Recent incidents
+        count_recent_incidents = incidentes.count()
+
+        # Status counts
         pendentes = auditorias.filter(status='pendente').count()
         concluidas = auditorias.filter(status='concluida').count()
 
         contexto = {
+            'riscos': riscos,
             'auditorias': auditorias,
+            'incidentes': incidentes,
             'count_pendentes': pendentes,
             'count_concluidas': concluidas,
+            'count_active_risks': count_active_risks,
+            'count_controls': count_controls,
+            'count_recent_incidents': count_recent_incidents,
         }
         return render(request, self.template_name, contexto)
 

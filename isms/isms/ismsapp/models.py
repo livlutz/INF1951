@@ -220,14 +220,13 @@ class Tratamento(models.Model):
 
 class Controle(models.Model):
     """
-    A specific security or operational control that forms part of a treatment plan.
+    A reference to a security or operational control that forms part of a treatment plan.
 
-    Controls are the concrete measures implemented to reduce risk — for example,
-    an access policy, a monitoring tool, or a staff training programme. A single
-    treatment plan can include multiple controls (one-to-many relationship).
+    Controls are identified by their unique ID only. The actual control definitions
+    and details are managed in an external control catalogue system (e.g. ISO 27001).
+    This model serves as a linking point between treatment plans and external controls.
 
-    This model is intentionally minimal. Extend it with a name or reference code
-    field when integrating with a control catalogue such as ISO 27001
+    A single treatment plan can reference multiple controls (one-to-many relationship).
     """
 
     """The treatment plan that this control belongs to. Each control is linked to exactly one treatment, but a treatment can have multiple controls."""
@@ -238,21 +237,12 @@ class Controle(models.Model):
         help_text="O plano de tratamento ao qual este controle pertence.",
     )
 
-    """Optional free-text description of the control, which can include a reference code if using a standard control catalogue (e.g. 'A.9.1.1 – Access control policy')."""
-    descricao = models.TextField(
-        blank=True,
-        help_text=(
-            "Descrição opcional ou código de referência do controle "
-            "(ex.: 'A.9.1.1 – Política de controle de acesso')."
-        ),
-    )
-
     class Meta:
         verbose_name = "Controle"
         verbose_name_plural = "Controles"
 
     def __str__(self):
-        return f"Controle #{self.pk} → {self.tratamento}"
+        return f"Controle #{self.pk}"
 
 class CategoriaAtivo(models.Model):
     """

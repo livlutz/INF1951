@@ -10,7 +10,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
   initializeFormValidation();
-  initializeModal();
 });
 
 /**
@@ -22,9 +21,7 @@ function initializeFormValidation() {
 
   // Get form fields
   const nomeField = form.querySelector('[name="nome"]');
-  const origemField = form.querySelector('[name="origem"]');
   const ativosField = form.querySelector('[name="ativos"]');
-  const descricaoField = form.querySelector('[name="descricao"]');
   const submitBtn = form.querySelector('button[type="submit"]');
 
   // Add form submit validation
@@ -46,20 +43,6 @@ function initializeFormValidation() {
       clearFieldError(ativosField);
     }
 
-    if (!descricaoField.value.trim()) {
-      showFieldError(descricaoField, 'Descrição da ameaça é obrigatória');
-      isValid = false;
-    } else {
-      clearFieldError(descricaoField);
-    }
-
-    if (!origemField.value) {
-      showFieldError(origemField, 'Selecione a origem da ameaça');
-      isValid = false;
-    } else {
-      clearFieldError(origemField);
-    }
-
     if (!isValid) {
       e.preventDefault();
     }
@@ -74,26 +57,9 @@ function initializeFormValidation() {
     }
   });
 
-  descricaoField.addEventListener('blur', function() {
-    if (!this.value.trim()) {
-      showFieldError(this, 'Descrição da ameaça é obrigatória');
-    } else {
-      clearFieldError(this);
-    }
-  });
-
-
-  ativoField.addEventListener('change', function() {
-    if (!this.value) {
+  ativosField.addEventListener('change', function() {
+    if (!this.value || this.selectedOptions.length === 0) {
       showFieldError(this, 'Selecione um ativo afetado');
-    } else {
-      clearFieldError(this);
-    }
-  });
-
-  origemField.addEventListener('change', function() {
-    if (!this.value) {
-      showFieldError(this, 'Selecione a origem da ameaça');
     } else {
       clearFieldError(this);
     }

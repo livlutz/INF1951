@@ -44,24 +44,6 @@
                 {% endif %}
             </div>
 
-            <!-- Origem Field -->
-            <div class="section">
-                <div class="section-label">
-                    <span class="s-icon s-purple">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                            <path d="M2 12h20"/>
-                        </svg>
-                    </span>
-                    {{ form.origem.label }}
-                </div>
-                {{ form.origem }}
-                {% if form.origem.errors %}
-                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.origem.errors|join:", " }}</p>
-                {% endif %}
-            </div>
-
             <!-- Ativos Field -->
             <div class="section">
                 <div class="section-label">
@@ -79,41 +61,6 @@
                 {{ form.ativos }}
                 {% if form.ativos.errors %}
                     <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.ativos.errors|join:", " }}</p>
-                {% endif %}
-            </div>
-
-            <!-- Descrição Field -->
-            <div class="section">
-                <div class="section-label">
-                    <span class="s-icon s-purple">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <path d="M12 1v22M1 12h22"/>
-                            <rect x="4" y="4" width="16" height="16" rx="2"/>
-                        </svg>
-                    </span>
-                    {{ form.descricao.label }}
-                </div>
-                {{ form.descricao }}
-                {% if form.descricao.errors %}
-                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.descricao.errors|join:", " }}</p>
-                {% endif %}
-            </div>
-
-            <!-- Impactos Field -->
-            <div class="section">
-                <div class="section-label">
-                    <span class="s-icon s-purple">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <path d="M12 2L2 20h20L12 2z"/>
-                            <line x1="12" y1="9" x2="12" y2="13"/>
-                            <circle cx="12" cy="17" r="1"/>
-                        </svg>
-                    </span>
-                    {{ form.impactos.label }}
-                </div>
-                {{ form.impactos }}
-                {% if form.impactos.errors %}
-                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.impactos.errors|join:", " }}</p>
                 {% endif %}
             </div>
 

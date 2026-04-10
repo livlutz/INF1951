@@ -33,7 +33,6 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Nome da Ameaça</th>
-                                <th>Origem</th>
                                 <th>Ativos Afetados</th>
                                 <th>Ações</th>
                             </tr>
@@ -46,11 +45,6 @@
                                     </td>
                                     <td class="threat-name-cell">
                                         {{ ameaca.nome }}
-                                    </td>
-                                    <td class="threat-origin-cell">
-                                        <span class="origin-badge {% if ameaca.origem == 'externa' %}externa{% elif ameaca.origem == 'interna' %}interna{% else %}hibrida{% endif %}">
-                                            {{ ameaca.get_origem_display }}
-                                        </span>
                                     </td>
                                     <td class="threat-assets-cell">
                                         {% if ameaca.ativos.all %}

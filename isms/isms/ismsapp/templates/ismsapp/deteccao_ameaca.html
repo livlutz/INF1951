@@ -9,17 +9,6 @@
 
 {% block content %}
 <div class="page">
-  <!-- Alert Messages -->
-  {% if messages %}
-    <div class="alerts-container">
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-          {{ message }}
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-
   <!-- Registrar Nova Ameaça Form -->
   <div class="card">
     <!-- Header -->
@@ -33,7 +22,6 @@
       <div>
         <h1 class="card-title">Detecção de Ameaças</h1>
         <p class="card-subtitle">Identifique e registre novas ameaças aos ativos críticos da organização.</p>
-        <p class="card-description">Associe a ameaça aos ativos potencialmente afetados e informe detalhes sobre sua origem e impactos.</p>
       </div>
     </div>
 
@@ -60,26 +48,7 @@
         {% endif %}
       </div>
 
-      <!-- Origem -->
-      <div class="section">
-        <div class="section-label">
-          <span class="s-icon s-purple">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-          </span>
-          Origem
-        </div>
-
-        {{ form.origem }}
-
-        {% if form.origem.errors %}
-          <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.origem.errors|join:", " }}</p>
-        {% endif %}
-      </div>
-
-      <!-- Ativo Afetado -->
+      <!-- Ativos Potencialmente Afetados -->
       <div class="section">
         <div class="section-label">
           <span class="s-icon s-purple">
@@ -105,55 +74,10 @@
         {% endif %}
       </div>
 
-      <!-- Descrição da Ameaça -->
-      <div class="section">
-        <div class="section-label">
-          <span class="s-icon s-purple">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M12 1v22M1 12h22"/>
-              <rect x="4" y="4" width="16" height="16" rx="2"/>
-            </svg>
-          </span>
-          Descrição da Ameaça
-        </div>
-
-        {{ form.descricao }}
-
-        {% if form.descricao.errors %}
-          <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.descricao.errors|join:", " }}</p>
-        {% endif %}
-      </div>
-
-      <!-- Possíveis Impactos -->
-      <div class="section">
-        <div class="section-label">
-          <span class="s-icon s-amber">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-            </svg>
-          </span>
-          Possíveis Impactos
-        </div>
-
-        {{ form.impactos }}
-
-        {% if form.impactos.errors %}
-          <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.impactos.errors|join:", " }}</p>
-        {% endif %}
-      </div>
-
       <!-- Actions -->
       <div class="actions">
         <a href="{% url 'dashboard' %}" class="btn-cancel">Cancelar</a>
         <div style="display: flex; gap: 1rem;">
-          {% if ameacas %}
-            <button type="button" class="btn-secondary" onclick="openThreatsModal()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/>
-              </svg>
-              <span style="font-size: 0.8rem;">Ameaças Registradas</span>
-            </button>
-          {% endif %}
           <button type="submit" class="btn-confirm">
             Registrar Ameaça
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -165,48 +89,6 @@
 
     </form>
   </div>
-
-  <!-- Ameaças Registradas Modal -->
-  {% if ameacas %}
-    <div id="threatsModal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Ameaças Registradas</h2>
-          <button class="modal-close" onclick="closeThreatsModal()">&times;</button>
-        </div>
-        <div class="modal-body">
-          <table class="threats-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nome</th>
-                <th>Origem</th>
-                <th>Ativos Afetados</th>
-                <th>Descrição</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for ameaca in ameacas %}
-                <tr>
-                  <td class="threat-id-cell">#{{ ameaca.id }}</td>
-                  <td class="threat-name-cell">{{ ameaca.nome }}</td>
-                  <td class="threat-origin-cell">{{ ameaca.origem }}</td>
-                  <td class="threat-assets-cell">
-                    {% for ativo in ameaca.ativos.all %}
-                      <span class="asset-badge-table">{{ ativo.nome }}</span>
-                    {% empty %}
-                      <span class="asset-badge-table empty">Nenhum</span>
-                    {% endfor %}
-                  </td>
-                  <td class="threat-description-cell">{{ ameaca.descricao|truncatewords:10 }}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  {% endif %}
 
 </div>
 

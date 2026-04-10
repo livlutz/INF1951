@@ -939,42 +939,24 @@ class AmeacaForm(forms.ModelForm):
     This form allows authorized users (Security Analysts and Auditors) to register
     new threats with:
     - Name/description of the threat
-    - Origin of the threat
     - Associated asset(s) potentially affected (multiple selection)
-    - Possible impacts
     """
 
     class Meta:
         model = Ameaca
-        fields = ['nome', 'origem', 'ativos', 'descricao', 'impactos']
+        fields = ['nome', 'ativos']
         labels = {
             'nome': 'Nome da Ameaça',
-            'origem': 'Origem',
-            'ativos': 'Ativos Potencialmente Afetados',
-            'descricao': 'Descrição da Ameaça',
-            'impactos': 'Possíveis Impactos'
+            'ativos': 'Ativos Potencialmente Afetados'
         }
         widgets = {
             'nome': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Ex: Ransomware Cryptolocker'
             }),
-            'origem': forms.Select(attrs={
-                'class': 'form-control'
-            }),
             'ativos': forms.SelectMultiple(attrs={
                 'class': 'asset-select-multiple',
                 'size': '1',
-            }),
-            'descricao': forms.Textarea(attrs={
-                'class': 'form-control',
-                'placeholder': 'Descreva detalhadamente a ameaça identificada...',
-                'rows': 5
-            }),
-            'impactos': forms.Textarea(attrs={
-                'class': 'form-control',
-                'placeholder': 'Ex: Interrupção de serviços, Perda de dados financeiros',
-                'rows': 4
             })
         }
 

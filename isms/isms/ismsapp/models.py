@@ -394,20 +394,7 @@ class Ameaca(models.Model):
     """The name/title of the threat."""
     nome = models.CharField(
         max_length=255,
-        default="Sem nome",
         help_text="Nome ou título da ameaça (ex: Ransomware Cryptolocker).",
-    )
-
-    """The origin of the threat (external, internal, or hybrid)."""
-    origem = models.CharField(
-        max_length=50,
-        choices=[
-            ('externa', 'Externa'),
-            ('interna', 'Interna'),
-            ('hibrida', 'Híbrida'),
-        ],
-        default='externa',
-        help_text="Origem da ameaça.",
     )
 
     """The assets that this threat targets. A threat can affect multiple assets."""
@@ -415,17 +402,6 @@ class Ameaca(models.Model):
         Ativo,
         related_name = "ameacas",
         help_text = "Os ativos que esta ameaça tem como alvo.",
-    )
-
-    """Detailed description of the threat scenario, including how it could be triggered and by whom. This should provide enough context to understand the nature of the threat and its potential impact on the asset."""
-    descricao = models.TextField(
-        help_text = "Descrição detalhada do cenário de ameaça, incluindo como ele poderia ser acionado e por quem.",
-    )
-
-    """Description of possible impacts that could result from this threat being realized."""
-    impactos = models.TextField(
-        blank=True,
-        help_text = "Descrição dos possíveis impactos que poderiam resultar da realização desta ameaça.",
     )
 
     class Meta:

@@ -2662,43 +2662,23 @@ class DeteccaoAmeacaView(View):
             try:
                 # Extract the data
                 ativos_selecionados = form.cleaned_data.get('ativos')
-                descricao = form.cleaned_data.get('descricao')
                 nome = form.cleaned_data.get('nome')
-                origem = form.cleaned_data.get('origem')
-                impactos = form.cleaned_data.get('impactos')
 
-                # Check if threat already exists with same description
-                # (Fluxo Alternativo A – Ameaça já registrada)
-                ameaca_existente = Ameaca.objects.filter(
-                    descricao=descricao
-                ).prefetch_related('ativos').first()
+                # Create the threat
+                ameaca = Ameaca.objects.create(
+                    nome=nome
+                )
 
-                if ameaca_existente:
-                    ativos_existentes = list(ameaca_existente.ativos.values_list('nome', flat=True))
-                    messages.warning(
-                        request,
-                        f"Uma ameaça similar já foi registrada para: {', '.join(ativos_existentes)}. "
-                        "Por favor, considere atualizar o registro existente."
-                    )
-                else:
-                    # Create the threat
-                    ameaca = Ameaca.objects.create(
-                        nome=nome,
-                        origem=origem,
-                        descricao=descricao,
-                        impactos=impactos
-                    )
+                # Add the selected assets to the threat
+                ameaca.ativos.set(ativos_selecionados)
 
-                    # Add the selected assets to the threat
-                    ameaca.ativos.set(ativos_selecionados)
+                # Get names of affected assets
+                ativos_nomes = ", ".join([a.nome for a in ativos_selecionados])
 
-                    # Get names of affected assets
-                    ativos_nomes = ", ".join([a.nome for a in ativos_selecionados])
-
-                    messages.success(
-                        request,
-                        f"Ameaça '{nome}' registrada com sucesso para os ativos: {ativos_nomes}."
-                    )
+                messages.success(
+                    request,
+                    f"Ameaça '{nome}' registrada com sucesso para os ativos: {ativos_nomes}."
+                )
 
                 # Reload the page with updated data
                 ativos = Ativo.objects.all()
@@ -2727,6 +2707,13 @@ class DeteccaoAmeacaView(View):
             # Form has errors
             ativos = Ativo.objects.all()
             ameacas = Ameaca.objects.prefetch_related('ativos').all()
+
+            contexto = {
+                'form': form,
+                'ativos': ativos,
+                'ameacas': ameacas,
+            }
+            return render(request, self.template_name, contexto)
 
 class ReadAmeacaView(View):
     """View para listar ameaças.

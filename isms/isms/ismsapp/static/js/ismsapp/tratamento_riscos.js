@@ -392,16 +392,30 @@ function initializeFormValidation() {
 
   if (form) {
     form.addEventListener('submit', function(e) {
+      const nome = this.querySelector('input[name="nome"]');
       const tipoTratamento = this.querySelector('input[name="tipo_tratamento"]:checked');
       const descricao = this.querySelector('textarea[name="descricao"]');
-      const responsavel = this.querySelector('select[name="responsavel"]');
-      const prazo = this.querySelector('input[name="prazo"]');
       const reducaoProbabilidade = this.querySelector('input[name="reducao_probabilidade"]');
       const reducaoImpacto = this.querySelector('input[name="reducao_impacto"]');
 
-      if (!tipoTratamento || !descricao?.value.trim() || !responsavel?.value || !prazo?.value || !reducaoProbabilidade?.value || !reducaoImpacto?.value) {
+      const nomeValid = nome && nome.value && nome.value.trim().length > 0;
+      const tipoValid = tipoTratamento !== null;
+      const descricaoValid = descricao && descricao.value && descricao.value.trim().length > 0;
+      const reducaoProbabilidadeValid = reducaoProbabilidade && reducaoProbabilidade.value !== '';
+      const reducaoImpactoValid = reducaoImpacto && reducaoImpacto.value !== '';
+
+      if (!nomeValid || !tipoValid || !descricaoValid || !reducaoProbabilidadeValid || !reducaoImpactoValid) {
         e.preventDefault();
-        alert('Por favor, preencha todos os campos obrigatórios.');
+
+        // Show specific error message
+        let missingFields = [];
+        if (!nomeValid) missingFields.push('Nome do Plano');
+        if (!tipoValid) missingFields.push('Estratégia de Tratamento');
+        if (!descricaoValid) missingFields.push('Descrição');
+        if (!reducaoProbabilidadeValid) missingFields.push('Redução de Probabilidade');
+        if (!reducaoImpactoValid) missingFields.push('Redução de Impacto');
+
+        alert('Por favor, preencha os campos obrigatórios:\n- ' + missingFields.join('\n- '));
         return false;
       }
 

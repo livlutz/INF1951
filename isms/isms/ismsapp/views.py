@@ -1842,6 +1842,21 @@ class AvaliacaoRiscoView(View):
                 return HttpResponseRedirect(f"{reverse('tratamento_riscos')}?risco_id={risco.id}")
 
             elif decisao == 'aceitar':
+                # Create an "Aceitar" treatment for this risk
+                from .models import Tratamento
+
+                tratamento_aceitar = Tratamento.objects.create(
+                    nome=f"Aceitação de Risco - {risco.nome}",
+                    tipo_tratamento=Tratamento.TipoTratamento.ACEITAR,
+                    descricao=f"Risco {risco.nome} foi aceito pela organização sem necessidade de tratamento adicional.",
+                    aceito=True,
+                    reducao_probabilidade=0,
+                    reducao_impacto=0,
+                )
+
+                # Link the acceptance treatment to the risk
+                risco.tratamentos.add(tratamento_aceitar)
+
                 return redirect('dashboard')
 
         except Risco.DoesNotExist:
@@ -1954,13 +1969,18 @@ class TratamentoRiscoView(View):
                 messages.error(request, "Risco não encontrado.")
                 risco_selecionado = None
 
-        # Get all risks for treatment
-        riscos_para_tratar = Risco.objects.select_related(
+        # Get all risks for treatment (excluding risks that have been accepted)
+        # A risk is considered "accepted" if it has a tratamento with aceito=True
+        from django.db.models import Q
+
+        riscos_para_tratar = Risco.objects.exclude(
+            tratamentos__aceito=True
+        ).select_related(
             'ativo',
             'nivel_inerente',
             'consequencia_inerente',
             'probabilidade_inerente'
-        )
+        ).distinct()
 
         contexto = {
             'riscos_para_tratar': riscos_para_tratar,
@@ -1989,21 +2009,17 @@ class TratamentoRiscoView(View):
                 risco = Risco.objects.get(id=risco_id)
 
                 # Get form data
+                nome = form.cleaned_data.get('nome')
                 tipo_tratamento = form.cleaned_data.get('tipo_tratamento')
                 descricao = form.cleaned_data.get('descricao')
-                responsavel = form.cleaned_data.get('responsavel')
-                prazo = form.cleaned_data.get('prazo')
                 reducao_prob = form.cleaned_data.get('reducao_probabilidade', 0)
                 reducao_impacto = form.cleaned_data.get('reducao_impacto', 0)
-                controles = form.cleaned_data.get('controles', '')
-                observacoes = form.cleaned_data.get('observacoes', '')
 
                 # Create treatment plan
                 tratamento = Tratamento.objects.create(
+                    nome=nome,
                     tipo_tratamento=tipo_tratamento,
                     descricao=descricao,
-                    responsavel=responsavel,
-                    prazo=prazo,
                     reducao_probabilidade=reducao_prob,
                     reducao_impacto=reducao_impacto,
                 )

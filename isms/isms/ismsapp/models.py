@@ -170,6 +170,13 @@ class Tratamento(models.Model):
         EVITAR = "evitar", "Evitar"
         COMPARTILHAR = "compartilhar", "Compartilhar"
 
+    """The name or title of the treatment plan."""
+    nome = models.CharField(
+        max_length=255,
+        blank=False,
+        help_text="Nome do plano de tratamento.",
+    )
+
     """The selected risk treatment strategy for this plan."""
     tipo_tratamento = models.CharField(
         max_length=20,
@@ -185,21 +192,10 @@ class Tratamento(models.Model):
         ),
     )
 
-    """Name or department responsible for implementing this treatment plan."""
-    responsavel = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='tratamentos_responsavel',
-        help_text="Usuário responsável pela implementação deste tratamento.",
-    )
-
-    """Deadline for implementing this treatment plan."""
-    prazo = models.DateField(
-        null=True,
-        blank=True,
-        help_text="Prazo para implementação deste tratamento.",
+    """Indicates if this treatment represents an acceptance decision (no further action needed)."""
+    aceito = models.BooleanField(
+        default=False,
+        help_text="Marca se este tratamento é uma decisão de aceitação do risco (sem ações adicionais).",
     )
 
     """Percentage reduction in probability expected from this treatment (0-100)."""
@@ -633,7 +629,6 @@ class CriterioAvaliacaoRisco(models.Model):
     that are used to evaluate and classify organizational risks.
     There should typically be only one active instance of this model.
     """
-
     class ApetiteRisco(models.TextChoices):
         """Organizational risk appetite levels."""
         BAIXO = "baixo", "Baixo"
@@ -646,21 +641,25 @@ class CriterioAvaliacaoRisco(models.Model):
         default="Muito Baixo",
         help_text="Descrição do nível 1 de probabilidade"
     )
+
     escala_probabilidade_2 = models.CharField(
         max_length=100,
         default="Baixo",
         help_text="Descrição do nível 2 de probabilidade"
     )
+
     escala_probabilidade_3 = models.CharField(
         max_length=100,
         default="Médio",
         help_text="Descrição do nível 3 de probabilidade"
     )
+
     escala_probabilidade_4 = models.CharField(
         max_length=100,
         default="Alto",
         help_text="Descrição do nível 4 de probabilidade"
     )
+
     escala_probabilidade_5 = models.CharField(
         max_length=100,
         default="Muito Alto",
@@ -673,21 +672,25 @@ class CriterioAvaliacaoRisco(models.Model):
         default="Muito Baixo",
         help_text="Descrição do nível 1 de consequência"
     )
+
     escala_consequencia_2 = models.CharField(
         max_length=100,
         default="Baixo",
         help_text="Descrição do nível 2 de consequência"
     )
+
     escala_consequencia_3 = models.CharField(
         max_length=100,
         default="Médio",
         help_text="Descrição do nível 3 de consequência"
     )
+
     escala_consequencia_4 = models.CharField(
         max_length=100,
         default="Alto",
         help_text="Descrição do nível 4 de consequência"
     )
+
     escala_consequencia_5 = models.CharField(
         max_length=100,
         default="Muito Alto",
@@ -701,7 +704,6 @@ class CriterioAvaliacaoRisco(models.Model):
         default=ApetiteRisco.MODERADO,
         help_text="Nível de apetite ao risco organizacional"
     )
-
 
     class Meta:
         verbose_name = "Critério de Avaliação de Risco"

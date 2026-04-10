@@ -528,7 +528,7 @@ class TratamentoRiscoForm(forms.Form):
     """Form for creating and managing risk treatment plans.
 
     This form allows users to define treatment strategies, mitigation actions,
-    responsible parties, deadlines, and expected risk reduction for a specific risk.
+    and expected risk reduction for a specific risk.
 
     The form supports the four treatment strategies:
     - Mitigar (Mitigate/Modificar): Reduce risk through controls
@@ -539,6 +539,16 @@ class TratamentoRiscoForm(forms.Form):
     Note: The risco (risk) is passed as a hidden field (risco_id) in the template
     and handled separately in the view.
     """
+
+    nome = forms.CharField(
+        label='Nome do Plano de Tratamento',
+        required=True,
+        max_length=255,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ex: Implementar firewall de aplicação web',
+        })
+    )
 
     tipo_tratamento = forms.ChoiceField(
         label='Estratégia de Tratamento',
@@ -560,26 +570,6 @@ class TratamentoRiscoForm(forms.Form):
             'class': 'form-control',
             'placeholder': 'Descreva as ações de tratamento, medidas de controle e estratégia geral...',
             'rows': 5
-        })
-    )
-
-    responsavel = forms.ModelChoiceField(
-        label='Responsável pela Implementação',
-        queryset=User.objects.all().order_by('first_name', 'last_name', 'username'),
-        empty_label='Selecione um responsável',
-        required=True,
-        widget=forms.Select(attrs={
-            'class': 'form-control'
-        }),
-        help_text='Selecione um usuário do sistema responsável pela implementação deste tratamento.'
-    )
-
-    prazo = forms.DateField(
-        label='Prazo para Implementação',
-        required=True,
-        widget=forms.DateInput(attrs={
-            'class': 'form-control',
-            'type': 'date'
         })
     )
 

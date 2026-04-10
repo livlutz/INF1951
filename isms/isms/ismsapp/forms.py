@@ -369,7 +369,7 @@ class IdentificacaoRiscosForm(forms.Form):
     """Form for identifying risks related to assets.
 
     This form allows users to identify and describe risks associated with specific assets,
-    including the risk name, description, associated asset, and possible impacts.
+    including the risk name, description, and associated asset.
     """
 
     nome = forms.CharField(
@@ -399,21 +399,11 @@ class IdentificacaoRiscosForm(forms.Form):
         })
     )
 
-    impactos = forms.CharField(
-        label='Possíveis Impactos',
-        required=False,
-        widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'placeholder': 'Documente as perdas potenciais (financeiras, operacionais, reputacionais)...',
-            'rows': 5
-        })
-    )
-
 class AtualizacaoRiscosForm(forms.Form):
     """Form for updating identified risks.
 
     This form allows users to update and edit risks that have already been identified,
-    including the risk name, description, associated asset, and possible impacts.
+    including the risk name, description, and associated asset.
     Similar to IdentificacaoRiscosForm but used for updates.
     """
 
@@ -441,16 +431,6 @@ class AtualizacaoRiscosForm(forms.Form):
         empty_label='Selecione o ativo correspondente',
         widget=forms.Select(attrs={
             'class': 'form-control'
-        })
-    )
-
-    impactos = forms.CharField(
-        label='Possíveis Impactos',
-        required=False,
-        widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'placeholder': 'Documente as perdas potenciais (financeiras, operacionais, reputacionais)...',
-            'rows': 5
         })
     )
 

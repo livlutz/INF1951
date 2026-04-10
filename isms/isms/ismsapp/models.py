@@ -494,16 +494,6 @@ class Risco(models.Model):
         help_text = "O ativo que é exposto a este risco.",
     )
 
-    """One or more threats that contribute to this risk scenario. A risk can be associated with multiple threats, and a single threat can be linked to multiple risks."""
-    ameacas = models.ManyToManyField(
-        Ameaca,
-        related_name = "riscos",
-        blank = True,
-        help_text = "As ameaças que contribuem para este cenário de risco.",
-    )
-
-    #Classification
-
     """The name or title of the risk."""
     nome = models.CharField(
         max_length = 255,
@@ -521,13 +511,6 @@ class Risco(models.Model):
     """Detailed description of the risk scenario, including how the associated threats could exploit vulnerabilities in the asset and what the potential consequences would be. This should provide enough context to understand the nature of the risk and inform the assessment and treatment process."""
     descricao = models.TextField(
         help_text = "Descrição completa do cenário de risco: o que poderia acontecer, por quê, e qual seria o impacto.",
-    )
-
-    """Documented potential losses and impacts if this risk materializes (financial, operational, reputational, etc.)."""
-    impactos = models.TextField(
-        blank = True,
-        default = "",
-        help_text = "Perdas potenciais e impactos se o risco se materializar (financeiros, operacionais, reputacionais, etc.).",
     )
 
     #Inherent risk scores (before controls)
@@ -632,29 +615,6 @@ class Risco(models.Model):
             "Os planos de tratamento selecionados para lidar com este risco. "
             "Mais de um tratamento pode ser aplicado (e.g. mitigar + compartilhar)."
         ),
-    )
-
-    #Evaluation Decision (UC-08)
-
-    class DecisaoAvaliacao(models.TextChoices):
-        """Risk evaluation decision choices."""
-        NAO_AVALIADO = "nao_avaliado", "Não Avaliado"
-        ACEITAR = "aceitar", "Aceitar"
-        TRATAR = "tratar", "Enviar para Tratamento"
-
-    """The evaluation decision made for this risk. This field tracks whether the risk has been evaluated and what decision was made."""
-    decisao_avaliacao = models.CharField(
-        max_length=20,
-        choices=DecisaoAvaliacao.choices,
-        default=DecisaoAvaliacao.NAO_AVALIADO,
-        help_text="Decisão tomada durante a avaliação do risco (UC-08): aceitar, enviar para tratamento, ou não avaliado.",
-    )
-
-    """Observations or notes about the evaluation decision."""
-    observacoes_avaliacao = models.TextField(
-        blank=True,
-        default="",
-        help_text="Observações, justificativas ou notas adicionais sobre a avaliação.",
     )
 
     class Meta:

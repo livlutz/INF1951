@@ -20,7 +20,6 @@ function validateForm() {
     const nome = document.querySelector('[name="nome"]');
     const descricao = document.querySelector('[name="descricao"]');
     const ativo = document.querySelector('[name="ativo"]');
-    const impactos = document.querySelector('[name="impactos"]');
 
     // Check if risk name is filled
     if (!nome || !nome.value.trim()) {
@@ -37,12 +36,6 @@ function validateForm() {
     // Check if asset is selected
     if (!ativo || !ativo.value) {
         showError(ativo, 'Por favor, selecione um ativo associado.');
-        return false;
-    }
-
-    // Check if impacts are provided
-    if (!impactos || !impactos.value.trim()) {
-        showError(impactos, 'Por favor, documente os possíveis impactos.');
         return false;
     }
 

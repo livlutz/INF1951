@@ -81,24 +81,6 @@
                 {% endif %}
             </div>
 
-            <!-- Impactos Field -->
-            <div class="section">
-                <div class="section-label">
-                    <span class="s-icon s-purple">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <path d="M12 2L2 20h20L12 2z"/>
-                            <line x1="12" y1="9" x2="12" y2="13"/>
-                            <circle cx="12" cy="17" r="1"/>
-                        </svg>
-                    </span>
-                    {{ form.impactos.label }}
-                </div>
-                {{ form.impactos }}
-                {% if form.impactos.errors %}
-                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.impactos.errors|join:", " }}</p>
-                {% endif %}
-            </div>
-
             <!-- Buttons -->
             <div class="form-buttons">
                 <a href="{% url 'lista_riscos' %}" class="btn btn-cancel">

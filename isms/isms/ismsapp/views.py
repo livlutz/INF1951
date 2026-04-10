@@ -1271,13 +1271,11 @@ class IdentificacaoRiscosView(View):
             nome = form.cleaned_data.get('nome')
             descricao = form.cleaned_data.get('descricao')
             ativo = form.cleaned_data.get('ativo')
-            impactos = form.cleaned_data.get('impactos')
 
             # Create Risco object with separate fields
             risco = Risco(
                 nome=nome,
                 descricao=descricao,
-                impactos=impactos,
                 ativo=ativo,
                 tipo=Risco.Tipo.INERENTE  # Default to INERENTE as starting point
             )
@@ -1405,8 +1403,7 @@ class UpdateRiscoView(View):
         form = self.form_class(initial={
             'nome': risco.nome,
             'descricao': risco.descricao,
-            'ativo': risco.ativo,
-            'impactos': risco.impactos
+            'ativo': risco.ativo
         })
         contexto = {
             'form': form,
@@ -1435,7 +1432,6 @@ class UpdateRiscoView(View):
             risco.nome = form.cleaned_data.get('nome')
             risco.descricao = form.cleaned_data.get('descricao')
             risco.ativo = form.cleaned_data.get('ativo')
-            risco.impactos = form.cleaned_data.get('impactos')
             risco.save()
             return redirect('lista_riscos')
 
@@ -1771,7 +1767,7 @@ class AvaliacaoRiscoView(View):
             'nivel_inerente',
             'consequencia_inerente',
             'probabilidade_inerente'
-        ).prefetch_related('ameacas', 'tratamentos')
+        ).prefetch_related('tratamentos')
 
         # Get risco_id from query parameter
         risco_id = request.GET.get('risco_id')
@@ -1836,23 +1832,11 @@ class AvaliacaoRiscoView(View):
         try:
             risco = Risco.objects.get(id=risco_id)
 
-            # Map decision string to model choice
-            decision_map = {
-                'aceitar': Risco.DecisaoAvaliacao.ACEITAR,
-                'tratar': Risco.DecisaoAvaliacao.TRATAR,
-            }
-
-            if decisao not in decision_map:
+            if decisao not in ['aceitar', 'tratar']:
                 messages.error(request, "Decisão inválida.")
                 return redirect('avaliacao_riscos')
 
-            # Save the evaluation decision to the database
-            risco.decisao_avaliacao = decision_map[decisao]
-            risco.data_avaliacao = timezone.now()
-            risco.auditor_avaliacao = request.user
-            risco.observacoes_avaliacao = observacoes
-            risco.save()
-
+            # Process the evaluation decision
             if decisao == 'tratar':
                 # Redirect to treatment creation view with the risk ID
                 return HttpResponseRedirect(f"{reverse('tratamento_riscos')}?risco_id={risco.id}")
@@ -1965,18 +1949,13 @@ class TratamentoRiscoView(View):
         risco_selecionado = None
         if risco_id:
             try:
-                risco_selecionado = Risco.objects.get(
-                    id=risco_id,
-                    decisao_avaliacao=Risco.DecisaoAvaliacao.TRATAR
-                )
+                risco_selecionado = Risco.objects.get(id=risco_id)
             except Risco.DoesNotExist:
-                messages.error(request, "Risco não encontrado ou não foi marcado para tratamento.")
+                messages.error(request, "Risco não encontrado.")
                 risco_selecionado = None
 
-        # Get all risks marked for treatment
-        riscos_para_tratar = Risco.objects.filter(
-            decisao_avaliacao=Risco.DecisaoAvaliacao.TRATAR
-        ).select_related(
+        # Get all risks for treatment
+        riscos_para_tratar = Risco.objects.select_related(
             'ativo',
             'nivel_inerente',
             'consequencia_inerente',
@@ -2007,10 +1986,7 @@ class TratamentoRiscoView(View):
         if form.is_valid():
             try:
                 risco_id = request.POST.get('risco_id')
-                risco = Risco.objects.get(
-                    id=risco_id,
-                    decisao_avaliacao=Risco.DecisaoAvaliacao.TRATAR
-                )
+                risco = Risco.objects.get(id=risco_id)
 
                 # Get form data
                 tipo_tratamento = form.cleaned_data.get('tipo_tratamento')
@@ -2071,9 +2047,7 @@ class TratamentoRiscoView(View):
             contexto = {
                 'form': form,
                 'risco_selecionado': None,
-                'riscos_para_tratar': Risco.objects.filter(
-                    decisao_avaliacao=Risco.DecisaoAvaliacao.TRATAR
-                ),
+                'riscos_para_tratar': Risco.objects.all(),
             }
             return render(request, self.template_name, contexto)
 

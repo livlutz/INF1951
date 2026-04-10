@@ -70,24 +70,6 @@
                 {% endif %}
             </div>
 
-            <!-- Descrição Field -->
-            <div class="section">
-                <div class="section-label">
-                    <span class="s-icon s-purple">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <path d="M4 4h16v2H4V4z"/>
-                            <path d="M4 9h16v2H4V9z"/>
-                            <path d="M4 14h16v2H4v-2z"/>
-                        </svg>
-                    </span>
-                    {{ form.descricao.label }}
-                </div>
-                {{ form.descricao }}
-                {% if form.descricao.errors %}
-                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.descricao.errors|join:", " }}</p>
-                {% endif %}
-            </div>
-
             <!-- Ameaças Associadas Field -->
             {% if form.ameacas %}
             <div class="section">
@@ -108,57 +90,6 @@
                 {% endif %}
             </div>
             {% endif %}
-
-            <!-- Nível de Severidade Field -->
-            <div class="section">
-                <div class="section-label">
-                    <span class="s-icon s-purple">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <path d="M12 1v22M1 12h22"/>
-                            <circle cx="12" cy="12" r="11"/>
-                        </svg>
-                    </span>
-                    {{ form.nivel_severidade.label }}
-                </div>
-                {{ form.nivel_severidade }}
-                {% if form.nivel_severidade.errors %}
-                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.nivel_severidade.errors|join:", " }}</p>
-                {% endif %}
-            </div>
-
-            <!-- Prioridade de Correção Field -->
-            <div class="section">
-                <div class="section-label">
-                    <span class="s-icon s-purple">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <circle cx="9" cy="9" r="1"/>
-                            <path d="M9 14h6"/>
-                            <path d="M9 19h6"/>
-                        </svg>
-                    </span>
-                    {{ form.prioridade_correcao.label }}
-                </div>
-                {{ form.prioridade_correcao }}
-                {% if form.prioridade_correcao.errors %}
-                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.prioridade_correcao.errors|join:", " }}</p>
-                {% endif %}
-            </div>
-
-            <!-- Status Field -->
-            <div class="section">
-                <div class="section-label">
-                    <span class="s-icon s-purple">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    </span>
-                    {{ form.status.label }}
-                </div>
-                {{ form.status }}
-                {% if form.status.errors %}
-                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.status.errors|join:", " }}</p>
-                {% endif %}
-            </div>
 
             <!-- Buttons -->
             <div class="form-buttons">

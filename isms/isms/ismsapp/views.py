@@ -349,17 +349,11 @@ class DashboardView(View):
             if item['status'] in incident_trend:
                 incident_trend[item['status']]['dias_30'] = item['count']
 
-        # 3. ARTIFACT COMPLIANCE SUMMARY - Vulnerabilities by severity level
-        vulnerabilidades_por_severidade = Vulnerabilidade.objects.values('nivel_severidade').annotate(count=Count('id')).order_by('nivel_severidade')
+        # 3. ARTIFACT COMPLIANCE SUMMARY - Vulnerabilities count
+        total_vulnerabilidades = Vulnerabilidade.objects.count()
         vulnerability_summary = {
-            'critico': 0,
-            'alto': 0,
-            'medio': 0,
-            'baixo': 0
+            'total': total_vulnerabilidades
         }
-        for v in vulnerabilidades_por_severidade:
-            if v['nivel_severidade'] in vulnerability_summary:
-                vulnerability_summary[v['nivel_severidade']] = v['count']
 
         # 4. HIGH-PRIORITY RISKS - Top 5 risks by inherent risk value
         riscos_prioritarios = Risco.objects.filter(
@@ -2957,23 +2951,15 @@ class VulnerabilidadeView(View):
 
         from .models import Vulnerabilidade
 
-        # Get all vulnerabilities ordered by severity and priority
-        vulnerabilidades = Vulnerabilidade.objects.select_related('ativo').order_by('-nivel_severidade', '-prioridade_correcao')
+        # Get all vulnerabilities ordered by name
+        vulnerabilidades = Vulnerabilidade.objects.select_related('ativo').order_by('nome')
 
-        # Calculate status counts
-        abertos = vulnerabilidades.filter(
-            status__in=['registrada', 'em_tratamento']
-        ).count()
-        resolvidas = vulnerabilidades.filter(
-            status__in=['resolvida', 'descartada']
-        ).count()
+        # Calculate total vulnerabilities
         total = vulnerabilidades.count()
 
         contexto = {
             'form': self.form_class(),
             'vulnerabilidades': vulnerabilidades,
-            'count_abertos': abertos,
-            'count_resolvidas': resolvidas,
             'total_vulnerabilidades': total,
         }
         return render(request, self.template_name, contexto)
@@ -2995,9 +2981,6 @@ class VulnerabilidadeView(View):
                 ameacas = form.cleaned_data.get('ameacas')
                 ativo = form.cleaned_data.get('ativo')
                 nome = form.cleaned_data.get('nome')
-                descricao = form.cleaned_data.get('descricao')
-                nivel_severidade = form.cleaned_data.get('nivel_severidade')
-                prioridade_correcao = form.cleaned_data.get('prioridade_correcao')
 
                 # Check if vulnerability with same ativo and nome already exists
                 existing = Vulnerabilidade.objects.filter(
@@ -3009,17 +2992,13 @@ class VulnerabilidadeView(View):
                     messages.warning(
                         request,
                         f"Vulnerabilidade '{nome}' já registrada para este ativo. "
-                        f"ID: VUL-{existing.pk:04d} | Severidade: {existing.get_nivel_severidade_display()}"
+                        f"ID: VUL-{existing.pk:04d}"
                     )
                 else:
                     # Create the vulnerability
                     vulnerabilidade = Vulnerabilidade.objects.create(
                         ativo=ativo,
-                        nome=nome,
-                        descricao=descricao,
-                        nivel_severidade=nivel_severidade,
-                        prioridade_correcao=prioridade_correcao,
-                        status=Vulnerabilidade.StatusChoice.REGISTRADA
+                        nome=nome
                     )
 
                     # Set the multiple threats
@@ -3076,20 +3055,12 @@ class ReadVulnerabilidadeView(View):
 
         from .models import Vulnerabilidade
 
-        vulnerabilidades = Vulnerabilidade.objects.select_related('ativo').prefetch_related('ameacas').order_by('-nivel_severidade', '-prioridade_correcao')
+        vulnerabilidades = Vulnerabilidade.objects.select_related('ativo').prefetch_related('ameacas').order_by('nome')
 
-        abertos = vulnerabilidades.filter(
-            status__in=['registrada', 'em_tratamento']
-        ).count()
-        resolvidas = vulnerabilidades.filter(
-            status__in=['resolvida', 'descartada']
-        ).count()
         total = vulnerabilidades.count()
 
         contexto = {
             'vulnerabilidades': vulnerabilidades,
-            'count_abertos': abertos,
-            'count_resolvidas': resolvidas,
             'total_vulnerabilidades': total,
         }
         return render(request, self.template_name, contexto)

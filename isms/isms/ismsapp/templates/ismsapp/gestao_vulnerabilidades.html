@@ -10,17 +10,6 @@
 
 {% block content %}
 <div class="page">
-  <!-- Alert Messages -->
-  {% if messages %}
-    <div class="alerts-container">
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-          {{ message }}
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-
   <!-- Registrar Nova Vulnerabilidade Form -->
   <div class="card">
     <!-- Header -->
@@ -59,22 +48,6 @@
         {% endif %}
       </div>
 
-      <!-- Descrição da Vulnerabilidade -->
-      <div class="form-group">
-        <label for="{{ form.descricao.id_for_label }}">
-          <i class="fas fa-align-left" style="color: #9333ea; margin-right: 0.5rem;"></i>
-          {{ form.descricao.label }}
-        </label>
-        {{ form.descricao }}
-        {% if form.descricao.errors %}
-          <div class="error-message">
-            {% for error in form.descricao.errors %}
-              {{ error }}<br>
-            {% endfor %}
-          </div>
-        {% endif %}
-      </div>
-
       <!-- Ameaças Associadas (Múltipla Seleção) -->
       <div class="form-group">
         <label for="{{ form.ameacas.id_for_label }}">
@@ -103,38 +76,6 @@
         {% if form.ativo.errors %}
           <div class="error-message">
             {% for error in form.ativo.errors %}
-              {{ error }}<br>
-            {% endfor %}
-          </div>
-        {% endif %}
-      </div>
-
-      <!-- Nível de Severidade -->
-      <div class="form-group">
-        <label for="{{ form.nivel_severidade.id_for_label }}">
-          <i class="fas fa-exclamation-triangle" style="color: #d97706; margin-right: 0.5rem;"></i>
-          {{ form.nivel_severidade.label }}
-        </label>
-        {{ form.nivel_severidade }}
-        {% if form.nivel_severidade.errors %}
-          <div class="error-message">
-            {% for error in form.nivel_severidade.errors %}
-              {{ error }}<br>
-            {% endfor %}
-          </div>
-        {% endif %}
-      </div>
-
-      <!-- Prioridade de Correção -->
-      <div class="form-group">
-        <label for="{{ form.prioridade_correcao.id_for_label }}">
-          <i class="fas fa-tasks" style="color: #9333ea; margin-right: 0.5rem;"></i>
-          {{ form.prioridade_correcao.label }}
-        </label>
-        {{ form.prioridade_correcao }}
-        {% if form.prioridade_correcao.errors %}
-          <div class="error-message">
-            {% for error in form.prioridade_correcao.errors %}
               {{ error }}<br>
             {% endfor %}
           </div>

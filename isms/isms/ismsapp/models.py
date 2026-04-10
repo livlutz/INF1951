@@ -409,7 +409,7 @@ class Ameaca(models.Model):
         verbose_name_plural = "Ameaças"
 
     def __str__(self):
-        return f"Ameaça #{self.pk}"
+        return self.nome
 
 class Vulnerabilidade(models.Model):
     """
@@ -440,56 +440,7 @@ class Vulnerabilidade(models.Model):
     """Name/title of the vulnerability for easy identification."""
     nome = models.CharField(
         max_length=255,
-        default="Sem nome",
         help_text="Nome ou título da vulnerabilidade identificada (ex: Falta de validação de entradas).",
-    )
-
-    """Optional free-text description of the specific vulnerability and how it could be exploited. This should provide enough detail to understand the nature of the weakness and its relationship to the associated threat and asset."""
-    descricao = models.TextField(
-        blank = True,
-        help_text = "Descrição opcional da vulnerabilidade específica e como ela poderia ser explorada.",
-    )
-
-    """Severity level of the vulnerability - how critical it is"""
-    class SeveridadeChoice(models.TextChoices):
-        CRITICO = 'critico', 'Crítico'
-        ALTO = 'alto', 'Alto'
-        MEDIO = 'medio', 'Médio'
-        BAIXO = 'baixo', 'Baixo'
-
-    nivel_severidade = models.CharField(
-        max_length=20,
-        choices=SeveridadeChoice.choices,
-        default=SeveridadeChoice.MEDIO,
-        help_text="Nível de severidade da vulnerabilidade.",
-    )
-
-    """Priority for correcting the vulnerability"""
-    class PrioridadeChoice(models.TextChoices):
-        URGENTE = 'urgente', 'Urgente'
-        ALTA = 'alta', 'Alta'
-        MEDIA = 'media', 'Média'
-        BAIXA = 'baixa', 'Baixa'
-
-    prioridade_correcao = models.CharField(
-        max_length=20,
-        choices=PrioridadeChoice.choices,
-        default=PrioridadeChoice.MEDIA,
-        help_text="Prioridade de correção da vulnerabilidade.",
-    )
-
-    """Status of the vulnerability - whether it's been treated or not"""
-    class StatusChoice(models.TextChoices):
-        REGISTRADA = 'registrada', 'Registrada'
-        EM_TRATAMENTO = 'em_tratamento', 'Em Tratamento'
-        RESOLVIDA = 'resolvida', 'Resolvida'
-        DESCARTADA = 'descartada', 'Descartada'
-
-    status = models.CharField(
-        max_length=20,
-        choices=StatusChoice.choices,
-        default=StatusChoice.REGISTRADA,
-        help_text="Status atual da vulnerabilidade.",
     )
 
     class Meta:

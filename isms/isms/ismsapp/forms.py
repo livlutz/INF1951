@@ -822,21 +822,15 @@ class VulnerabilidadeForm(forms.ModelForm):
     - Name/title of the vulnerability
     - Associated threats/vulnerability sources (multiple selection)
     - Associated asset affected
-    - Description of the vulnerability
-    - Severity level
-    - Correction priority
     """
 
     class Meta:
         model = Vulnerabilidade
-        fields = ['nome', 'ameacas', 'ativo', 'descricao', 'nivel_severidade', 'prioridade_correcao']
+        fields = ['nome', 'ameacas', 'ativo']
         labels = {
             'nome': 'Nome da Vulnerabilidade',
             'ameacas': 'Ameaças Associadas',
-            'ativo': 'Ativo Afetado',
-            'descricao': 'Descrição da Vulnerabilidade',
-            'nivel_severidade': 'Nível de Severidade',
-            'prioridade_correcao': 'Prioridade de Correção'
+            'ativo': 'Ativo Afetado'
         }
         widgets = {
             'nome': forms.TextInput(attrs={
@@ -848,17 +842,6 @@ class VulnerabilidadeForm(forms.ModelForm):
             }),
             'ativo': forms.Select(attrs={
                 'class': 'form-control',
-            }),
-            'descricao': forms.Textarea(attrs={
-                'class': 'form-control',
-                'placeholder': 'Descreva detalhadamente a vulnerabilidade identificada...',
-                'rows': 5
-            }),
-            'nivel_severidade': forms.Select(attrs={
-                'class': 'form-control',
-            }),
-            'prioridade_correcao': forms.Select(attrs={
-                'class': 'form-control',
             })
         }
 
@@ -868,34 +851,25 @@ class VulnerabilidadeForm(forms.ModelForm):
         self.fields['nome'].required = True
         self.fields['ameacas'].required = True
         self.fields['ativo'].required = True
-        self.fields['descricao'].required = True
 
 
 class VulnerabilidadeUpdateForm(forms.ModelForm):
     """Form for updating vulnerabilities (Vulnerabilidades).
 
     This form allows authorized users (Security Analysts and Auditors) to update
-    existing vulnerabilities including:
-    - Associated asset (can be changed)
+    existing vulnerabilities with:
     - Name/title of the vulnerability
     - Associated threats (multiple selection)
-    - Description of the vulnerability
-    - Severity level
-    - Correction priority
-    - Current status (registrada, em_tratamento, resolvida, descartada)
+    - Associated asset
     """
 
     class Meta:
         model = Vulnerabilidade
-        fields = ['ativo', 'nome', 'ameacas', 'descricao', 'nivel_severidade', 'prioridade_correcao', 'status']
+        fields = ['ativo', 'nome', 'ameacas']
         labels = {
             'ativo': 'Ativo Afetado',
             'nome': 'Nome da Vulnerabilidade',
-            'ameacas': 'Ameaças Associadas',
-            'descricao': 'Descrição da Vulnerabilidade',
-            'nivel_severidade': 'Nível de Severidade',
-            'prioridade_correcao': 'Prioridade de Correção',
-            'status': 'Status'
+            'ameacas': 'Ameaças Associadas'
         }
         widgets = {
             'ativo': forms.Select(attrs={
@@ -907,20 +881,6 @@ class VulnerabilidadeUpdateForm(forms.ModelForm):
             }),
             'ameacas': forms.CheckboxSelectMultiple(attrs={
                 'class': 'form-checkbox',
-            }),
-            'descricao': forms.Textarea(attrs={
-                'class': 'form-control',
-                'placeholder': 'Descreva detalhadamente a vulnerabilidade identificada...',
-                'rows': 5
-            }),
-            'nivel_severidade': forms.Select(attrs={
-                'class': 'form-control',
-            }),
-            'prioridade_correcao': forms.Select(attrs={
-                'class': 'form-control',
-            }),
-            'status': forms.Select(attrs={
-                'class': 'form-control',
             })
         }
 
@@ -930,7 +890,6 @@ class VulnerabilidadeUpdateForm(forms.ModelForm):
         self.fields['ativo'].required = True
         self.fields['nome'].required = True
         self.fields['ameacas'].required = True
-        self.fields['descricao'].required = True
 
 
 class AmeacaForm(forms.ModelForm):

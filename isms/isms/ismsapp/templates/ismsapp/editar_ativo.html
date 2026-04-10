@@ -6,7 +6,6 @@
 {% block extra_css %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="{% static 'css/ismsapp/cadastro_ativo.css' %}" rel="stylesheet">
 {% endblock %}
 
@@ -43,57 +42,12 @@
                     {% endif %}
                 </div>
 
-                <!-- Row with Categoria and Responsável -->
-                <div class="form-row">
-                    <!-- Categoria Field -->
-                    <div class="form-group">
-                        <label for="{{ form.categoria.id_for_label }}">Categoria</label>
-                        {{ form.categoria }}
-                        {% if form.categoria.errors %}
-                            {% for error in form.categoria.errors %}
-                                <span class="error-message">{{ error }}</span>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-
-                    <!-- Responsável Field -->
-                    <div class="form-group">
-                        <label for="{{ form.responsavel.id_for_label }}">Responsável</label>
-                        {{ form.responsavel }}
-                        {% if form.responsavel.errors %}
-                            {% for error in form.responsavel.errors %}
-                                <span class="error-message">{{ error }}</span>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Descrição Field -->
+                <!-- Categoria Field -->
                 <div class="form-group">
-                    <label for="{{ form.descricao.id_for_label }}">Descrição</label>
-                    {{ form.descricao }}
-                    {% if form.descricao.errors %}
-                        {% for error in form.descricao.errors %}
-                            <span class="error-message">{{ error }}</span>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <!-- Interdependências Field -->
-                <div class="form-group">
-                    <label for="{{ form.interdependencias.id_for_label }}" class="section-label">
-                        <i class="fas fa-link"></i> Interdependências
-                    </label>
-                    {% if form.interdependencias.field.queryset.count > 0 %}
-                        {{ form.interdependencias }}
-                    {% else %}
-                        <div class="no-assets-message">
-                            <i class="fas fa-info-circle"></i>
-                            <p>Nenhum outro ativo cadastrado ainda. Cadastre ativos antes de adicionar interdependências.</p>
-                        </div>
-                    {% endif %}
-                    {% if form.interdependencias.errors %}
-                        {% for error in form.interdependencias.errors %}
+                    <label for="{{ form.categoria.id_for_label }}">Categoria</label>
+                    {{ form.categoria }}
+                    {% if form.categoria.errors %}
+                        {% for error in form.categoria.errors %}
                             <span class="error-message">{{ error }}</span>
                         {% endfor %}
                     {% endif %}
@@ -107,23 +61,4 @@
             </form>
         </div>
     </div>
-{% endblock %}
-
-{% block extra_js %}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('.interdependencias-select').select2({
-                placeholder: 'Busque e selecione ativos...',
-                allowClear: true,
-                width: '100%',
-                language: {
-                    inputTooShort: function() { return 'Digite para buscar...'; },
-                    noResults: function() { return 'Nenhum ativo encontrado'; },
-                    searching: function() { return 'Buscando...'; }
-                }
-            });
-        });
-    </script>
 {% endblock %}

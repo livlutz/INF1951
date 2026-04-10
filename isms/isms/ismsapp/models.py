@@ -290,13 +290,6 @@ class CategoriaAtivo(models.Model):
             "sustenta os ativos primários (ex.: hardware, software, pessoas)."
         ),
     )
-    descricao = models.TextField(
-        help_text="Descrição detalhada da categoria e dos ativos que ela engloba.",
-    )
-    criado_em = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Data e hora em que a categoria foi registrada no sistema.",
-    )
 
     class Meta:
         verbose_name        = "Categoria de Ativo"
@@ -331,28 +324,6 @@ class Ativo(models.Model):
         null=True,
         related_name="ativos",
         help_text="Categoria que classifica este ativo.",
-    )
-
-    """Person or department responsible for this asset."""
-    responsavel = models.CharField(
-        max_length=200,
-        default="Responsável",
-        help_text="Nome ou departamento responsável por este ativo.",
-    )
-
-    """Detailed description of the asset's purpose and characteristics."""
-    descricao = models.TextField(
-        blank=True,
-        help_text="Descrição detalhada da finalidade e características do ativo.",
-    )
-
-    """Interdependencies - other assets required for this asset to function."""
-    interdependencias = models.ManyToManyField(
-        'self',
-        symmetrical=False,
-        blank=True,
-        related_name='dependentes',
-        help_text="Ativos necessários para o funcionamento deste ativo.",
     )
 
     """Numeric score for the Confidentiality dimension, indicating how sensitive the asset's information is. Higher values mean greater damage if data is disclosed without authorization."""

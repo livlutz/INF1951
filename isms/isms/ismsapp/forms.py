@@ -196,11 +196,10 @@ class CadastroCategoriaAtivoForm(forms.ModelForm):
 
     class Meta:
         model = CategoriaAtivo
-        fields = ['nome', 'tipo', 'descricao']
+        fields = ['nome', 'tipo']
         labels = {
             'nome': 'Nome da Categoria',
-            'tipo': 'Tipo de Categoria',
-            'descricao': 'Descrição'
+            'tipo': 'Tipo de Categoria'
         }
         widgets = {
             'nome': forms.TextInput(attrs={
@@ -210,11 +209,6 @@ class CadastroCategoriaAtivoForm(forms.ModelForm):
             }),
             'tipo': forms.Select(attrs={
                 'class': 'form-control',
-            }),
-            'descricao': forms.Textarea(attrs={
-                'class': 'form-control',
-                'placeholder': 'Descreva brevemente o propósito desta categoria...',
-                'rows': 6
             })
         }
 
@@ -229,13 +223,10 @@ class CadastroAtivoForm(forms.ModelForm):
     class Meta:
         from .models import Ativo
         model = Ativo
-        fields = ['nome', 'categoria', 'responsavel', 'descricao', 'interdependencias']
+        fields = ['nome', 'categoria']
         labels = {
             'nome': 'Nome do Ativo',
-            'categoria': 'Categoria',
-            'responsavel': 'Responsável',
-            'descricao': 'Descrição',
-            'interdependencias': 'Interdependências'
+            'categoria': 'Categoria'
         }
         widgets = {
             'nome': forms.TextInput(attrs={
@@ -245,19 +236,6 @@ class CadastroAtivoForm(forms.ModelForm):
             }),
             'categoria': forms.Select(attrs={
                 'class': 'form-control',
-            }),
-            'responsavel': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Nome ou Departamento',
-                'maxlength': '200'
-            }),
-            'descricao': forms.Textarea(attrs={
-                'class': 'form-control',
-                'placeholder': 'Descreva brevemente a finalidade e as características do ativo...',
-                'rows': 5
-            }),
-            'interdependencias': forms.SelectMultiple(attrs={
-                'class': 'form-control interdependencias-select',
             })
         }
 

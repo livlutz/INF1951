@@ -55,17 +55,6 @@
                     {% endif %}
                 </div>
 
-                <!-- Descrição Field -->
-                <div class="form-group">
-                    <label for="{{ form.descricao.id_for_label }}">Descrição</label>
-                    {{ form.descricao }}
-                    {% if form.descricao.errors %}
-                        {% for error in form.descricao.errors %}
-                            <span class="error-message">{{ error }}</span>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
                 <!-- Buttons -->
                 <div class="form-buttons">
                     <a href="{% url 'dashboard' %}" class="btn btn-cancel">Cancelar</a>

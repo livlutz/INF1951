@@ -149,6 +149,89 @@ class Nivel(models.Model):
         return f"{self.get_tipo_display()} – {self.categoria} (peso {self.peso})"
 
 
+class CategoriaControle(models.Model):
+    """
+    Represents a category of security controls.
+
+    Each control can belong to one or more categories:
+    - Preventivo (Preventive): Controls that prevent risks from occurring
+    - Detectivo (Detective): Controls that detect when risks occur
+    - Corretivo/Contingência (Corrective/Contingency): Controls that respond to and recover from risk events
+    """
+
+    class Tipo(models.TextChoices):
+        """Categories of security controls."""
+        PREVENTIVO = "preventivo", "Preventivo"
+        DETECTIVO = "detectivo", "Detectivo"
+        CORRETIVO = "corretivo", "Corretivo/Contingência"
+
+    """The category type (unique, represents one of the three control categories)."""
+    tipo = models.CharField(
+        max_length=20,
+        choices=Tipo.choices,
+        unique=True,
+        help_text="Tipo de categoria de controle.",
+    )
+
+    """Detailed description of what this category of control does."""
+    descricao = models.TextField(
+        default="",
+        help_text="Descrição do tipo de controle.",
+    )
+
+    class Meta:
+        verbose_name = "Categoria de Controle"
+        verbose_name_plural = "Categorias de Controle"
+
+    def __str__(self):
+        return self.get_tipo_display()
+
+
+class Controle(models.Model):
+    """
+    A security or operational control that can be part of treatment plans.
+
+    Controls are now standalone entities that can be defined and managed by users.
+    Each control can belong to one or more of the three categories:
+      - Preventivos (Preventive): Controls that prevent risks from occurring
+      - Detectivos (Detective): Controls that detect when risks occur
+      - Corretivos/Contingência (Corrective/Contingency): Controls that respond to and recover from risk events
+
+    Controls can be linked to multiple treatment plans through a many-to-many relationship,
+    allowing the same control to be used across different risk treatment strategies.
+    """
+
+    """The name or title of the control (e.g., from ISO 27001)."""
+    nome = models.CharField(
+        max_length=255,
+        help_text="Nome ou título do controle (ex: '5.1 - Políticas de segurança da informação').",
+    )
+
+    """Detailed description of the control, including its purpose, scope, and how it should be implemented."""
+    descricao = models.TextField(
+        help_text="Descrição detalhada do controle: seu propósito, escopo e como deve ser implementado.",
+    )
+
+    """The categories this control belongs to (can be multiple)."""
+    categorias = models.ManyToManyField(
+        CategoriaControle,
+        related_name="controles",
+        help_text="Categorias às quais este controle pertence (Preventivo, Detectivo, ou Corretivo/Contingência).",
+    )
+
+    class Meta:
+        verbose_name = "Controle"
+        verbose_name_plural = "Controles"
+        ordering = ["nome"]
+
+    def __str__(self):
+        return f"{self.nome}"
+
+    def categorias_display(self):
+        """Return formatted display of categories."""
+        return ", ".join([cat.get_tipo_display() for cat in self.categorias.all()])
+
+
 class Tratamento(models.Model):
     """
     Describes the strategy chosen to address a specific risk.
@@ -156,6 +239,9 @@ class Tratamento(models.Model):
     A risk may have more than one treatment (the relationship is many-to-many).
     The treatment type drives how the risk should be handled, while the
     description field captures the concrete actions or decisions taken.
+
+    Each treatment can reference multiple controls (many-to-many relationship),
+    allowing flexible assignment of preventive, detective, and corrective measures.
 
     Treatment strategies:
       - Aceitar (accept)     : The risk is acknowledged and accepted without further action.
@@ -210,39 +296,20 @@ class Tratamento(models.Model):
         help_text="Porcentagem esperada de redução no impacto/consequência do risco (0-100).",
     )
 
+    """Controls that are part of this treatment plan (many-to-many relationship)."""
+    controles = models.ManyToManyField(
+        Controle,
+        related_name="tratamentos",
+        blank=True,
+        help_text="Controles que fazem parte deste plano de tratamento.",
+    )
+
     class Meta:
         verbose_name = "Tratamento"
         verbose_name_plural = "Tratamentos"
 
     def __str__(self):
         return f"{self.get_tipo_tratamento_display()}"
-
-
-class Controle(models.Model):
-    """
-    A reference to a security or operational control that forms part of a treatment plan.
-
-    Controls are identified by their unique ID only. The actual control definitions
-    and details are managed in an external control catalogue system (e.g. ISO 27001).
-    This model serves as a linking point between treatment plans and external controls.
-
-    A single treatment plan can reference multiple controls (one-to-many relationship).
-    """
-
-    """The treatment plan that this control belongs to. Each control is linked to exactly one treatment, but a treatment can have multiple controls."""
-    tratamento = models.ForeignKey(
-        Tratamento,
-        on_delete=models.CASCADE,
-        related_name="controles",
-        help_text="O plano de tratamento ao qual este controle pertence.",
-    )
-
-    class Meta:
-        verbose_name = "Controle"
-        verbose_name_plural = "Controles"
-
-    def __str__(self):
-        return f"Controle #{self.pk}"
 
 class CategoriaAtivo(models.Model):
     """

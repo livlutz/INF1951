@@ -1,0 +1,943 @@
+{% extends "ismsapp/base.html" %}
+{% load static %}
+
+{% block title %}Lista de Controles{% endblock %}
+
+{% block extra_css %}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .lista-container {
+            width: 100%;
+            padding: 20px;
+            margin: 2rem auto;
+        }
+
+        .lista-card {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+        }
+
+        .lista-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(147, 51, 234, 0.3);
+        }
+
+        .header-content h1 {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header-content .subtitle {
+            color: #b0b0b0;
+            font-size: 14px;
+            margin: 5px 0 0 0;
+        }
+
+        .btn-add-asset {
+            background-color: #9333ea;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-add-asset:hover {
+            background-color: #a855f7;
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
+            color: white;
+        }
+
+        .filter-section {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #b0b0b0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .filter-group input[type="text"],
+        .filter-group select {
+            width: 100%;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            font-size: 13px;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .filter-group input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .filter-group input[type="text"]:focus,
+        .filter-group select:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #b366ff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(179, 102, 255, 0.1);
+        }
+
+        .filter-group select option {
+            background: #1e1e1e;
+            color: #ffffff;
+        }
+
+        .filter-button {
+            background-color: #9333ea;
+            color: white;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            height: fit-content;
+        }
+
+        .filter-button:hover {
+            background-color: #a855f7;
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
+        }
+
+        .controls-table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .controls-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .controls-table thead {
+            background-color: rgba(147, 51, 234, 0.1);
+            border-bottom: 2px solid rgba(147, 51, 234, 0.3);
+        }
+
+        .controls-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #b0b0b0;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .controls-table tbody tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            transition: background-color 0.2s;
+        }
+
+        .controls-table tbody tr:hover {
+            background-color: rgba(147, 51, 234, 0.1);
+        }
+
+        .controls-table td {
+            padding: 15px;
+            vertical-align: middle;
+            color: #ffffff;
+        }
+
+        .control-id-cell {
+            width: 80px;
+        }
+
+        .id-badge {
+            background-color: rgba(147, 51, 234, 0.2);
+            color: #c4b5fd;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .control-name-cell {
+            font-weight: 600;
+            color: #ffffff;
+            max-width: 250px;
+            word-break: break-word;
+        }
+
+        .control-descricao-cell {
+            color: #b0b0b0;
+            max-width: 350px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .control-categorias-cell {
+            max-width: 200px;
+        }
+
+        .category-badge {
+            display: inline-block;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #b0b0b0;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 5px;
+            margin-bottom: 4px;
+        }
+
+        .category-badge.preventivo {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .category-badge.detectivo {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #fcd34d;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .category-badge.corretivo {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .control-actions-cell {
+            width: 120px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .action-btn.view-btn {
+            background-color: rgba(147, 51, 234, 0.2);
+            color: #c4b5fd;
+        }
+
+        .action-btn.view-btn:hover {
+            background-color: rgba(147, 51, 234, 0.4);
+            color: #e9d5ff;
+        }
+
+        .action-btn.delete-btn {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .action-btn.delete-btn:hover {
+            background-color: rgba(239, 68, 68, 0.4);
+            color: #fecaca;
+        }
+
+        .table-info {
+            color: #b0b0b0;
+            font-size: 13px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .table-info p {
+            margin: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            color: rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #ffffff;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #b0b0b0;
+            margin-bottom: 25px;
+        }
+
+        .btn-primary {
+            background-color: #9333ea;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            background-color: #a855f7;
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
+            color: white;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 25px;
+        }
+
+        .pagination a,
+        .pagination span {
+            padding: 8px 12px;
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 6px;
+            text-decoration: none;
+            color: #c4b5fd;
+            background: rgba(147, 51, 234, 0.1);
+            transition: all 0.2s;
+        }
+
+        .pagination a:hover {
+            background-color: rgba(147, 51, 234, 0.2);
+            border-color: rgba(147, 51, 234, 0.5);
+        }
+
+        .pagination .current {
+            background-color: #9333ea;
+            color: white;
+            border-color: #9333ea;
+        }
+
+        .pagination .disabled {
+            color: #6b7280;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .lista-footer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-cancel {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-cancel:hover {
+            background-color: rgba(255, 255, 255, 0.12);
+            border-color: #b366ff;
+        }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .lista-container {
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .lista-card {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        .lista-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #007bff;
+        }
+
+        .header-content h1 {
+            color: #333;
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header-content .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0 0 0;
+        }
+
+        .btn-add-asset {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-add-asset:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+            color: white;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .filter-group input[type="text"],
+        .filter-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .filter-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .filter-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Controls Table */
+        .controls-table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .controls-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .controls-table thead {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .controls-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .controls-table tbody tr {
+            border-bottom: 1px solid #dee2e6;
+            transition: background-color 0.2s;
+        }
+
+        .controls-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .controls-table td {
+            padding: 15px;
+            vertical-align: middle;
+        }
+
+        .control-id-cell {
+            width: 80px;
+        }
+
+        .id-badge {
+            background-color: #e7f3ff;
+            color: #004085;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .control-name-cell {
+            font-weight: 600;
+            color: #333;
+            max-width: 250px;
+            word-break: break-word;
+        }
+
+        .control-descricao-cell {
+            color: #666;
+            max-width: 350px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .control-categorias-cell {
+            max-width: 200px;
+        }
+
+        .category-badge {
+            display: inline-block;
+            background-color: #e2e3e5;
+            color: #383d41;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 5px;
+            margin-bottom: 4px;
+        }
+
+        .category-badge.preventivo {
+            background-color: #cfe2ff;
+            color: #084298;
+        }
+
+        .category-badge.detectivo {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+
+        .category-badge.corretivo {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+
+        .control-actions-cell {
+            width: 120px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .action-btn.view-btn {
+            background-color: #e7f3ff;
+            color: #004085;
+        }
+
+        .action-btn.view-btn:hover {
+            background-color: #004085;
+            color: white;
+        }
+
+        .action-btn.delete-btn {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+
+        .action-btn.delete-btn:hover {
+            background-color: #842029;
+            color: white;
+        }
+
+        .table-info {
+            color: #666;
+            font-size: 13px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .table-info p {
+            margin: 0;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 86, 179, 0.3);
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 25px;
+        }
+
+        .pagination a,
+        .pagination span {
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .pagination a:hover {
+            background-color: #e7f3ff;
+        }
+
+        .pagination .current {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .pagination .disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Footer */
+        .lista-footer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding-top: 25px;
+            border-top: 1px solid #eee;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="lista-container">
+        <div class="lista-card">
+            <!-- Header with Title and Add Button -->
+            <div class="lista-header">
+                <div class="header-content">
+                    <h1>Controles Registrados</h1>
+                    <p class="subtitle">Gerenciar e visualizar todos os controles de segurança</p>
+                </div>
+                <a href="{% url 'cadastro_controle' %}" class="btn-add-asset">
+                    <i class="fas fa-plus"></i> Novo Controle
+                </a>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <form method="get" style="display: flex; gap: 15px; width: 100%; flex-wrap: wrap; align-items: flex-end;">
+                    <!-- Search Field -->
+                    <div class="filter-group" style="flex: 2; min-width: 250px;">
+                        <label for="search">Buscar por Nome/Descrição</label>
+                        <input type="text" id="search" name="search" value="{{ search_query }}" placeholder="Ex: 5.1 - Políticas...">
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="filter-group" style="flex: 1; min-width: 180px;">
+                        <label for="categoria">Categoria</label>
+                        <select id="categoria" name="categoria">
+                            <option value="">Todas as categorias</option>
+                            {% for cat in categorias %}
+                                <option value="{{ cat.id }}" {% if cat.id|stringformat:"s" == selected_categoria %}selected{% endif %}>
+                                    {{ cat.tipo }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Filter Button -->
+                    <button type="submit" class="filter-button">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                </form>
+            </div>
+
+            <!-- Controls Table -->
+            {% if controles %}
+                <div class="controls-table-wrapper">
+                    <table class="controls-table">
+                        <thead>
+                            <tr>
+                                <th class="control-id-cell">ID</th>
+                                <th>Nome</th>
+                                <th>Descrição</th>
+                                <th>Categorias</th>
+                                <th class="control-actions-cell">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for controle in controles %}
+                                <tr>
+                                    <td class="control-id-cell">
+                                        <span class="id-badge">{{ controle.id }}</span>
+                                    </td>
+                                    <td class="control-name-cell">
+                                        {{ controle.nome }}
+                                    </td>
+                                    <td class="control-descricao-cell" title="{{ controle.descricao }}">
+                                        {{ controle.descricao|truncatewords:10 }}
+                                    </td>
+                                    <td class="control-categorias-cell">
+                                        {% for categoria in controle.categorias.all %}
+                                            <span class="category-badge {% if categoria.tipo == 'Preventivo' %}preventivo{% elif categoria.tipo == 'Detectivo' %}detectivo{% elif categoria.tipo == 'Corretivo' %}corretivo{% endif %}">
+                                                {{ categoria.tipo }}
+                                            </span>
+                                        {% empty %}
+                                            <span class="category-badge">Sem categoria</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td class="control-actions-cell">
+                                        <div class="action-buttons">
+                                            <a href="{% url 'editar_controle' controle.id %}" class="action-btn view-btn" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'deletar_controle' controle.id %}" class="action-btn delete-btn" title="Deletar">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table Info -->
+                <div class="table-info">
+                    <p>Total de controles: <strong>{{ page_obj.paginator.count }}</strong> |
+                       Mostrando página <strong>{{ page_obj.number }}</strong> de <strong>{{ page_obj.paginator.num_pages }}</strong></p>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                    <div class="pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1">Primeira</a>
+                            <a href="?page={{ page_obj.previous_page_number }}">« Anterior</a>
+                        {% else %}
+                            <span class="disabled">Primeira</span>
+                            <span class="disabled">« Anterior</span>
+                        {% endif %}
+
+                        <!-- Page numbers -->
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="current">{{ num }}</span>
+                            {% else %}
+                                <a href="?page={{ num }}">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}">Próxima »</a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}">Última</a>
+                        {% else %}
+                            <span class="disabled">Próxima »</span>
+                            <span class="disabled">Última</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <!-- No Controls Message -->
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-inbox"></i>
+                    </div>
+                    <h3>Nenhum controle cadastrado</h3>
+                    <p>Não há controles cadastrados no sistema. Os controles padrão ISO 27001 foram carregados automaticamente na aplicação.</p>
+                    <a href="{% url 'cadastro_controle' %}" class="btn-primary">
+                        <i class="fas fa-plus"></i> Cadastrar Novo Controle
+                    </a>
+                </div>
+            {% endif %}
+
+            <!-- Footer Buttons -->
+            <div class="lista-footer">
+                <a href="{% url 'dashboard' %}" class="btn btn-cancel">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

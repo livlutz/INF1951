@@ -601,14 +601,14 @@ class TratamentoRiscoForm(forms.Form):
         })
     )
 
-    controles = forms.CharField(
-        label='Controles/Medidas (ISO 27001)',
+    controles = forms.ModelMultipleChoiceField(
+        label='Controles/Medidas',
+        queryset=Controle.objects.all(),
         required=False,
-        widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'placeholder': 'Selecione os controles a serem implementados',
-            'rows': 3
-        })
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'form-check-input'
+        }),
+        help_text='Selecione os controles (preventivos, detectivos ou corretivos) que fazem parte deste tratamento.'
     )
 
     observacoes = forms.CharField(
@@ -950,3 +950,47 @@ class AuditoriaForm(forms.ModelForm):
         self.fields['tipo_auditoria'].required = True
         self.fields['nome'].required = True
         self.fields['data_auditoria'].required = True
+
+
+class CadastroControleForm(forms.ModelForm):
+    """Form for registering and managing security controls (Controles).
+
+    This form allows authorized users (System Administrators and Security Auditors)
+    to register new security controls with:
+    - Name/ID of the control (e.g., "5.1 - Política de segurança")
+    - Detailed description of the control
+    - One or more control categories (Preventivo, Detectivo, Corretivo)
+
+    Controls are based on ISO 27001 standard.
+    """
+
+    class Meta:
+        model = Controle
+        fields = ['nome', 'descricao', 'categorias']
+        labels = {
+            'nome': 'Nome do Controle',
+            'descricao': 'Descrição Detalhada',
+            'categorias': 'Categorias'
+        }
+        widgets = {
+            'nome': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex: 5.1 - Políticas de segurança da informação',
+                'maxlength': '255'
+            }),
+            'descricao': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descreva o propósito, escopo e como o controle deve ser implementado...',
+                'rows': 5
+            }),
+            'categorias': forms.CheckboxSelectMultiple(attrs={
+                'class': 'form-check-input'
+            })
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make all fields required
+        self.fields['nome'].required = True
+        self.fields['descricao'].required = True
+        self.fields['categorias'].required = True

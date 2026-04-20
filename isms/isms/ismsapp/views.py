@@ -277,6 +277,12 @@ class DashboardView(View):
         UserProfile.Actor.AUDITOR
     ]
 
+    #gestao de controles de seguranca
+    gestao_de_controles = [
+        UserProfile.Actor.SISTEMA_ADMIN,
+        UserProfile.Actor.AUDITOR
+    ]
+
     @method_decorator(login_required(login_url="login"))
     def get(self, request, *args, **kwargs):
         try:
@@ -304,6 +310,7 @@ class DashboardView(View):
         pode_auditar_e_revisar = actor_type in self.auditoria_e_revisao if actor_type else False
         pode_gerenciar_auditorias = actor_type in self.gestao_de_auditorias if actor_type else False
         pode_registrar_auditorias = actor_type in self.gestao_de_auditorias if actor_type else False
+        pode_gerenciar_controles = actor_type in self.gestao_de_controles if actor_type else False
 
         # Get monitoring data for UC-12
         from .models import Incidente, Risco, Vulnerabilidade
@@ -379,6 +386,7 @@ class DashboardView(View):
             "pode_auditar_e_revisar": pode_auditar_e_revisar,
             "pode_gerenciar_auditorias": pode_gerenciar_auditorias,
             "pode_registrar_auditorias": pode_registrar_auditorias,
+            "pode_gerenciar_controles": pode_gerenciar_controles,
             # New monitoring data - UC-12 Enhanced
             "tratamento_status": tratamento_status,
             "incident_trend": incident_trend,
@@ -2014,6 +2022,7 @@ class TratamentoRiscoView(View):
                 descricao = form.cleaned_data.get('descricao')
                 reducao_prob = form.cleaned_data.get('reducao_probabilidade', 0)
                 reducao_impacto = form.cleaned_data.get('reducao_impacto', 0)
+                controles = form.cleaned_data.get('controles', [])
 
                 # Create treatment plan
                 tratamento = Tratamento.objects.create(
@@ -2023,6 +2032,10 @@ class TratamentoRiscoView(View):
                     reducao_probabilidade=reducao_prob,
                     reducao_impacto=reducao_impacto,
                 )
+
+                # Link controls to treatment plan
+                if controles:
+                    tratamento.controles.set(controles)
 
                 # Link treatment to risk
                 risco.tratamentos.add(tratamento)
@@ -3535,4 +3548,338 @@ class DeleteAuditoriaView(View):
             return redirect('lista_auditorias')
         except Auditoria.DoesNotExist:
             messages.error(request, "Auditoria não encontrada.")
+            return redirect('lista_auditorias')
+
+
+# ============================================================================
+# CONTROLE CRUD VIEWS
+# ============================================================================
+
+class CadastroControleView(View):
+    """View for creating new security controls (Controles).
+
+    This view allows authorized users (System Administrators and Security Auditors)
+    to register new security controls with:
+    - Control name/ID (e.g., "5.1 - Políticas de segurança")
+    - Detailed description
+    - One or more control categories (Preventivo, Detectivo, Corretivo)
+
+    Only SISTEMA_ADMIN and AUDITOR roles can create controls.
+    Requires user authentication.
+    """
+    template_name = "ismsapp/cadastro_controle.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to create controls."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.SISTEMA_ADMIN,
+            UserProfile.Actor.AUDITOR
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        """Display control creation form."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .forms import CadastroControleForm
+
+        form = CadastroControleForm()
+        contexto = {
+            'form': form,
+            'page_title': 'Cadastro de Controle',
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        """Handle control creation."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .forms import CadastroControleForm
+
+        form = CadastroControleForm(request.POST)
+
+        if form.is_valid():
+            controle = form.save(commit=False)
+            controle.save()
+
+            # Handle ManyToMany categorias field
+            categorias = form.cleaned_data.get('categorias', [])
+            controle.categorias.set(categorias)
+
+            messages.success(
+                request,
+                f"Controle '{controle.nome}' cadastrado com sucesso!"
+            )
+            return redirect('lista_controles')
+        else:
+            contexto = {
+                'form': form,
+                'page_title': 'Cadastro de Controle',
+                'errors': form.errors,
+            }
+            return render(request, self.template_name, contexto)
+
+
+class ReadControleView(View):
+    """View for listing all security controls.
+
+    This view allows authorized users to see all registered controls
+    with their categories and descriptions. Includes pagination and
+    optional filtering by control category.
+
+    Only SISTEMA_ADMIN and AUDITOR roles can view controls.
+    """
+    template_name = "ismsapp/lista_controles.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to view controls."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.SISTEMA_ADMIN,
+            UserProfile.Actor.AUDITOR
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, *args, **kwargs):
+        """Display list of controls."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Controle, CategoriaControle
+        from django.core.paginator import Paginator
+
+        # Get filter parameters
+        categoria_filter = request.GET.get('categoria')
+        search_query = request.GET.get('search', '')
+
+        # Base queryset
+        controles = Controle.objects.all().prefetch_related('categorias').order_by('nome')
+
+        # Apply filters
+        if categoria_filter:
+            try:
+                categoria = CategoriaControle.objects.get(id=categoria_filter)
+                controles = controles.filter(categorias=categoria)
+            except CategoriaControle.DoesNotExist:
+                pass
+
+        if search_query:
+            controles = controles.filter(
+                nome__icontains=search_query
+            ) | controles.filter(
+                descricao__icontains=search_query
+            )
+
+        # Pagination
+        paginator = Paginator(controles, 10)  # 10 controls per page
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        # Get all categories for filter dropdown
+        categorias = CategoriaControle.objects.all().order_by('tipo')
+
+        contexto = {
+            'page_obj': page_obj,
+            'controles': page_obj.object_list,
+            'categorias': categorias,
+            'selected_categoria': categoria_filter,
+            'search_query': search_query,
+            'page_title': 'Lista de Controles',
+        }
+        return render(request, self.template_name, contexto)
+
+
+class UpdateControleView(View):
+    """View for editing existing security controls.
+
+    This view allows authorized users (System Administrators and Security Auditors)
+    to update control details:
+    - Name/ID
+    - Description
+    - Associated categories
+
+    Only SISTEMA_ADMIN and AUDITOR roles can edit controls.
+    """
+    template_name = "ismsapp/editar_controle.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to edit controls."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.SISTEMA_ADMIN,
+            UserProfile.Actor.AUDITOR
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, controle_id=None, *args, **kwargs):
+        """Display control editing form."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Controle
+        from .forms import CadastroControleForm
+
+        if not controle_id:
+            return redirect('lista_controles')
+
+        try:
+            controle = Controle.objects.get(id=controle_id)
+        except Controle.DoesNotExist:
+            messages.error(request, "Controle não encontrado.")
+            return redirect('lista_controles')
+
+        form = CadastroControleForm(instance=controle)
+        contexto = {
+            'form': form,
+            'controle': controle,
+            'controle_id': controle_id,
+            'page_title': f'Editar Controle: {controle.nome}',
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, controle_id=None, *args, **kwargs):
+        """Handle control update."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Controle
+        from .forms import CadastroControleForm
+
+        if not controle_id:
+            return redirect('lista_controles')
+
+        try:
+            controle = Controle.objects.get(id=controle_id)
+        except Controle.DoesNotExist:
+            messages.error(request, "Controle não encontrado.")
+            return redirect('lista_controles')
+
+        form = CadastroControleForm(request.POST, instance=controle)
+
+        if form.is_valid():
+            controle = form.save(commit=False)
+            controle.save()
+
+            # Handle ManyToMany categorias field
+            categorias = form.cleaned_data.get('categorias', [])
+            controle.categorias.set(categorias)
+
+            messages.success(
+                request,
+                f"Controle '{controle.nome}' atualizado com sucesso!"
+            )
+            return redirect('lista_controles')
+        else:
+            contexto = {
+                'form': form,
+                'controle': controle,
+                'controle_id': controle_id,
+                'page_title': f'Editar Controle: {controle.nome}',
+                'errors': form.errors,
+            }
+            return render(request, self.template_name, contexto)
+
+
+class DeleteControleView(View):
+    """View for deleting security controls.
+
+    This view allows authorized users (System Administrators and Security Auditors)
+    to delete existing controls. Displays confirmation before deletion.
+
+    Only SISTEMA_ADMIN and AUDITOR roles can delete controls.
+    """
+    template_name = "ismsapp/deletar_controle.html"
+
+    def _check_permission(self, user):
+        """Check if user has permission to delete controls."""
+        if not user.is_authenticated:
+            return False
+
+        user_profile = getattr(user, 'profile', None)
+        if not user_profile:
+            return False
+
+        allowed_actors = [
+            UserProfile.Actor.SISTEMA_ADMIN,
+            UserProfile.Actor.AUDITOR
+        ]
+        return user_profile.actor_type in allowed_actors
+
+    @method_decorator(login_required(login_url="login"))
+    def get(self, request, controle_id=None, *args, **kwargs):
+        """Display control deletion confirmation page."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Controle
+
+        if not controle_id:
+            return redirect('lista_controles')
+
+        try:
+            controle = Controle.objects.get(id=controle_id)
+        except Controle.DoesNotExist:
+            messages.error(request, "Controle não encontrado.")
+            return redirect('lista_controles')
+
+        # Get treatments using this control
+        tratamentos = controle.tratamento_set.all()
+
+        contexto = {
+            'controle': controle,
+            'controle_id': controle_id,
+            'tratamentos': tratamentos,
+            'page_title': f'Deletar Controle: {controle.nome}',
+        }
+        return render(request, self.template_name, contexto)
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, controle_id=None, *args, **kwargs):
+        """Handle control deletion."""
+        if not self._check_permission(request.user):
+            return redirect('dashboard')
+
+        from .models import Controle
+
+        if not controle_id:
+            return redirect('lista_controles')
+
+        try:
+            controle = Controle.objects.get(id=controle_id)
+            controle_name = controle.nome
+            controle.delete()
+            messages.success(
+                request,
+                f"Controle '{controle_name}' deletado com sucesso!"
+            )
+            return redirect('lista_controles')
+        except Controle.DoesNotExist:
+            messages.error(request, "Controle não encontrado.")
+            return redirect('lista_controles')
             return redirect('lista_auditorias')

@@ -64,4 +64,8 @@ urlpatterns = [
     path("lista_auditorias/", views.ReadAuditoriaView.as_view(), name="lista_auditorias"),
     path("editar_auditoria/<int:auditoria_id>/", views.UpdateAuditoriaView.as_view(), name="editar_auditoria"),
     path("deletar_auditoria/<int:auditoria_id>/", views.DeleteAuditoriaView.as_view(), name="deletar_auditoria"),
+    path("cadastro_controle/", views.CadastroControleView.as_view(), name="cadastro_controle"),
+    path("lista_controles/", views.ReadControleView.as_view(), name="lista_controles"),
+    path("editar_controle/<int:controle_id>/", views.UpdateControleView.as_view(), name="editar_controle"),
+    path("deletar_controle/<int:controle_id>/", views.DeleteControleView.as_view(), name="deletar_controle"),
 ]

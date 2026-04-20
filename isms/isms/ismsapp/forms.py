@@ -605,8 +605,9 @@ class TratamentoRiscoForm(forms.Form):
         label='Controles/Medidas',
         queryset=Controle.objects.all(),
         required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={
-            'class': 'form-check-input'
+        widget=forms.SelectMultiple(attrs={
+            'class': 'form-control controles-select',
+            'style': 'width: 100%'
         }),
         help_text='Selecione os controles (preventivos, detectivos ou corretivos) que fazem parte deste tratamento.'
     )

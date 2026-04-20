@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initializeStrategySelection();
   initializeRiskSelection();
   initializeFormValidation();
+  initializeSelect2();
 });
 
 /**
@@ -101,11 +102,30 @@ function initializeRiskReductionPreview() {
   const impactInput = document.querySelector('input[name="reducao_impacto"]');
 
   if (probInput && impactInput) {
-    probInput.addEventListener('input', updateResidualRiskPreview);
-    impactInput.addEventListener('input', updateResidualRiskPreview);
+    console.log('Risk reduction inputs found, attaching event listeners');
+
+    // Use both 'input' and 'change' events to ensure compatibility
+    probInput.addEventListener('input', function() {
+      console.log('Probability input changed:', this.value);
+      updateResidualRiskPreview();
+    });
+
+    impactInput.addEventListener('input', function() {
+      console.log('Impact input changed:', this.value);
+      updateResidualRiskPreview();
+    });
+
+    // Also add change event listeners
+    probInput.addEventListener('change', updateResidualRiskPreview);
+    impactInput.addEventListener('change', updateResidualRiskPreview);
 
     // Trigger initial update with default values
-    setTimeout(updateResidualRiskPreview, 100);
+    setTimeout(() => {
+      console.log('Triggering initial preview update');
+      updateResidualRiskPreview();
+    }, 100);
+  } else {
+    console.warn('Risk reduction inputs not found on page load');
   }
 }
 
@@ -131,10 +151,12 @@ function initializeRiskSelection() {
  * Displays a risk matrix with current and projected residual risk positions
  */
 function updateResidualRiskPreview() {
+  console.log('updateResidualRiskPreview called');
+
   const previewContent = document.getElementById('residual-preview');
 
   if (!previewContent) {
-    console.error('Preview element not found');
+    console.error('Preview element not found with ID: residual-preview');
     return;
   }
 
@@ -148,6 +170,8 @@ function updateResidualRiskPreview() {
 
   const reducaoProbabilidade = parseInt(probInput.value, 10) || 0;
   const reducaoImpacto = parseInt(impactInput.value, 10) || 0;
+
+  console.log('Reduction values - Prob:', reducaoProbabilidade, 'Impact:', reducaoImpacto);
 
   // Get current risk value from the impact value span
   let currentRiskValue = 12; // default fallback
@@ -482,4 +506,89 @@ function resetTreatmentForm() {
     updateResidualRiskPreview();
   }
 }
+/**
+ * Initialize Select2 for searchable controls dropdown with checkboxes
+ */
+function initializeSelect2() {
+  const controlesSelect = document.getElementById('id_controles');
 
+  if (controlesSelect && typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+    jQuery(controlesSelect).select2({
+      placeholder: 'Buscar e selecionar controles...',
+      allowClear: true,
+      width: '100%',
+      language: 'pt-BR',
+      matcher: matchCustom,
+      templateResult: formatControlOption,
+      templateSelection: formatControlSelection,
+      closeOnSelect: false,
+      escapeMarkup: function(markup) { return markup; }
+    });
+
+    // Mark checkboxes when options are selected/unselected
+    jQuery(controlesSelect).on('select2:select select2:unselect', function() {
+      updateCheckboxStates();
+    });
+
+    // Handle checkbox clicks
+    jQuery(controlesSelect).on('select2:opening', function() {
+      setTimeout(updateCheckboxStates, 50);
+    });
+  }
+}
+
+/**
+ * Custom matcher for Select2 search
+ */
+function matchCustom(params, data) {
+  if (jQuery.trim(params.term) === '') {
+    return data;
+  }
+
+  if (typeof data.text === 'undefined') {
+    return null;
+  }
+
+  if (data.text.toUpperCase().indexOf(params.term.toUpperCase()) > -1) {
+    return jQuery.extend({}, data, true);
+  }
+
+  return null;
+}
+
+/**
+ * Update checkbox states based on selected values
+ */
+function updateCheckboxStates() {
+  const selectedValues = jQuery('#id_controles').val() || [];
+
+  jQuery('.select2-results__option').each(function() {
+    const optionElement = jQuery(this);
+
+    if (optionElement.hasClass('select2-results__option--selected')) {
+      optionElement.find('input[type="checkbox"]').prop('checked', true);
+    } else {
+      optionElement.find('input[type="checkbox"]').prop('checked', false);
+    }
+  });
+}
+
+/**
+ * Format control option with checkbox for Select2 dropdown
+ */
+function formatControlOption(option, container) {
+  if (!option.id) return option.text;
+
+  const isSelected = (jQuery('#id_controles').val() || []).includes(option.id.toString());
+  const checkboxHTML = `<input type="checkbox" ${isSelected ? 'checked' : ''} class="control-checkbox" style="margin-right: 10px; cursor: pointer; width: 18px; height: 18px; vertical-align: middle;">`;
+
+  return `<span style="display: flex; align-items: center;">${checkboxHTML}<span>${option.text}</span></span>`;
+}
+
+/**
+ * Format control selection display
+ */
+function formatControlSelection(option) {
+  if (!option.id) return option.text;
+  return option.text;
+}

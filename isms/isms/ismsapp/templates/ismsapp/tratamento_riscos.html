@@ -6,6 +6,9 @@
 {% block extra_css %}
 <link href="{% static 'css/ismsapp/analise_riscos.css' %}" rel="stylesheet">
 <link href="{% static 'css/ismsapp/tratamento_riscos.css' %}" rel="stylesheet">
+<link href="{% static 'css/ismsapp/select2_controls.css' %}" rel="stylesheet">
+<!-- Select2 Library CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 {% endblock %}
 
 {% block content %}
@@ -359,5 +362,9 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- jQuery and Select2 Library for searchable dropdowns -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
 <script src="{% static 'js/ismsapp/tratamento_riscos.js' %}"></script>
 {% endblock %}

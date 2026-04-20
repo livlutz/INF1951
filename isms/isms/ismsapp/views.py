@@ -3849,7 +3849,7 @@ class DeleteControleView(View):
             return redirect('lista_controles')
 
         # Get treatments using this control
-        tratamentos = controle.tratamento_set.all()
+        tratamentos = controle.tratamentos.all()
 
         contexto = {
             'controle': controle,

@@ -1,7 +1,7 @@
 {% extends "ismsapp/base.html" %}
 {% load static %}
 
-{% block title %}Criação de Critérios de Valoração de Ativos{% endblock %}
+{% block title %}Valoração de Ativos{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'css/ismsapp/criacao_criterios_valoracao_ativos.css' %}" rel="stylesheet">
@@ -18,7 +18,7 @@
 <div class="criterios-container">
     <!-- Header -->
     <div class="criterios-header">
-        <h1>Criação de Critérios de Valoração de Ativos</h1>
+        <h1>Valoração de Ativos</h1>
         <p class="subtitle">1 - Muito Baixo &nbsp;&nbsp;&nbsp;&nbsp; 2 - Baixo &nbsp;&nbsp;&nbsp;&nbsp; 3 - Médio &nbsp;&nbsp;&nbsp;&nbsp; 4 - Alto &nbsp;&nbsp;&nbsp;&nbsp; 5 - Muito Alto</p>
     </div>
 
@@ -126,10 +126,26 @@
             {% endif %}
         </div>
 
+        <div class="valuation-score-section" id="valuation-score-section">
+            <div class="score-box">
+                <i class="fas fa-chart-bar"></i>
+                <div class="score-content">
+                    <p class="score-label">Valor CIDP Calculado do Ativo</p>
+                    <div class="score-display">
+                        <span class="score-value">{{ valuation_data.score_texto|default:"0.0" }}</span>
+                        <span class="score-max">/ 5.0</span>
+                    </div>
+                </div>
+                <div class="risk-badge {{ valuation_data.classe_risco|default:'sem-risco' }}">
+                    {{ valuation_data.nivel_risco|default:"SEM AVALIAÇÃO" }}
+                </div>
+            </div>
+        </div>
+
         <!-- Action Buttons -->
         <div class="button-group">
             <a href="{% url 'dashboard' %}" class="btn btn-cancel">Cancelar</a>
-            <button type="submit" class="btn btn-confirm">Confirmar Criação</button>
+            <button type="submit" class="btn btn-confirm">Salvar Valoração</button>
         </div>
     </form>
 </div>

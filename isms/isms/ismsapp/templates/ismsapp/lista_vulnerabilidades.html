@@ -6,6 +6,67 @@
 {% block extra_css %}
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link href="{% static 'css/ismsapp/gestao_vulnerabilidades.css' %}" rel="stylesheet">
+<style>
+  .filter-section {
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .filter-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #b0b0b0;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .filter-group input[type="text"] {
+    width: 100%;
+    padding: 10px 16px;
+    background-color: rgba(40, 40, 40, 0.95);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-size: 13px;
+    color: #ffffff;
+    transition: all 0.3s ease;
+  }
+
+  .filter-group input[type="text"]::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .filter-group input[type="text"]:hover {
+    border-color: rgba(139, 60, 247, 0.4);
+    background-color: rgba(50, 50, 50, 0.8);
+  }
+
+  .filter-group input[type="text"]:focus {
+    border-color: #9333ea;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(139, 60, 247, 0.1);
+  }
+
+  .filter-button {
+    background-color: #9333ea;
+    color: white;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    height: fit-content;
+  }
+
+  .filter-button:hover {
+    background-color: #a855f7;
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -38,6 +99,20 @@
       <a href="{% url 'gestao_vulnerabilidades' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: #8b3cf7; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; white-space: nowrap;">
         <i class="fas fa-plus"></i> Nova Vulnerabilidade
       </a>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section" style="margin-bottom: 1.5rem;">
+      <form method="get" style="display: flex; gap: 15px; width: 100%; flex-wrap: wrap; align-items: flex-end;">
+        <div class="filter-group" style="flex: 2; min-width: 250px;">
+          <label for="search">Buscar</label>
+          <input type="text" id="search" name="search" value="{{ search_query }}" placeholder="Ex: Nome da vulnerabilidade, ativo ou ameaça">
+        </div>
+
+        <button type="submit" class="filter-button">
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+      </form>
     </div>
 
     {% if vulnerabilidades %}

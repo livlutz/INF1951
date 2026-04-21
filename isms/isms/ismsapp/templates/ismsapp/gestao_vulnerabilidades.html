@@ -41,27 +41,45 @@
         {{ form.nome }}
         {% if form.nome.errors %}
           <div class="error-message">
-            {% for error in form.nome.errors %}
-              {{ error }}<br>
-            {% endfor %}
+            {% for error in form.nome.errors %}{{ error }}<br>{% endfor %}
           </div>
         {% endif %}
       </div>
 
-      <!-- Ameaças Associadas (Múltipla Seleção) -->
+      <!-- Ameaças Associadas -->
       <div class="form-group">
-        <label for="{{ form.ameacas.id_for_label }}">
+        <label>
           <i class="fas fa-map-pin" style="color: #9333ea; margin-right: 0.5rem;"></i>
           {{ form.ameacas.label }}
         </label>
-        <div class="checkboxes-container">
+
+        <!-- Search filter -->
+        <div class="selector-filter">
+          <input
+            type="text"
+            id="ameacas-search"
+            class="form-control-search"
+            placeholder="Buscar ameaça..."
+            autocomplete="off"
+          >
+        </div>
+
+        <!-- Hidden native select — keeps Django form submission working unchanged -->
+        <div style="display:none;">
           {{ form.ameacas }}
         </div>
+
+        <!-- Checkbox list built from the hidden select by JS -->
+        <div class="checkbox-asset-list" id="ameacas-checkbox-list"></div>
+
+        <!-- Selection summary -->
+        <div class="selection-summary">
+          <span id="ameacas-count">0</span> ameaça(s) selecionada(s)
+        </div>
+
         {% if form.ameacas.errors %}
-          <div class="error-message">
-            {% for error in form.ameacas.errors %}
-              {{ error }}<br>
-            {% endfor %}
+          <div class="error-message" id="ameacas-error">
+            {% for error in form.ameacas.errors %}{{ error }}<br>{% endfor %}
           </div>
         {% endif %}
       </div>
@@ -75,9 +93,7 @@
         {{ form.ativo }}
         {% if form.ativo.errors %}
           <div class="error-message">
-            {% for error in form.ativo.errors %}
-              {{ error }}<br>
-            {% endfor %}
+            {% for error in form.ativo.errors %}{{ error }}<br>{% endfor %}
           </div>
         {% endif %}
       </div>

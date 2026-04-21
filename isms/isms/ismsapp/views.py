@@ -592,7 +592,16 @@ class ReadAtivoView(View):
             return redirect('dashboard')
 
         from .models import Ativo
+        from django.db.models import Q
+
+        search_query = request.GET.get('search', '').strip()
         ativos = Ativo.objects.all().order_by('nome')
+
+        if search_query:
+            ativos = ativos.filter(
+                Q(nome__icontains=search_query) |
+                Q(categoria__nome__icontains=search_query)
+            )
 
         # Check edit/delete permissions
         user_profile = getattr(request.user, 'profile', None)
@@ -604,6 +613,7 @@ class ReadAtivoView(View):
         contexto = {
             'ativos': ativos,
             'pode_editar_deletar': pode_editar_deletar,
+            'search_query': search_query,
         }
         return render(request, self.template_name, contexto)
 
@@ -791,12 +801,57 @@ class CriacaoCriteriosValoracaoAtivosView(View):
         if not user_profile:
             return False
 
-        # Only System Admin and Information Security Auditor can create criteria
+        # Unified valuation page is available for admin, auditor and analyst roles.
         allowed_actors = [
             UserProfile.Actor.SISTEMA_ADMIN,
-            UserProfile.Actor.AUDITOR
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
         ]
         return user_profile.actor_type in allowed_actors
+
+    def _calcular_valor_ativo(self, ativo):
+        """Calculate the asset valuation score based on CIDP ratings."""
+        cidp_values = [
+            ativo.confidencialidade,
+            ativo.integridade,
+            ativo.disponibilidade,
+            ativo.privacidade,
+        ]
+
+        rated_values = [v for v in cidp_values if v > 0]
+
+        if not rated_values:
+            return {
+                'score': 0,
+                'score_texto': '0.0',
+                'nivel_risco': 'SEM AVALIAÇÃO',
+                'classe_risco': 'sem-risco'
+            }
+
+        score = round(sum(rated_values) / len(rated_values), 1)
+
+        if score >= 4.5:
+            nivel_risco = 'MUITO ALTO'
+            classe_risco = 'muito-alto'
+        elif score >= 3.5:
+            nivel_risco = 'ALTO'
+            classe_risco = 'alto'
+        elif score >= 2.5:
+            nivel_risco = 'MÉDIO'
+            classe_risco = 'medio'
+        elif score >= 1.5:
+            nivel_risco = 'BAIXO'
+            classe_risco = 'baixo'
+        else:
+            nivel_risco = 'MUITO BAIXO'
+            classe_risco = 'muito-baixo'
+
+        return {
+            'score': score,
+            'score_texto': f'{score:.1f}',
+            'nivel_risco': nivel_risco,
+            'classe_risco': classe_risco
+        }
 
     @method_decorator(login_required(login_url="login"))
     def get(self, request, ativo_id=None, *args, **kwargs):
@@ -808,13 +863,16 @@ class CriacaoCriteriosValoracaoAtivosView(View):
         # Get all assets for selection
         ativos = Ativo.objects.all()
 
-        # If ativo_id is provided, load that specific asset
+        # If ativo_id is provided (path or query string), load that specific asset
         ativo = None
         form = None
-        if ativo_id:
+        valuation_data = None
+        selected_ativo_id = ativo_id or request.GET.get('ativo_id')
+        if selected_ativo_id:
             try:
-                ativo = Ativo.objects.get(id=ativo_id)
+                ativo = Ativo.objects.get(id=selected_ativo_id)
                 form = self.form_class(instance=ativo)
+                valuation_data = self._calcular_valor_ativo(ativo)
             except Ativo.DoesNotExist:
                 pass
 
@@ -825,6 +883,7 @@ class CriacaoCriteriosValoracaoAtivosView(View):
             'form': form,
             'ativos': ativos,
             'ativo_selecionado': ativo,
+            'valuation_data': valuation_data,
         }
         return render(request, self.template_name, contexto)
 
@@ -861,191 +920,33 @@ class CriacaoCriteriosValoracaoAtivosView(View):
 
         form = self.form_class(request.POST, instance=ativo)
         if form.is_valid():
-            form.save()
-            return redirect('dashboard')
+            ativo = form.save()
+            messages.success(request, f'Valoração do ativo "{ativo.nome}" salva com sucesso!')
+
+            ativos = Ativo.objects.all()
+            contexto = {
+                'form': self.form_class(instance=ativo),
+                'ativos': ativos,
+                'ativo_selecionado': ativo,
+                'valuation_data': self._calcular_valor_ativo(ativo),
+            }
+            return render(request, self.template_name, contexto)
 
         ativos = Ativo.objects.all()
         contexto = {
             'form': form,
             'ativos': ativos,
             'ativo_selecionado': ativo,
+            'valuation_data': self._calcular_valor_ativo(ativo),
         }
         return render(request, self.template_name, contexto)
 
 class AnaliseValoracaoAtivosView(View):
-    """View for analyzing asset valuations (CIDP weights).
+    """Compatibility wrapper: analysis URL now uses the unified valuation page."""
 
-    Allows users to view the CIDP ratings for assets and see a calculated
-    valuation score based on the ratings.
-
-    Authorized users:
-    - System Administrator (SISTEMA_ADMIN)
-    - Information Security Auditor (AUDITOR)
-    """
-    template_name = "ismsapp/analise_valoracao_ativos.html"
-
-    def _check_permission(self, user):
-        """Check if user has permission to analyze asset valuations."""
-        if not user.is_authenticated:
-            return False
-
-        user_profile = getattr(user, 'profile', None)
-        if not user_profile:
-            return False
-
-        # Only System Admin and Information Security Auditor can analyze valuations
-        allowed_actors = [
-            UserProfile.Actor.ANALISTA,
-            UserProfile.Actor.AUDITOR
-        ]
-        return user_profile.actor_type in allowed_actors
-
-    def _calcular_valor_ativo(self, ativo):
-        """Calculate the asset valuation score based on CIDP ratings.
-
-        Returns a dictionary with score and risk level.
-        """
-        # Calculate average of CIDP ratings
-        cidp_values = [
-            ativo.confidencialidade,
-            ativo.integridade,
-            ativo.disponibilidade,
-            ativo.privacidade
-        ]
-
-        # Filter out zero values (not yet rated)
-        rated_values = [v for v in cidp_values if v > 0]
-
-        if not rated_values:
-            return {
-                'score': 0,
-                'score_texto': '0.0',
-                'nivel_risco': 'SEM AVALIAÇÃO',
-                'classe_risco': 'sem-risco'
-            }
-
-        average = sum(rated_values) / len(rated_values)
-
-        # Normalize to scale of 0-5 for display
-        score = round(average, 1)
-
-        # Determine risk level based on score
-        if score >= 4.5:
-            nivel_risco = 'MUITO ALTO'
-            classe_risco = 'muito-alto'
-        elif score >= 3.5:
-            nivel_risco = 'ALTO'
-            classe_risco = 'alto'
-        elif score >= 2.5:
-            nivel_risco = 'MÉDIO'
-            classe_risco = 'medio'
-        elif score >= 1.5:
-            nivel_risco = 'BAIXO'
-            classe_risco = 'baixo'
-        else:
-            nivel_risco = 'MUITO BAIXO'
-            classe_risco = 'muito-baixo'
-
-        return {
-            'score': score,
-            'score_texto': f'{score:.1f}',
-            'nivel_risco': nivel_risco,
-            'classe_risco': classe_risco
-        }
-
-    @method_decorator(login_required(login_url="login"))
-    def get(self, request, ativo_id=None, *args, **kwargs):
-        if not self._check_permission(request.user):
-            return redirect('dashboard')
-
-        from .models import Ativo
-
-        # Get all assets for selection
-        ativos = Ativo.objects.all()
-
-        # If ativo_id is provided, load that specific asset
-        ativo = None
-        valuation_data = None
-
-        if ativo_id:
-            try:
-                ativo = Ativo.objects.get(id=ativo_id)
-                valuation_data = self._calcular_valor_ativo(ativo)
-            except Ativo.DoesNotExist:
-                pass
-
-        contexto = {
-            'ativos': ativos,
-            'ativo_selecionado': ativo,
-            'valuation_data': valuation_data,
-        }
-        return render(request, self.template_name, contexto)
-
-    @method_decorator(login_required(login_url="login"))
-    def post(self, request, *args, **kwargs):
-        if not self._check_permission(request.user):
-            return redirect('dashboard')
-
-        from .models import Ativo
-        import logging
-        logger = logging.getLogger(__name__)
-
-        ativo_id = request.POST.get('ativo_id')
-
-        # Log all POST data for debugging
-        logger.info(f"📥 POST data received: {dict(request.POST)}")
-
-        if not ativo_id:
-            return redirect('dashboard')
-
-        try:
-            ativo = Ativo.objects.get(id=ativo_id)
-        except Ativo.DoesNotExist:
-            return redirect('dashboard')
-
-        # Get CIDP values from POST request
-        try:
-            confidencialidade = int(request.POST.get('confidencialidade', 0))
-            integridade = int(request.POST.get('integridade', 0))
-            disponibilidade = int(request.POST.get('disponibilidade', 0))
-            privacidade = int(request.POST.get('privacidade', 0))
-
-            logger.info(f"📊 Parsed CIDP values: conf={confidencialidade}, integ={integridade}, disp={disponibilidade}, priv={privacidade}")
-
-            # Validate values are between 0 and 5
-            if not all(0 <= val <= 5 for val in [confidencialidade, integridade, disponibilidade, privacidade]):
-                raise ValueError("Values must be between 0 and 5")
-
-            # Calculate peso_cidp as the average of non-zero CIDP values
-            cidp_values = [confidencialidade, integridade, disponibilidade, privacidade]
-            non_zero_values = [v for v in cidp_values if v > 0]
-
-            if non_zero_values:
-                peso_cidp = sum(non_zero_values) / len(non_zero_values)
-            else:
-                peso_cidp = 0
-
-            logger.info(f"🧮 Calculated peso_cidp: {peso_cidp} from values: {non_zero_values}")
-
-            # Update the asset with new CIDP values
-            ativo.confidencialidade = confidencialidade
-            ativo.integridade = integridade
-            ativo.disponibilidade = disponibilidade
-            ativo.privacidade = privacidade
-            ativo.peso_cidp = peso_cidp
-
-            # Save to database
-            ativo.save()
-            logger.info(f"✅ Asset {ativo.id} ({ativo.nome}) saved with CIDP values: conf={ativo.confidencialidade}, integ={ativo.integridade}, disp={ativo.disponibilidade}, priv={ativo.privacidade}, peso_cidp={ativo.peso_cidp}")
-
-            # Add success message
-            messages.success(request, f'Avaliação do ativo "{ativo.nome}" registrada com sucesso!')
-
-            # Redirect to dashboard with success message
-            return redirect('dashboard')
-        except (ValueError, TypeError):
-            # If there's an error, just redirect back
-            return redirect('dashboard')
+    def dispatch(self, request, *args, **kwargs):
+        unified_view = CriacaoCriteriosValoracaoAtivosView.as_view()
+        return unified_view(request, *args, **kwargs)
 
 class CriacaoCriteriosAvaliacaoRiscosView(View):
     """View para criação de critérios para avaliação dos riscos.
@@ -1353,13 +1254,24 @@ class ReadRiscoView(View):
             return redirect('dashboard')
 
         from .models import Risco
+        from django.db.models import Q
+
+        search_query = request.GET.get('search', '').strip()
         riscos = Risco.objects.all().order_by('-id')
+
+        if search_query:
+            riscos = riscos.filter(
+                Q(nome__icontains=search_query) |
+                Q(descricao__icontains=search_query) |
+                Q(ativo__nome__icontains=search_query)
+            )
 
         pode_editar_deletar = self._check_edit_permission(request.user)
 
         contexto = {
             'riscos': riscos,
             'pode_editar_deletar': pode_editar_deletar,
+            'search_query': search_query,
         }
         return render(request, self.template_name, contexto)
 
@@ -2117,12 +2029,26 @@ class GestaoIncidentesView(View):
             return redirect('dashboard')
 
         from .models import Incidente
+        from django.db.models import Q
+
+        search_query = request.GET.get('search', '').strip()
+        selected_date = request.GET.get('data_incidente', '').strip()
 
         # Get all incidents ordered by date
         incidentes = Incidente.objects.all().select_related(
             'responsavel_tratamento',
             'registrado_por'
         ).prefetch_related('ativos_afetados')
+
+        if search_query:
+            incidentes = incidentes.filter(
+                Q(numero_incidente__icontains=search_query) |
+                Q(descricao__icontains=search_query) |
+                Q(status__icontains=search_query)
+            )
+
+        if selected_date:
+            incidentes = incidentes.filter(data_incidente=selected_date)
 
         # Get incident counts by status
         status_counts = {
@@ -2140,6 +2066,8 @@ class GestaoIncidentesView(View):
             'incidentes': incidentes,
             'status_counts': status_counts,
             'relatorios_gerados': relatorios_gerados,
+            'search_query': search_query,
+            'selected_date': selected_date,
         }
 
         return render(request, self.template_name, contexto)
@@ -2753,13 +2681,23 @@ class ReadAmeacaView(View):
             return redirect('dashboard')
 
         from .models import Ameaca
+        from django.db.models import Q
+
+        search_query = request.GET.get('search', '').strip()
 
         ameacas = Ameaca.objects.all()
+        if search_query:
+            ameacas = ameacas.filter(
+                Q(nome__icontains=search_query) |
+                Q(ativos__nome__icontains=search_query)
+            ).distinct()
+
         pode_editar_deletar = self._check_edit_permission(request.user)
 
         contexto = {
             'ameacas': ameacas,
             'pode_editar_deletar': pode_editar_deletar,
+            'search_query': search_query,
         }
         return render(request, self.template_name, contexto)
 
@@ -3057,14 +2995,25 @@ class ReadVulnerabilidadeView(View):
             return redirect('dashboard')
 
         from .models import Vulnerabilidade
+        from django.db.models import Q
+
+        search_query = request.GET.get('search', '').strip()
 
         vulnerabilidades = Vulnerabilidade.objects.select_related('ativo').prefetch_related('ameacas').order_by('nome')
+
+        if search_query:
+            vulnerabilidades = vulnerabilidades.filter(
+                Q(nome__icontains=search_query) |
+                Q(ativo__nome__icontains=search_query) |
+                Q(ameacas__nome__icontains=search_query)
+            ).distinct()
 
         total = vulnerabilidades.count()
 
         contexto = {
             'vulnerabilidades': vulnerabilidades,
             'total_vulnerabilidades': total,
+            'search_query': search_query,
         }
         return render(request, self.template_name, contexto)
 
@@ -3361,6 +3310,9 @@ class ReadAuditoriaView(View):
         from .models import Auditoria, Incidente, Risco, Controle
         from datetime import timedelta
         from django.utils import timezone
+        from django.db.models import Q
+
+        search_query = request.GET.get('search', '').strip()
 
         # Risks
         riscos = Risco.objects.filter(nivel_inerente__isnull=False).order_by('-id')
@@ -3373,6 +3325,24 @@ class ReadAuditoriaView(View):
         incidentes = Incidente.objects.filter(
             data_registro__gte=thirty_days_ago
         ).order_by('-data_incidente')
+
+        if search_query:
+            riscos = riscos.filter(
+                Q(nome__icontains=search_query) |
+                Q(ativo__nome__icontains=search_query)
+            )
+
+            auditorias = auditorias.filter(
+                Q(nome__icontains=search_query) |
+                Q(tipo_auditoria__icontains=search_query) |
+                Q(status__icontains=search_query)
+            )
+
+            incidentes = incidentes.filter(
+                Q(numero_incidente__icontains=search_query) |
+                Q(descricao__icontains=search_query) |
+                Q(status__icontains=search_query)
+            )
 
         # Metrics
         # Active risks (all risks with inerente level assigned)
@@ -3403,6 +3373,7 @@ class ReadAuditoriaView(View):
             'count_active_risks': count_active_risks,
             'count_controls': count_controls,
             'count_recent_incidents': count_recent_incidents,
+            'search_query': search_query,
         }
         return render(request, self.template_name, contexto)
 

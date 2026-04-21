@@ -58,6 +58,14 @@
                     </span>
                     {{ form.ativos.label }}
                 </div>
+                <div class="selector-filter" style="margin-bottom: 0.75rem;">
+                    <input
+                        type="text"
+                        class="form-control"
+                        data-target-select="ativos"
+                        placeholder="Buscar ativo na lista..."
+                    >
+                </div>
                 {{ form.ativos }}
                 {% if form.ativos.errors %}
                     <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.ativos.errors|join:", " }}</p>
@@ -75,4 +83,6 @@
             </div>
         </form>
     </div>
+
+    <script src="{% static 'js/ismsapp/searchable_select.js' %}"></script>
 {% endblock %}

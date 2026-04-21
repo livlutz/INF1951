@@ -180,7 +180,10 @@ html, body {
 
 .form-group textarea,
 .form-group select,
-.form-group input {
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="email"],
+.form-group input[type="password"] {
   padding: 0.75rem;
   background-color: var(--bg-input);
   color: var(--text-primary);
@@ -539,7 +542,7 @@ html, body {
 }
 
 /* ============================================================================
-   Action Buttons
+   Icon Buttons
    ============================================================================ */
 
 .btn-icon {
@@ -676,47 +679,138 @@ html, body {
 }
 
 /* ============================================================================
-   Checkbox Styling for Multiple Threat Selection
+   Ameaças — Checkbox multi-select
+   (replaces the old .checkboxes-container native select styling)
    ============================================================================ */
 
-.checkboxes-container {
+/* Search input above the list */
+.selector-filter {
+  margin-bottom: 0.65rem;
+}
+
+.selector-filter input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-soft);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.selector-filter input:focus {
+  outline: none;
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px rgba(139, 60, 247, 0.1);
+}
+
+.selector-filter input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Scrollable checkbox container */
+.checkbox-asset-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: 0.35rem;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 0.5rem;
   background-color: rgba(147, 51, 234, 0.05);
   border: 1.5px solid var(--border-soft);
   border-radius: 8px;
-  margin: 0.5rem 0;
+  transition: border-color 0.2s;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(147, 51, 234, 0.4) transparent;
 }
 
-.checkboxes-container input[type="checkbox"] {
-  margin-right: 0.5rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
+.checkbox-asset-list::-webkit-scrollbar        { width: 6px; }
+.checkbox-asset-list::-webkit-scrollbar-track  { background: transparent; }
+.checkbox-asset-list::-webkit-scrollbar-thumb  {
+  background: rgba(147, 51, 234, 0.4);
+  border-radius: 3px;
 }
 
-.checkboxes-container label {
+/* Individual checkbox row */
+.checkbox-asset-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0.5rem 0.75rem;
+  gap: 0.65rem;
+  padding: 0.55rem 0.75rem;
   border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s;
+  user-select: none;
+  /* reset .form-group label overrides */
   text-transform: none;
   text-align: left;
   font-weight: 400;
+  font-size: 0.9rem;
+  color: var(--text-primary);
 }
 
-.checkboxes-container label:hover {
+.checkbox-asset-item:hover {
   background-color: rgba(147, 51, 234, 0.1);
 }
 
-.checkboxes-container input[type="checkbox"]:checked + label {
-  color: var(--purple);
-  font-weight: 500;
+.checkbox-asset-item:has(.asset-cb:checked) {
+  background-color: rgba(147, 51, 234, 0.12);
+}
+
+/* Custom checkbox */
+.asset-cb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.asset-cb:checked {
+  background-color: var(--purple);
+  border-color: var(--purple);
+}
+
+.asset-cb:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.asset-cb:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.25);
+}
+
+.asset-cb-label {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  line-height: 1.3;
+  font-weight: 400;
+}
+
+/* Selection counter */
+.selection-summary {
+  margin-top: 0.45rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+  padding-left: 0.25rem;
 }
 
 /* ============================================================================
@@ -774,6 +868,8 @@ html, body {
     flex: 1;
     justify-content: center;
   }
+
+  .checkbox-asset-list { max-height: 180px; }
 }
 
 @media (max-width: 640px) {

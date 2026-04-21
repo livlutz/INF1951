@@ -660,8 +660,8 @@ class CadastroIncidenteForm(forms.ModelForm):
                 'class': 'form-control',
                 'type': 'time'
             }),
-            'ativos_afetados': forms.CheckboxSelectMultiple(attrs={
-                'class': 'asset-checkbox-group'
+            'ativos_afetados': forms.SelectMultiple(attrs={
+                'class': 'form-control searchable-select'
             }),
             'responsavel_tratamento': forms.Select(attrs={
                 'class': 'form-control'
@@ -808,8 +808,9 @@ class VulnerabilidadeForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Ex: Falta de validação de entradas',
             }),
-            'ameacas': forms.CheckboxSelectMultiple(attrs={
-                'class': 'form-checkbox',
+            'ameacas': forms.SelectMultiple(attrs={
+                'class': 'form-control searchable-select',
+                'size': '8',
             }),
             'ativo': forms.Select(attrs={
                 'class': 'form-control',
@@ -850,8 +851,9 @@ class VulnerabilidadeUpdateForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Ex: Falta de validação de entradas',
             }),
-            'ameacas': forms.CheckboxSelectMultiple(attrs={
-                'class': 'form-checkbox',
+            'ameacas': forms.SelectMultiple(attrs={
+                'class': 'form-control searchable-select',
+                'size': '8',
             })
         }
 
@@ -885,8 +887,8 @@ class AmeacaForm(forms.ModelForm):
                 'placeholder': 'Ex: Ransomware Cryptolocker'
             }),
             'ativos': forms.SelectMultiple(attrs={
-                'class': 'asset-select-multiple',
-                'size': '1',
+                'class': 'form-control searchable-select',
+                'size': '8',
             })
         }
 

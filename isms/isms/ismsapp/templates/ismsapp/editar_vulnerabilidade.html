@@ -46,6 +46,14 @@
                     </span>
                     {{ form.ativo.label }}
                 </div>
+                <div class="selector-filter" style="margin-bottom: 0.75rem;">
+                    <input
+                        type="text"
+                        class="form-control"
+                        data-target-select="ativo"
+                        placeholder="Buscar ativo na lista..."
+                    >
+                </div>
                 {{ form.ativo }}
                 {% if form.ativo.errors %}
                     <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.ativo.errors|join:", " }}</p>
@@ -82,9 +90,15 @@
                     </span>
                     {{ form.ameacas.label }}
                 </div>
-                <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    {{ form.ameacas }}
+                <div class="selector-filter" style="margin-bottom: 0.75rem;">
+                    <input
+                        type="text"
+                        class="form-control"
+                        data-target-select="ameacas"
+                        placeholder="Buscar ameaça na lista..."
+                    >
                 </div>
+                {{ form.ameacas }}
                 {% if form.ameacas.errors %}
                     <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.ameacas.errors|join:", " }}</p>
                 {% endif %}
@@ -104,6 +118,14 @@
     </div>
 
     <style>
+        .searchable-select {
+            min-height: 220px;
+        }
+
+        .searchable-select option {
+            padding: 0.4rem 0.5rem;
+        }
+
         .form-buttons {
             display: flex;
             gap: 1rem;
@@ -147,4 +169,6 @@
             background: #7c3aed;
         }
     </style>
+
+    <script src="{% static 'js/ismsapp/searchable_select.js' %}"></script>
 {% endblock %}

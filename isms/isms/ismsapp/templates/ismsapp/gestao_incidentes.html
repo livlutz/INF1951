@@ -57,6 +57,25 @@
 
         </div>
 
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <form method="get" style="display: flex; gap: 15px; width: 100%; flex-wrap: wrap; align-items: flex-end;">
+                <div class="filter-group" style="flex: 2; min-width: 250px;">
+                    <label for="search">Buscar por Número/Descrição</label>
+                    <input type="text" id="search" name="search" value="{{ search_query }}" placeholder="Ex: INC-2026-0001 ou phishing...">
+                </div>
+
+                <div class="filter-group" style="flex: 1; min-width: 220px;">
+                    <label for="data_incidente">Data do Incidente</label>
+                    <input type="date" id="data_incidente" name="data_incidente" value="{{ selected_date }}">
+                </div>
+
+                <button type="submit" class="filter-button">
+                    <i class="fas fa-filter"></i> Filtrar
+                </button>
+            </form>
+        </div>
+
         <!-- Incidents Table -->
         {% if incidentes %}
         <div class="incidents-table">

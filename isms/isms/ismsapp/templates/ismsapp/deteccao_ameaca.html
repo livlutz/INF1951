@@ -62,11 +62,31 @@
           </span>
           Ativos Potencialmente Afetados
         </div>
-        <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 1rem;">Use Ctrl/Cmd+clique para selecionar múltiplos ativos</div>
 
-        <div class="assets-select-wrapper">
+        <!-- Search filter -->
+        <div class="selector-filter">
+          <input
+            type="text"
+            id="ativos-search"
+            class="form-control"
+            placeholder="Buscar ativo..."
+            autocomplete="off"
+          >
+        </div>
+
+        <!-- Hidden native select — keeps Django form submission working unchanged -->
+        <div style="display:none;">
           {{ form.ativos }}
-          <span class="select-info">Selecione um ou mais ativos</span>
+        </div>
+
+        <!-- Checkbox list built from the hidden select by JS -->
+        <div class="checkbox-asset-list" id="ativos-checkbox-list">
+          <!-- populated by deteccao_ameaca.js -->
+        </div>
+
+        <!-- Selection summary -->
+        <div class="selection-summary" id="ativos-summary">
+          <span id="ativos-count">0</span> ativo(s) selecionado(s)
         </div>
 
         {% if form.ativos.errors %}

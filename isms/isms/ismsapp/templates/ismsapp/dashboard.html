@@ -29,14 +29,12 @@
                             <i class="fas fa-cube module-icon"></i>
                             <h2 class="module-title">Ativos</h2>
                         </div>
-                        <p class="module-description">Gerenciar ativos, categorias e valorações</p>
+                        <p class="module-description">Gerenciamento de ativos</p>
                     </div>
                     <div class="module-toggle">
                         <i class="fas fa-chevron-down toggle-icon"></i>
                     </div>
                 </div>
-
-
 
                 <div class="module-content">
                     <div class="dashboard-grid">
@@ -88,37 +86,71 @@
                 </a>
                 {% endif %}
 
-                <!-- Criação de Critérios de Valoração de Ativos -->
-                {% if pode_criar_criterios_de_valoracao_dos_ativos %}
-                <a href="{% url 'criacao_criterios_valoracao_ativos' %}" class="dashboard-card-link">
-                    <div class="dashboard-card">
-                        <div class="card-icon">
-                            <i class="fas fa-cogs"></i>
-                        </div>
-                        <h3>Criação de Critérios de Valoração</h3>
-                        <p>Crie critérios de valoração para os ativos</p>
-                        <div class="card-footer">
-                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </a>
-                {% endif %}
-
-                <!-- Análise da Valoração dos Ativos -->
-                {% if pode_analisar_valoracao_dos_ativos %}
+                <!-- Valoração dos Ativos (Criação + Análise) -->
+                {% if pode_criar_criterios_de_valoracao_dos_ativos or pode_analisar_valoracao_dos_ativos %}
                 <a href="{% url 'analise_valoracao_ativos' %}" class="dashboard-card-link">
                     <div class="dashboard-card">
                         <div class="card-icon">
-                            <i class="fas fa-chart-line"></i>
+                            <i class="fas fa-sliders-h"></i>
                         </div>
-                        <h3>Análise da Valoração dos Ativos</h3>
-                        <p>Confira a valoração dos ativos</p>
+                        <h3>Valoração dos Ativos</h3>
+                        <p>Defina e analise a valoração dos ativos</p>
                         <div class="card-footer">
                             <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
                         </div>
                     </div>
                 </a>
                 {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- CONTROLE MODULE -->
+            {% if pode_gerenciar_controles %}
+            <div class="module-card">
+                <div class="module-card-header" onclick="toggleModule(this)">
+                    <div class="module-header-content">
+                        <div class="module-title-container">
+                            <i class="fas fa-shield-alt module-icon"></i>
+                            <h2 class="module-title">Controles</h2>
+                        </div>
+                        <p class="module-description">Gerenciar controles de segurança (ISO 27001)</p>
+                    </div>
+                    <div class="module-toggle">
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </div>
+                </div>
+
+                <div class="module-content">
+                    <div class="dashboard-grid">
+                <!-- Cadastro de Controle -->
+                <a href="{% url 'cadastro_controle' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-plus-circle" style="color: #8b3cf7;"></i>
+                        </div>
+                        <h3>Cadastro de Controle</h3>
+                        <p>Registre novos controles de segurança além dos padrões ISO 27001</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Gestão de Controles -->
+                <a href="{% url 'lista_controles' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-list" style="color: #8b3cf7;"></i>
+                        </div>
+                        <h3>Gestão de Controles</h3>
+                        <p>Visualize, edite e delete controles de segurança</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
                     </div>
                 </div>
             </div>
@@ -166,7 +198,7 @@
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
                         <h3>Identificação de Riscos</h3>
-                        <p>Identifique novos riscos de segurança da informação</p>
+                        <p>Identifique novos riscos</p>
                         <div class="card-footer">
                             <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
                         </div>
@@ -428,55 +460,6 @@
             </div>
             {% endif %}
 
-            <!-- CONTROLE MODULE -->
-            {% if pode_gerenciar_controles %}
-            <div class="module-card">
-                <div class="module-card-header" onclick="toggleModule(this)">
-                    <div class="module-header-content">
-                        <div class="module-title-container">
-                            <i class="fas fa-shield-alt module-icon"></i>
-                            <h2 class="module-title">Controles</h2>
-                        </div>
-                        <p class="module-description">Gerenciar controles de segurança (ISO 27001)</p>
-                    </div>
-                    <div class="module-toggle">
-                        <i class="fas fa-chevron-down toggle-icon"></i>
-                    </div>
-                </div>
-
-                <div class="module-content">
-                    <div class="dashboard-grid">
-                <!-- Cadastro de Controle -->
-                <a href="{% url 'cadastro_controle' %}" class="dashboard-card-link">
-                    <div class="dashboard-card">
-                        <div class="card-icon">
-                            <i class="fas fa-plus-circle" style="color: #8b3cf7;"></i>
-                        </div>
-                        <h3>Cadastro de Controle</h3>
-                        <p>Registre novos controles de segurança além dos padrões ISO 27001</p>
-                        <div class="card-footer">
-                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Gestão de Controles -->
-                <a href="{% url 'lista_controles' %}" class="dashboard-card-link">
-                    <div class="dashboard-card">
-                        <div class="card-icon">
-                            <i class="fas fa-list" style="color: #8b3cf7;"></i>
-                        </div>
-                        <h3>Gestão de Controles</h3>
-                        <p>Visualize, edite e delete controles de segurança</p>
-                        <div class="card-footer">
-                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                </a>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
         </div>
     </div>
 {% endblock %}

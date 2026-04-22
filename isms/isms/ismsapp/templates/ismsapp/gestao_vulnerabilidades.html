@@ -72,11 +72,6 @@
         <!-- Checkbox list built from the hidden select by JS -->
         <div class="checkbox-asset-list" id="ameacas-checkbox-list"></div>
 
-        <!-- Selection summary -->
-        <div class="selection-summary">
-          <span id="ameacas-count">0</span> ameaça(s) selecionada(s)
-        </div>
-
         {% if form.ameacas.errors %}
           <div class="error-message" id="ameacas-error">
             {% for error in form.ameacas.errors %}{{ error }}<br>{% endfor %}

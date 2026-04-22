@@ -68,4 +68,6 @@ urlpatterns = [
     path("lista_controles/", views.ReadControleView.as_view(), name="lista_controles"),
     path("editar_controle/<int:controle_id>/", views.UpdateControleView.as_view(), name="editar_controle"),
     path("deletar_controle/<int:controle_id>/", views.DeleteControleView.as_view(), name="deletar_controle"),
+    # AJAX endpoints
+    path("api/calculate-control-reductions/", views.CalculateControlReductionsView.as_view(), name="calculate_control_reductions"),
 ]

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views.generic.base import View
-from django.http.response import HttpResponseRedirect
+from django.http.response import HttpResponseRedirect, JsonResponse
 from django.urls.base import reverse_lazy, reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -1660,6 +1660,81 @@ class AvaliacaoRiscoView(View):
         except (TypeError, ValueError):
             return False
 
+    def _get_suggestions_for_risk(self, risk_level):
+        """Get treatment suggestions based on risk level.
+
+        Maps risk levels to appropriate treatment strategies based on the
+        organizational risk appetite criteria shown in the reference image:
+
+        - Baixo (Low): Tolerável - Aceitar
+        - Médio (Medium): Tolerável com monitoring - Aceitar
+        - Alto (High): Não tolerável - Tratar (modify, avoid, share)
+        - Crítico (Critical): Não tolerável - Tratar (modify, avoid, share)
+
+        Returns a dict with suggestions for the risk level.
+        """
+        risk_level_lower = risk_level.lower() if risk_level else ""
+
+        suggestions = {
+            'nivel_risco': risk_level,
+            'recomendacoes': [],
+            'cor_categoria': 'neutral',
+            'icone': 'info'
+        }
+
+        if 'baixo' in risk_level_lower:
+            suggestions.update({
+                'cor_categoria': 'baixo',
+                'icone': 'check-circle',
+                'recomendacoes': [
+                    {
+                        'titulo': 'Aceitar',
+                        'descricao': 'Risco tolerável, sem necessidade de acompanhamento especial.',
+                        'tipo': 'aceitar'
+                    }
+                ]
+            })
+        elif 'médio' in risk_level_lower or 'medio' in risk_level_lower:
+            suggestions.update({
+                'cor_categoria': 'medio',
+                'icone': 'alert-circle',
+                'recomendacoes': [
+                    {
+                        'titulo': 'Aceitar',
+                        'descricao': 'Risco tolerável, porém com chances razoáveis de impacto moderado. Monitorar sem urgência.',
+                        'tipo': 'aceitar'
+                    }
+                ]
+            })
+        elif 'alto' in risk_level_lower:
+            suggestions.update({
+                'cor_categoria': 'alto',
+                'icone': 'alert-triangle',
+                'recomendacoes': [
+                    {
+                        'titulo': 'Tratar',
+                        'descricao': 'Risco não tolerável. Deve ser monitorado continuamente e controles implementados imediatamente.',
+                        'tipo': 'tratar',
+                        'acoes': ['Modificar ou mitigar', 'Evitar a atividade', 'Compartilhar ou transferir']
+                    }
+                ]
+            })
+        elif 'crítico' in risk_level_lower or 'critico' in risk_level_lower:
+            suggestions.update({
+                'cor_categoria': 'critico',
+                'icone': 'alert-triangle',
+                'recomendacoes': [
+                    {
+                        'titulo': 'Tratar',
+                        'descricao': 'Risco crítico - impacto e probabilidade ultrapassam os critérios definidos. Ação imediata necessária.',
+                        'tipo': 'tratar',
+                        'acoes': ['Modificar ou mitigar urgentemente', 'Evitar a atividade', 'Compartilhar ou transferir']
+                    }
+                ]
+            })
+
+        return suggestions
+
     @method_decorator(login_required(login_url="login"))
     def get(self, request, *args, **kwargs):
         """Display evaluated risks or a specific risk for evaluation."""
@@ -1720,12 +1795,18 @@ class AvaliacaoRiscoView(View):
             }
             riscos_para_apresentacao.append(risco_data)
 
+        # Get suggestions for selected risk
+        sugestoes = None
+        if risco_selecionado and risco_selecionado.nivel_inerente:
+            sugestoes = self._get_suggestions_for_risk(risco_selecionado.nivel_inerente.categoria)
+
         contexto = {
             'riscos': riscos_para_apresentacao,
             'risco_selecionado': risco_selecionado,
             'criterio_avaliacao': criterio_avaliacao,
             'apetite_risco': criterio_avaliacao.get_apetite_risco_display() if criterio_avaliacao else 'Não Definido',
             'acceptance_level': acceptance_level,
+            'sugestoes': sugestoes,
         }
 
         return render(request, self.template_name, contexto)
@@ -1868,6 +1949,175 @@ class TratamentoRiscoView(View):
             'cons_nova': new_cons_weight,
         }
 
+    def _get_suggestions_for_risk(self, risk_level):
+        """Get treatment suggestions based on risk level.
+
+        Maps risk levels to appropriate treatment strategies based on the
+        organizational risk appetite criteria:
+
+        - Baixo (Low): Tolerável - Aceitar
+        - Médio (Medium): Tolerável com monitoring - Aceitar
+        - Alto (High): Não tolerável - Tratar (modify, avoid, share)
+        - Crítico (Critical): Não tolerável - Tratar (modify, avoid, share)
+
+        Returns a dict with suggestions for the risk level.
+        """
+        if not risk_level:
+            return None
+
+        risk_level_lower = str(risk_level).strip().lower()
+
+        suggestions = {
+            'nivel_risco': risk_level,
+            'recomendacoes': [],
+            'cor_categoria': 'neutral',
+            'icone': 'info'
+        }
+
+        if 'baixo' in risk_level_lower:
+            suggestions = {
+                'nivel_risco': risk_level,
+                'cor_categoria': 'baixo',
+                'icone': 'check-circle',
+                'recomendacoes': [
+                    {
+                        'titulo': 'Aceitar',
+                        'descricao': 'Risco tolerável, sem necessidade de acompanhamento especial.',
+                        'tipo': 'aceitar'
+                    }
+                ]
+            }
+        elif 'moderado' in risk_level_lower or 'médio' in risk_level_lower:
+            suggestions = {
+                'nivel_risco': risk_level,
+                'cor_categoria': 'medio',
+                'icone': 'alert-circle',
+                'recomendacoes': [
+                    {
+                        'titulo': 'Aceitar',
+                        'descricao': 'Risco tolerável, porém com chances razoáveis de impacto moderado. Monitorar sem urgência.',
+                        'tipo': 'aceitar'
+                    }
+                ]
+            }
+        elif 'alto' in risk_level_lower:
+            suggestions = {
+                'nivel_risco': risk_level,
+                'cor_categoria': 'alto',
+                'icone': 'alert-triangle',
+                'recomendacoes': [
+                    {
+                        'titulo': 'Tratar',
+                        'descricao': 'Risco não tolerável. Deve ser monitorado continuamente e controles implementados imediatamente.',
+                        'tipo': 'tratar',
+                        'acoes': ['Modificar ou mitigar', 'Evitar a atividade', 'Compartilhar ou transferir']
+                    }
+                ]
+            }
+        elif 'crítico' in risk_level_lower or 'critico' in risk_level_lower:
+            suggestions = {
+                'nivel_risco': risk_level,
+                'cor_categoria': 'critico',
+                'icone': 'alert-triangle',
+                'recomendacoes': [
+                    {
+                        'titulo': 'Tratar',
+                        'descricao': 'Risco crítico - impacto e probabilidade ultrapassam os critérios definidos. Ação imediata necessária.',
+                        'tipo': 'tratar',
+                        'acoes': ['Modificar ou mitigar urgentemente', 'Evitar a atividade', 'Compartilhar ou transferir']
+                    }
+                ]
+            }
+
+        return suggestions if suggestions['recomendacoes'] else None
+
+    def _calculate_control_reductions(self, controles):
+        """Calculate expected risk reductions based on control types (HYBRID APPROACH).
+
+        Based on the control categories and their effectiveness:
+        - Preventivo: Reduces Probability (X), no impact on Consequence (-)
+        - Detectivo: Reduces both Probability (X) and Consequence (X)
+        - Corretivo/Contingência: Reduces Consequence (X), no impact on Probability (-)
+
+        Returns a dict with:
+        - prob_reduction: Expected probability reduction %
+        - impact_reduction: Expected consequence/impact reduction %
+        - breakdown: List of controls and their effects
+        """
+        from .models import CategoriaControle
+
+        prob_reduction = 0
+        impact_reduction = 0
+        breakdown = []
+
+        if not controles:
+            return {
+                'prob_reduction': prob_reduction,
+                'impact_reduction': impact_reduction,
+                'breakdown': breakdown,
+                'has_controls': False
+            }
+
+        preventivo_controls = []
+        detectivo_controls = []
+        corretivo_controls = []
+
+        for controle in controles:
+            categorias = controle.categorias.all()
+            for categoria in categorias:
+                if 'preventivo' in categoria.tipo.lower():
+                    preventivo_controls.append(controle)
+                elif 'detectivo' in categoria.tipo.lower():
+                    detectivo_controls.append(controle)
+                elif 'corretivo' in categoria.tipo.lower():
+                    corretivo_controls.append(controle)
+
+        # Calculate reductions based on control types
+        # Preventivo: 25% prob reduction per control, max 40%
+        if preventivo_controls:
+            prob_reduction += min(25 * len(preventivo_controls), 40)
+            breakdown.append({
+                'tipo': 'Preventivo',
+                'quantidade': len(preventivo_controls),
+                'reduz_probabilidade': True,
+                'reduz_consequencia': False,
+                'exemplo': 'Ex: firewall, controle de acesso'
+            })
+
+        # Detectivo: 15% prob + 20% impact per control, max 30% + 40%
+        if detectivo_controls:
+            prob_reduction += min(15 * len(detectivo_controls), 30)
+            impact_reduction += min(20 * len(detectivo_controls), 40)
+            breakdown.append({
+                'tipo': 'Detectivo',
+                'quantidade': len(detectivo_controls),
+                'reduz_probabilidade': True,
+                'reduz_consequencia': True,
+                'exemplo': 'Ex: IDS, monitoramento, auditoria'
+            })
+
+        # Corretivo/Contingência: 30% impact reduction per control, max 40%
+        if corretivo_controls:
+            impact_reduction += min(30 * len(corretivo_controls), 40)
+            breakdown.append({
+                'tipo': 'Corretivo/Contingência',
+                'quantidade': len(corretivo_controls),
+                'reduz_probabilidade': False,
+                'reduz_consequencia': True,
+                'exemplo': 'Ex: backup, plano de recuperação, redundância'
+            })
+
+        # Ensure values don't exceed 100%
+        prob_reduction = min(prob_reduction, 100)
+        impact_reduction = min(impact_reduction, 100)
+
+        return {
+            'prob_reduction': prob_reduction,
+            'impact_reduction': impact_reduction,
+            'breakdown': breakdown,
+            'has_controls': len(breakdown) > 0
+        }
+
     @method_decorator(login_required(login_url="login"))
     def get(self, request, *args, **kwargs):
         """Display treatment form or list of risks requiring treatment."""
@@ -1902,17 +2152,54 @@ class TratamentoRiscoView(View):
             'probabilidade_inerente'
         ).distinct()
 
+        # Get suggestions for selected risk
+        sugestoes = None
+        if risco_selecionado and risco_selecionado.nivel_inerente:
+            sugestoes = self._get_suggestions_for_risk(risco_selecionado.nivel_inerente.categoria)
+
+        # Initialize form with existing treatment data if available
+        form_initial = {}
+        control_reductions = None
+        tratamento_existente = None
+
+        if risco_selecionado:
+            # Get existing treatments for this risk (most recent first)
+            tratamentos = risco_selecionado.tratamentos.all().order_by('-id')
+
+            if tratamentos.exists():
+                # Use the most recent treatment
+                tratamento_existente = tratamentos.first()
+
+                # Pre-populate form with existing data
+                form_initial = {
+                    'nome': tratamento_existente.nome,
+                    'tipo_tratamento': tratamento_existente.tipo_tratamento,
+                    'descricao': tratamento_existente.descricao,
+                    'reducao_probabilidade': tratamento_existente.reducao_probabilidade,
+                    'reducao_impacto': tratamento_existente.reducao_impacto,
+                    'controles': tratamento_existente.controles.all(),
+                }
+
+                # Calculate control reductions for display
+                if tratamento_existente.controles.all().exists():
+                    control_reductions = self._calculate_control_reductions(
+                        tratamento_existente.controles.all()
+                    )
+
         contexto = {
             'riscos_para_tratar': riscos_para_tratar,
             'risco_selecionado': risco_selecionado,
-            'form': self.form_class(),
+            'form': self.form_class(initial=form_initial),
+            'sugestoes': sugestoes,
+            'control_reductions': control_reductions,
+            'tratamento_existente': tratamento_existente,
         }
 
         return render(request, self.template_name, contexto)
 
     @method_decorator(login_required(login_url="login"))
     def post(self, request, *args, **kwargs):
-        """Process risk treatment plan creation."""
+        """Process risk treatment plan creation or update."""
 
         if not self._check_permission(request.user):
             messages.error(request, "Você não tem permissão para acessar esta página.")
@@ -1936,21 +2223,45 @@ class TratamentoRiscoView(View):
                 reducao_impacto = form.cleaned_data.get('reducao_impacto', 0)
                 controles = form.cleaned_data.get('controles', [])
 
-                # Create treatment plan
-                tratamento = Tratamento.objects.create(
-                    nome=nome,
-                    tipo_tratamento=tipo_tratamento,
-                    descricao=descricao,
-                    reducao_probabilidade=reducao_prob,
-                    reducao_impacto=reducao_impacto,
-                )
+                # Check if treatment already exists for this risk
+                # If it does, update it instead of creating a new one
+                tratamentos_existentes = risco.tratamentos.all()
 
-                # Link controls to treatment plan
-                if controles:
-                    tratamento.controles.set(controles)
+                if tratamentos_existentes.exists():
+                    # Update the most recent treatment
+                    tratamento = tratamentos_existentes.order_by('-id').first()
+                    tratamento.nome = nome
+                    tratamento.tipo_tratamento = tipo_tratamento
+                    tratamento.descricao = descricao
+                    tratamento.reducao_probabilidade = reducao_prob
+                    tratamento.reducao_impacto = reducao_impacto
+                    tratamento.save()
 
-                # Link treatment to risk
-                risco.tratamentos.add(tratamento)
+                    # Update controls
+                    if controles:
+                        tratamento.controles.set(controles)
+                    else:
+                        tratamento.controles.clear()
+
+                    action_message = "atualizado"
+                else:
+                    # Create new treatment plan
+                    tratamento = Tratamento.objects.create(
+                        nome=nome,
+                        tipo_tratamento=tipo_tratamento,
+                        descricao=descricao,
+                        reducao_probabilidade=reducao_prob,
+                        reducao_impacto=reducao_impacto,
+                    )
+
+                    # Link controls to treatment plan
+                    if controles:
+                        tratamento.controles.set(controles)
+
+                    # Link treatment to risk
+                    risco.tratamentos.add(tratamento)
+
+                    action_message = "criado"
 
                 # Calculate residual risk
                 valor_residual, nivel_residual, calcs = self._calculate_residual_risk(
@@ -1975,13 +2286,14 @@ class TratamentoRiscoView(View):
 
                 risco.save()
 
+                messages.success(request, f"Plano de tratamento {action_message} com sucesso!")
                 return redirect('dashboard')
 
             except Risco.DoesNotExist:
                 messages.error(request, "Risco não encontrado.")
                 return redirect('tratamento_riscos')
             except Exception as e:
-                messages.error(request, f"Erro ao criar plano de tratamento: {str(e)}")
+                messages.error(request, f"Erro ao processar plano de tratamento: {str(e)}")
                 return redirect('tratamento_riscos')
         else:
             messages.error(request, "Formulário inválido. Verifique os dados inseridos.")
@@ -3853,4 +4165,98 @@ class DeleteControleView(View):
         except Controle.DoesNotExist:
             messages.error(request, "Controle não encontrado.")
             return redirect('lista_controles')
+
+
+class CalculateControlReductionsView(View):
+    """AJAX endpoint for calculating risk reductions based on selected control types.
+
+    This view implements the HYBRID approach for risk reduction calculation.
+    It receives selected control IDs and returns the expected probability and
+    consequence reduction percentages based on the control categories
+    (Preventivo, Detectivo, Corretivo).
+
+    Request:
+    - POST to /api/calculate-control-reductions/
+    - Content-Type: application/json
+    - Data: {
+        "risco_id": <int>,  # The risk ID (optional, for context)
+        "controle_ids": "<comma-separated IDs>"
+      }
+
+    Response:
+    - JSON with:
+      - prob_reduction: <int> percentage for probability reduction
+      - impact_reduction: <int> percentage for consequence reduction
+      - breakdown: <array> of control type effectiveness
+      - has_controls: <boolean> if relevant controls found
+    """
+
+    @method_decorator(login_required(login_url="login"))
+    def post(self, request, *args, **kwargs):
+        """Handle AJAX POST request for control reduction calculation."""
+        try:
+            import json
+            from .models import Controle
+
+            # Parse JSON request body
+            data = json.loads(request.body)
+            controle_ids_str = data.get('controle_ids', '')
+
+            if not controle_ids_str:
+                return JsonResponse({
+                    'prob_reduction': 0,
+                    'impact_reduction': 0,
+                    'breakdown': [],
+                    'has_controls': False,
+                    'error': 'No controls provided'
+                })
+
+            # Parse control IDs
+            controle_ids = [int(id.strip()) for id in controle_ids_str.split(',') if id.strip()]
+
+            if not controle_ids:
+                return JsonResponse({
+                    'prob_reduction': 0,
+                    'impact_reduction': 0,
+                    'breakdown': [],
+                    'has_controls': False,
+                    'error': 'Invalid control IDs'
+                })
+
+            # Get selected controls
+            controles = Controle.objects.filter(id__in=controle_ids).prefetch_related('categorias')
+
+            if not controles.exists():
+                return JsonResponse({
+                    'prob_reduction': 0,
+                    'impact_reduction': 0,
+                    'breakdown': [],
+                    'has_controls': False,
+                    'error': 'No controls found'
+                })
+
+            # Calculate reductions using TratamentoRiscoView's method
+            tratamento_view = TratamentoRiscoView()
+            results = tratamento_view._calculate_control_reductions(controles)
+
+            return JsonResponse(results)
+
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'error': 'Invalid JSON',
+                'prob_reduction': 0,
+                'impact_reduction': 0,
+                'breakdown': [],
+                'has_controls': False
+            }, status=400)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({
+                'error': str(e),
+                'prob_reduction': 0,
+                'impact_reduction': 0,
+                'breakdown': [],
+                'has_controls': False
+            }, status=500)
             return redirect('lista_auditorias')

@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initializeRiskSelection();
   initializeFormValidation();
   initializeSelect2();
+  initializeControlBasedReductions();
 });
 
 /**
@@ -71,6 +72,49 @@ function initializeStrategySelection() {
       // Update the preview
       updateResidualRiskPreview();
     });
+  });
+
+  // Highlight the selected strategy card on page load (if editing existing treatment)
+  const checkedRadio = document.querySelector('input[name="tipo_tratamento"]:checked');
+  if (checkedRadio) {
+    const strategy = checkedRadio.value;
+    console.log('Selected strategy on page load:', strategy);
+    highlightStrategyCard(strategy);
+
+    // Also apply the strategy's suggested reductions if the form was just loaded
+    // but only if the reductions are still at their default values (empty or 0)
+    // This way, if the user already set custom values, we won't override them
+    const probInput = document.querySelector('input[name="reducao_probabilidade"]');
+    const impactInput = document.querySelector('input[name="reducao_impacto"]');
+
+    // If both values are empty (new treatment), apply defaults
+    if ((probInput && probInput.value === '') || (impactInput && impactInput.value === '')) {
+      console.log('Applying default strategy reductions to empty form');
+      applyStrategyReductions(strategy);
+    } else {
+      console.log('Form already has reduction values, keeping existing values');
+    }
+  }
+}
+
+/**
+ * Highlight the strategy card visually for the selected strategy
+ */
+function highlightStrategyCard(strategy) {
+  // Find the label containing this strategy's radio button
+  const radioButtons = document.querySelectorAll('input[name="tipo_tratamento"]');
+
+  radioButtons.forEach(radio => {
+    const label = radio.closest('.strategy-option');
+    if (label) {
+      if (radio.value === strategy) {
+        // Ensure this radio is checked
+        radio.checked = true;
+        label.classList.add('selected');
+      } else {
+        label.classList.remove('selected');
+      }
+    }
   });
 }
 
@@ -591,4 +635,154 @@ function formatControlOption(option, container) {
 function formatControlSelection(option) {
   if (!option.id) return option.text;
   return option.text;
+}
+
+/**
+ * Initialize control-based reduction calculation (HYBRID APPROACH)
+ *
+ * When controls are selected, automatically calculate and update the expected
+ * probability and consequence reduction percentages based on control types:
+ * - Preventivo: Reduces Probability
+ * - Detectivo: Reduces both Probability and Consequence
+ * - Corretivo: Reduces Consequence
+ */
+function initializeControlBasedReductions() {
+  const controlesSelect = document.getElementById('id_controles');
+
+  if (!controlesSelect) {
+    console.warn('Controls select field not found');
+    return;
+  }
+
+  // Listen to Select2 changes
+  if (typeof jQuery !== 'undefined') {
+    jQuery(controlesSelect).on('change', function() {
+      handleControlsChanged();
+    });
+
+    console.log('Control-based reduction listener initialized');
+  } else {
+    // Fallback for non-jQuery environments
+    controlesSelect.addEventListener('change', handleControlsChanged);
+  }
+
+  // Check if there are already selected controls on page load (editing existing treatment)
+  const selectedIds = Array.from(controlesSelect.selectedOptions).map(opt => opt.value);
+  if (selectedIds.length > 0) {
+    console.log('Existing controls found on page load:', selectedIds);
+
+    // Delay slightly to ensure DOM is fully loaded
+    setTimeout(() => {
+      handleControlsChanged();
+    }, 300);
+  }
+  // Call backend to calculate control reductions
+  calculateControlReductionsFromBackend(risco_id, selectedIds);
+}
+
+/**
+ * Calculate control reductions via AJAX call to backend
+ *
+ * @param {string} risco_id - The risk ID
+ * @param {array} controle_ids - Array of selected control IDs
+ */
+function calculateControlReductionsFromBackend(risco_id, controle_ids) {
+  const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value;
+
+  // Prepare the request data
+  const requestData = {
+    risco_id: risco_id,
+    controle_ids: controle_ids.join(',')
+  };
+
+  console.log('Sending request for control reductions:', requestData);
+
+  // Make AJAX request to calculate reductions
+  fetch('/api/calculate-control-reductions/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken
+    },
+    body: JSON.stringify(requestData)
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('Received control reductions:', data);
+    applyControlReductions(data);
+  })
+  .catch(error => {
+    console.warn('Error calculating control reductions:', error);
+    console.log('Falling back to strategy-based approach');
+  });
+}
+
+/**
+ * Apply the calculated control reductions to the form fields
+ *
+ * @param {object} data - Response from backend containing:
+ *   - prob_reduction: Probability reduction percentage
+ *   - impact_reduction: Consequence reduction percentage
+ *   - breakdown: Array of control type impacts
+ *   - has_controls: Boolean indicating if controls were found
+ */
+function applyControlReductions(data) {
+  if (!data.has_controls) {
+    console.log('No relevant controls found in selection');
+    return;
+  }
+
+  const probInput = document.querySelector('input[name="reducao_probabilidade"]');
+  const impactInput = document.querySelector('input[name="reducao_impacto"]');
+
+  if (!probInput || !impactInput) {
+    console.error('Reduction input fields not found');
+    return;
+  }
+
+  // Update the reduction fields with calculated values
+  const probReduction = data.prob_reduction || 0;
+  const impactReduction = data.impact_reduction || 0;
+
+  console.log(`Applying control reductions: Prob=${probReduction}%, Impact=${impactReduction}%`);
+
+  probInput.value = probReduction;
+  impactInput.value = impactReduction;
+
+  // Trigger the preview update
+  updateResidualRiskPreview();
+
+  // Display breakdown of which control types contributed
+  displayControlReductionBreakdown(data.breakdown);
+}
+
+/**
+ * Display a breakdown of which control types reduced probability/consequence
+ *
+ * @param {array} breakdown - Array of objects with control type performance
+ */
+function displayControlReductionBreakdown(breakdown) {
+  if (!breakdown || breakdown.length === 0) {
+    console.log('No control breakdown to display');
+    return;
+  }
+
+  console.log('Control type breakdown:');
+  breakdown.forEach(item => {
+    const probText = item.reduz_probabilidade ? '✓ Probabilidade' : '—';
+    const consText = item.reduz_consequencia ? '✓ Consequência' : '—';
+    console.log(`  ${item.tipo} (${item.quantidade} controles): ${probText} | ${consText}`);
+  });
+
+  // Optionally display in UI using a toast/notification
+  const breakdownText = breakdown
+    .map(item => `${item.tipo} (${item.quantidade}): ${item.reduz_probabilidade ? 'Prob' : ''} ${item.reduz_consequencia ? 'Cons' : ''}`)
+    .join(', ');
+
+  console.log(`Selected controls reduce: ${breakdownText}`);
 }

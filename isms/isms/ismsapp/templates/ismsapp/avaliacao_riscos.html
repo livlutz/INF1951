@@ -41,9 +41,6 @@
           </span>
           Risco sob Avaliação
         </div>
-        <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 1rem;">
-          Comparing risk with acceptance criteria to determine treatment necessity
-        </div>
 
         <div class="risk-evaluation-card active">
           <div class="risk-header-evaluation">
@@ -66,7 +63,7 @@
               <div class="metric-label">Critérios de Aceitação</div>
               <div class="acceptance-criteria">
                 <div class="criteria-item">
-                  <span class="criteria-label">Apetite ao Risco:</span>
+                  <span class="criteria-label">Apetite do Risco:</span>
                   <span class="criteria-value badge badge-info">Nível {{ acceptance_level }} ({{ apetite_risco }})</span>
                 </div>
                 <div class="criteria-item">
@@ -104,6 +101,51 @@
               </div>
             {% endif %}
           </div>
+
+          <!-- Risk Level Suggestions Based on Criteria -->
+          {% if sugestoes %}
+            <div class="suggestions-box suggestions-{{ sugestoes.cor_categoria }}">
+              <div class="suggestions-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  {% if sugestoes.icone == 'check-circle' %}
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                    <polyline points="10 16 6 12 7.41 10.59 10 13.17 16.59 6.59 18 8"/>
+                  {% elif sugestoes.icone == 'alert-circle' %}
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  {% elif sugestoes.icone == 'alert-triangle' %}
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  {% endif %}
+                </svg>
+                <h4>Sugestão de Tratamento</h4>
+              </div>
+              <div class="suggestions-content">
+                {% if sugestoes.recomendacoes %}
+                  {% for rec in sugestoes.recomendacoes %}
+                    <div class="suggestion-item">
+                      <strong class="suggestion-title">{{ rec.titulo }}</strong>
+                      <p class="suggestion-desc">{{ rec.descricao }}</p>
+                      {% if rec.acoes %}
+                        <div class="suggestion-actions">
+                          <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 500; margin-bottom: 0.5rem; display: block;">Estratégias recomendadas:</span>
+                          <ul style="margin: 0; padding-left: 1.25rem; list-style: disc;">
+                            {% for acao in rec.acoes %}
+                              <li style="color: #cbd5e1; margin-bottom: 0.25rem;">{{ acao }}</li>
+                            {% endfor %}
+                          </ul>
+                        </div>
+                      {% endif %}
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  <p style="color: #94a3b8; font-size: 0.85rem;">Sem recomendações disponíveis para este nível de risco.</p>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
 
           <!-- Risk Description -->
           <div class="risk-description-eval">

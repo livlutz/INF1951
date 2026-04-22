@@ -43,6 +43,20 @@
         </div>
       {% endif %}
 
+      <!-- Existing Treatment Notification -->
+      {% if tratamento_existente %}
+        <div style="background-color: #0f4c3a; border: 1px solid #10b981; border-radius: 6px; padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <div>
+            <strong style="color: #10b981;">Tratamento Existente Carregado</strong>
+            <p style="margin: 0.25rem 0 0 0; color: #a7f3d0; font-size: 0.85rem;">Os dados do tratamento salvo anteriormente foram carregados. Você pode editar ou atualizar este tratamento.</p>
+          </div>
+        </div>
+      {% endif %}
+
       <!-- Risk Overview Section -->
       <div class="section">
         <div class="section-label">
@@ -87,6 +101,51 @@
             </div>
           </div>
         </div>
+
+        <!-- Risk Level Treatment Suggestions -->
+        {% if sugestoes %}
+          <div class="suggestions-box suggestions-{{ sugestoes.cor_categoria }}">
+            <div class="suggestions-header">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                {% if sugestoes.icone == 'check-circle' %}
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                  <polyline points="10 16 6 12 7.41 10.59 10 13.17 16.59 6.59 18 8"/>
+                {% elif sugestoes.icone == 'alert-circle' %}
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                {% elif sugestoes.icone == 'alert-triangle' %}
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                {% endif %}
+              </svg>
+              <h4>Estratégia Recomendada</h4>
+            </div>
+            <div class="suggestions-content">
+              {% if sugestoes.recomendacoes %}
+                {% for rec in sugestoes.recomendacoes %}
+                  <div class="suggestion-item">
+                    <strong class="suggestion-title">{{ rec.titulo }}</strong>
+                    <p class="suggestion-desc">{{ rec.descricao }}</p>
+                    {% if rec.acoes %}
+                      <div class="suggestion-actions">
+                        <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 500; margin-bottom: 0.5rem; display: block;">Estratégias recomendadas:</span>
+                        <ul style="margin: 0; padding-left: 1.25rem; list-style: disc;">
+                          {% for acao in rec.acoes %}
+                            <li style="color: #cbd5e1; margin-bottom: 0.25rem;">{{ acao }}</li>
+                          {% endfor %}
+                        </ul>
+                      </div>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              {% else %}
+                <p style="color: #94a3b8; font-size: 0.85rem;">Sem recomendações disponíveis para este nível de risco.</p>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
       </div>
 
       <!-- Treatment Strategy Section -->
@@ -107,7 +166,12 @@
         <div class="strategy-options">
           {% for choice_value, choice_label in form.tipo_tratamento.field.choices %}
             <label class="strategy-option">
-              <input type="radio" name="tipo_tratamento" value="{{ choice_value }}" required>
+              <input
+                type="radio"
+                name="tipo_tratamento"
+                value="{{ choice_value }}"
+                {% if form.tipo_tratamento.value == choice_value %}checked{% endif %}
+                required>
               <span class="strategy-card strategy-{{ choice_value }}">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   {% if choice_value == "mitigar" %}
@@ -138,13 +202,13 @@
                   </strong>
                   <small>
                     {% if choice_value == "mitigar" %}
-                      Reduzir a probabilidade ou impacto (40% + 30%)
+                      Reduzir a probabilidade ou impacto <!-- (40% + 30%) -->
                     {% elif choice_value == "evitar" %}
-                      Eliminar a atividade ou condição (80% + 70%)
+                      Eliminar a atividade ou condição <!-- (80% + 70%) -->
                     {% elif choice_value == "compartilhar" %}
-                      Transferir o risco (30% + 50%)
+                      Transferir o risco <!-- (30% + 50%) -->
                     {% else %}
-                      Aceitar o risco residual (0% + 0%)
+                      Aceitar o risco residual <!-- (0% + 0%) -->
                     {% endif %}
                   </small>
                 </div>
@@ -188,6 +252,51 @@
             <div class="field-error">{{ form.controles.errors }}</div>
           {% endif %}
         </div>
+
+        <!-- Control Types Impact Display -->
+        <div style="background-color: #1a1f2e; border: 1px solid #2a3f5f; border-radius: 6px; padding: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
+          <div style="font-weight: 600; color: #8b3cf7; margin-bottom: 1rem; font-size: 0.95rem;">📊 Impacto dos Tipos de Controle na Redução de Risco</div>
+
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <thead>
+              <tr style="background-color: #0f1419; border-bottom: 2px solid #2a3f5f;">
+                <th style="padding: 0.75rem; text-align: left; color: #8b3cf7; font-weight: 600;">Tipo do Controle</th>
+                <th style="padding: 0.75rem; text-align: center; color: #10b981;">Probabilidade</th>
+                <th style="padding: 0.75rem; text-align: center; color: #3b82f6;">Consequência</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid #2a3f5f; background-color: rgba(139, 60, 247, 0.05);">
+                <td style="padding: 0.75rem; color: #cbd5e1;">
+                  <strong>Preventivo</strong><br>
+                  <small style="color: #94a3b8;">(ex: firewall, controle de acesso)</small>
+                </td>
+                <td style="padding: 0.75rem; text-align: center; color: #10b981;"><strong>✓</strong></td>
+                <td style="padding: 0.75rem; text-align: center; color: #64748b;">—</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #2a3f5f;">
+                <td style="padding: 0.75rem; color: #cbd5e1;">
+                  <strong>Detectivo</strong><br>
+                  <small style="color: #94a3b8;">(ex: IDS, monitoramento, auditoria)</small>
+                </td>
+                <td style="padding: 0.75rem; text-align: center; color: #10b981;"><strong>✓</strong></td>
+                <td style="padding: 0.75rem; text-align: center; color: #3b82f6;"><strong>✓</strong></td>
+              </tr>
+              <tr style="background-color: rgba(139, 60, 247, 0.05);">
+                <td style="padding: 0.75rem; color: #cbd5e1;">
+                  <strong>Corretivo/Contingência</strong><br>
+                  <small style="color: #94a3b8;">(ex: backup, plano de recuperação, redundância)</small>
+                </td>
+                <td style="padding: 0.75rem; text-align: center; color: #64748b;">—</td>
+                <td style="padding: 0.75rem; text-align: center; color: #3b82f6;"><strong>✓</strong></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #2a3f5f; color: #a0aec0; font-size: 0.8rem;">
+            <strong>Nota:</strong> Selecione os controles acima para que o sistema calcule automaticamente as reduções esperadas de probabilidade e consequência.
+          </div>
+        </div>
       </div>
 
       <!-- Risk Reduction Section -->
@@ -205,13 +314,13 @@
         <div style="background-color: #1a1f2e; border: 1px solid #2a3f5f; border-radius: 6px; padding: 1rem; margin-bottom: 1.5rem; font-size: 0.85rem;">
           <div style="font-weight: 600; color: #8b3cf7; margin-bottom: 0.75rem;">📋 Como a redução é calculada:</div>
           <ul style="list-style: none; padding: 0; margin: 0; color: #cbd5e1; line-height: 1.6; margin-bottom: 0.75rem;">
-            <li>• <strong>Valores sugeridos:</strong> Definidos automaticamente pela estratégia de tratamento selecionada</li>
-            <li>• <strong>Probabilidade:</strong> Quanto seus controles reduzem a chance de ocorrência</li>
-            <li>• <strong>Impacto:</strong> Quanto seus controles reduzem o dano se o risco ocorrer</li>
+            <li>• <strong>Cálculo automático:</strong> Baseado nos tipos de controles selecionados acima</li>
+            <li>• <strong>Probabilidade:</strong> Reduzida por controles Preventivos e Detectivos</li>
+            <li>• <strong>Consequência:</strong> Reduzida por controles Detectivos e Corretivos</li>
             <li>• <strong>Ajustes:</strong> Você pode modificar os valores conforme a efetividade real dos seus controles</li>
           </ul>
           <div style="border-top: 1px solid #2a3f5f; padding-top: 0.75rem; margin-top: 0.75rem; color: #a0aec0; font-size: 0.8rem;">
-            💡 <strong>Dica:</strong> Selecione a estratégia de tratamento acima para auto-preenchimento de valores recomendados.
+            💡 <strong>Dica:</strong> Este cálculo híbrido combina a estratégia de tratamento com análise dos tipos de controles implementados.
           </div>
         </div>
 

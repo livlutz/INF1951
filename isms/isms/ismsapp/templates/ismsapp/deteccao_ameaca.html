@@ -84,11 +84,6 @@
           <!-- populated by deteccao_ameaca.js -->
         </div>
 
-        <!-- Selection summary -->
-        <div class="selection-summary" id="ativos-summary">
-          <span id="ativos-count">0</span> ativo(s) selecionado(s)
-        </div>
-
         {% if form.ativos.errors %}
           <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.ativos.errors|join:", " }}</p>
         {% endif %}

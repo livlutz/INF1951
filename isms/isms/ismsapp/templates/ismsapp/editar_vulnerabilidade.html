@@ -5,6 +5,8 @@
 
 {% block extra_css %}
     <link href="{% static 'css/ismsapp/identificacao_riscos.css' %}" rel="stylesheet">
+    <link href="{% static 'css/ismsapp/select2_controls.css' %}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 {% endblock %}
 
 {% block content %}
@@ -170,5 +172,10 @@
         }
     </style>
 
-    <script src="{% static 'js/ismsapp/searchable_select.js' %}"></script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script src="{% static 'js/ismsapp/editar_vulnerabilidade.js' %}"></script>
 {% endblock %}

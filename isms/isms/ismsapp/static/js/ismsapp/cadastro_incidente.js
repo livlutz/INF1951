@@ -1,47 +1,59 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Identify the original select element
-    const originalSelect = document.querySelector('.asset-selection-container select');
-    if (!originalSelect) return;
+document.addEventListener('DOMContentLoaded', function () {
+    buildAtivosAfetadosCheckboxes();
+    initAtivosAfetadosSearch();
+});
 
-    // 2. Hide the original select
-    originalSelect.style.display = 'none';
+function buildAtivosAfetadosCheckboxes() {
+    const select = document.querySelector('select[name="ativos_afetados"]');
+    const container = document.getElementById('ativos-afetados-checkbox-list');
+    if (!select || !container) return;
 
-    // 3. Create a container for the checkboxes
-    const checkboxContainer = document.createElement('div');
-    checkboxContainer.className = 'checkbox-list-container';
+    container.innerHTML = '';
 
-    // 4. Loop through options and create checkboxes
-    Array.from(originalSelect.options).forEach((option, index) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'checkbox-item';
+    Array.from(select.options).forEach(function (option) {
+        const item = document.createElement('label');
+        item.className = 'checkbox-asset-item';
+        item.dataset.label = option.text.toLowerCase();
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.id = `asset_${index}`;
         checkbox.value = option.value;
+        checkbox.className = 'asset-cb';
         checkbox.checked = option.selected;
-        checkbox.className = 'form-check-input';
 
-        const label = document.createElement('label');
-        label.htmlFor = `asset_${index}`;
-        label.textContent = option.text;
-        label.className = 'form-check-label';
-
-        // 5. Sync checkbox state back to the original select
-        checkbox.addEventListener('change', function() {
+        checkbox.addEventListener('change', function () {
             option.selected = this.checked;
-            // Trigger a change event in case other scripts are listening
-            originalSelect.dispatchEvent(new Event('change'));
-
-            // Optional: Toggle a 'selected' class for styling
-            wrapper.classList.toggle('is-selected', this.checked);
+            updateSummary();
         });
 
-        wrapper.appendChild(checkbox);
-        wrapper.appendChild(label);
-        checkboxContainer.appendChild(wrapper);
+        const label = document.createElement('span');
+        label.className = 'asset-cb-label';
+        label.textContent = option.text;
+
+        item.appendChild(checkbox);
+        item.appendChild(label);
+        container.appendChild(item);
     });
 
-    // 6. Insert the new UI into the DOM
-    originalSelect.parentNode.appendChild(checkboxContainer);
-});
+    updateSummary();
+}
+
+function initAtivosAfetadosSearch() {
+    const input = document.getElementById('ativos-afetados-search');
+    const container = document.getElementById('ativos-afetados-checkbox-list');
+    if (!input || !container) return;
+
+    input.addEventListener('input', function () {
+        const term = this.value.toLowerCase().trim();
+        container.querySelectorAll('.checkbox-asset-item').forEach(function (item) {
+            item.style.display = (!term || item.dataset.label.includes(term)) ? '' : 'none';
+        });
+    });
+}
+
+function updateSummary() {
+    const countEl = document.getElementById('ativos-afetados-count');
+    if (countEl) {
+        countEl.textContent = document.querySelectorAll('#ativos-afetados-checkbox-list .asset-cb:checked').length;
+    }
+}

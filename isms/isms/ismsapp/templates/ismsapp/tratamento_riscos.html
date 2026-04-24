@@ -6,9 +6,7 @@
 {% block extra_css %}
 <link href="{% static 'css/ismsapp/analise_riscos.css' %}" rel="stylesheet">
 <link href="{% static 'css/ismsapp/tratamento_riscos.css' %}" rel="stylesheet">
-<link href="{% static 'css/ismsapp/select2_controls.css' %}" rel="stylesheet">
-<!-- Select2 Library CSS -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<link href="{% static 'css/ismsapp/multi_select_checklist.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -247,7 +245,24 @@
 
         <div class="form-group">
           <label for="controles" class="form-label">Controles</label>
-          {{ form.controles }}
+
+          <div class="selector-filter">
+            <input
+              type="text"
+              id="controles-search"
+              class="form-control"
+              placeholder="Buscar controle na lista..."
+              autocomplete="off"
+            >
+          </div>
+
+          <div style="display:none;">
+            {{ form.controles }}
+          </div>
+
+          <div class="checkbox-asset-list" id="controles-checkbox-list"></div>
+          <div class="selection-summary">Controles selecionados: <span id="controles-count">0</span></div>
+
           {% if form.controles.errors %}
             <div class="field-error">{{ form.controles.errors }}</div>
           {% endif %}
@@ -471,9 +486,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- jQuery and Select2 Library for searchable dropdowns -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-
 <script src="{% static 'js/ismsapp/tratamento_riscos.js' %}"></script>
 {% endblock %}

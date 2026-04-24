@@ -5,8 +5,7 @@
 
 {% block extra_css %}
     <link href="{% static 'css/ismsapp/identificacao_riscos.css' %}" rel="stylesheet">
-    <link href="{% static 'css/ismsapp/select2_controls.css' %}" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <link href="{% static 'css/ismsapp/multi_select_checklist.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -60,15 +59,22 @@
                     </span>
                     {{ form.ativos.label }}
                 </div>
-                <div class="selector-filter" style="margin-bottom: 0.75rem;">
+                <div class="selector-filter">
                     <input
                         type="text"
+                        id="ativos-search"
                         class="form-control"
-                        data-target-select="ativos"
                         placeholder="Buscar ativo na lista..."
                     >
                 </div>
-                {{ form.ativos }}
+
+                <div style="display:none;">
+                    {{ form.ativos }}
+                </div>
+
+                <div class="checkbox-asset-list" id="ativos-checkbox-list"></div>
+                <div class="selection-summary">Ativos selecionados: <span id="ativos-count">0</span></div>
+
                 {% if form.ativos.errors %}
                     <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.ativos.errors|join:", " }}</p>
                 {% endif %}
@@ -89,7 +95,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 <script src="{% static 'js/ismsapp/editar_ameaca.js' %}"></script>
 {% endblock %}

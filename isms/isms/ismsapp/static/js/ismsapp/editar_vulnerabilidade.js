@@ -1,90 +1,59 @@
-document.addEventListener('DOMContentLoaded', function() {
-  initializeAmeacasSelect2();
+document.addEventListener('DOMContentLoaded', function () {
+  buildAmeacasCheckboxes();
+  initAmeacasSearch();
 });
 
-function initializeAmeacasSelect2() {
-  const ameacasSelect = document.getElementById('id_ameacas');
+function buildAmeacasCheckboxes() {
+  const select = document.querySelector('select[name="ameacas"]');
+  const container = document.getElementById('ameacas-checkbox-list');
+  if (!select || !container) return;
 
-  if (!ameacasSelect || typeof jQuery === 'undefined' || !jQuery.fn.select2) {
-    return;
-  }
+  container.innerHTML = '';
 
-  jQuery(ameacasSelect).select2({
-    placeholder: 'Buscar e selecionar ameacas...',
-    allowClear: true,
-    width: '100%',
-    language: 'pt-BR',
-    matcher: matchCustom,
-    templateResult: formatAmeacaOption,
-    templateSelection: formatAmeacaSelection,
-    closeOnSelect: false,
-    escapeMarkup: function(markup) { return markup; }
+  Array.from(select.options).forEach(function (option) {
+    const item = document.createElement('label');
+    item.className = 'checkbox-asset-item';
+    item.dataset.label = option.text.toLowerCase();
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.value = option.value;
+    checkbox.className = 'asset-cb';
+    checkbox.checked = option.selected;
+
+    checkbox.addEventListener('change', function () {
+      option.selected = this.checked;
+      updateSummary();
+    });
+
+    const label = document.createElement('span');
+    label.className = 'asset-cb-label';
+    label.textContent = option.text;
+
+    item.appendChild(checkbox);
+    item.appendChild(label);
+    container.appendChild(item);
   });
 
-  jQuery(ameacasSelect).on('select2:select select2:unselect', function() {
-    updateCheckboxStates();
-  });
-
-  jQuery(ameacasSelect).on('select2:opening', function() {
-    setTimeout(updateCheckboxStates, 50);
-  });
-
-  const legacyFilter = document.querySelector('[data-target-select="ameacas"]');
-  if (legacyFilter) {
-    legacyFilter.style.display = 'none';
-  }
+  updateSummary();
 }
 
-function matchCustom(params, data) {
-  if (jQuery.trim(params.term) === '') {
-    return data;
-  }
+function initAmeacasSearch() {
+  const input = document.getElementById('ameacas-search');
+  const container = document.getElementById('ameacas-checkbox-list');
+  if (!input || !container) return;
 
-  if (typeof data.text === 'undefined') {
-    return null;
-  }
-
-  if (data.text.toUpperCase().indexOf(params.term.toUpperCase()) > -1) {
-    return jQuery.extend({}, data, true);
-  }
-
-  return null;
-}
-
-function updateCheckboxStates() {
-  const selectedValues = jQuery('#id_ameacas').val() || [];
-
-  jQuery('.select2-results__option').each(function() {
-    const optionElement = jQuery(this);
-    const resultData = optionElement.data('data');
-
-    if (!resultData || !resultData.id) {
-      return;
-    }
-
-    const isSelected = selectedValues.includes(resultData.id.toString());
-    optionElement.find('input[type="checkbox"]').prop('checked', isSelected);
+  input.addEventListener('input', function () {
+    const term = this.value.toLowerCase().trim();
+    container.querySelectorAll('.checkbox-asset-item').forEach(function (item) {
+      item.style.display = (!term || item.dataset.label.includes(term)) ? '' : 'none';
+    });
   });
 }
 
-function formatAmeacaOption(option) {
-  if (!option.id) {
-    return option.text;
+function updateSummary() {
+  const countEl = document.getElementById('ameacas-count');
+  if (countEl) {
+    countEl.textContent = document.querySelectorAll('#ameacas-checkbox-list .asset-cb:checked').length;
   }
-
-  const selectedValues = jQuery('#id_ameacas').val() || [];
-  const isSelected = selectedValues.includes(option.id.toString());
-  const checkboxHTML = '<input type="checkbox" ' +
-    (isSelected ? 'checked' : '') +
-    ' class="control-checkbox" style="margin-right: 10px; cursor: pointer; width: 18px; height: 18px; vertical-align: middle;">';
-
-  return '<span style="display: flex; align-items: center;">' + checkboxHTML + '<span>' + option.text + '</span></span>';
-}
-
-function formatAmeacaSelection(option) {
-  if (!option.id) {
-    return option.text;
-  }
-
-  return option.text;
 }

@@ -6,234 +6,7 @@
 {% block extra_css %}
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link href="{% static 'css/ismsapp/registro_auditoria.css' %}" rel="stylesheet">
-<style>
-  /* Metric Cards */
-  .metrics-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .metric-card {
-    background: linear-gradient(135deg, rgba(139, 60, 247, 0.1) 0%, rgba(139, 60, 247, 0.05) 100%);
-    border: 1px solid rgba(139, 60, 247, 0.3);
-    border-radius: 10px;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .metric-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-  }
-
-  .metric-icon.active-risks {
-    background: rgba(139, 60, 247, 0.3);
-  }
-
-  .metric-icon.controls {
-    background: rgba(16, 185, 129, 0.3);
-  }
-
-  .metric-icon.incidents {
-    background: rgba(239, 68, 68, 0.3);
-  }
-
-  .metric-label {
-    font-size: 0.9rem;
-    color: #b0b0b0;
-    font-weight: 500;
-  }
-
-  .metric-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #ffffff;
-  }
-
-  /* Tabs */
-  .tabs-header {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 1.5rem;
-  }
-
-  .tab-button {
-    padding: 1rem 1.5rem;
-    background: transparent;
-    border: none;
-    color: #b0b0b0;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 500;
-    position: relative;
-    transition: color 0.3s ease;
-  }
-
-  .tab-button:hover {
-    color: #ffffff;
-  }
-
-  .tab-button.active {
-    color: #8b3cf7;
-  }
-
-  .tab-button.active::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: #8b3cf7;
-  }
-
-  .tab-content {
-    display: none;
-  }
-
-  .tab-content.active {
-    display: block;
-  }
-
-  /* Table Enhancement */
-  .audits-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .audits-table thead {
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .audits-table th {
-    padding: 1rem;
-    text-align: left;
-    font-weight: 600;
-    color: #b0b0b0;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .audits-table td {
-    padding: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  .audits-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.02);
-  }
-
-  /* Status Badges */
-  .status-badge {
-    display: inline-block;
-    padding: 0.35rem 0.75rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 600;
-  }
-
-  .status-badge.critico {
-    background: rgba(239, 68, 68, 0.2);
-    color: #fca5a5;
-  }
-
-  .status-badge.medio {
-    background: rgba(245, 158, 11, 0.2);
-    color: #fcd34d;
-  }
-
-  .status-badge.baixo {
-    background: rgba(16, 185, 129, 0.2);
-    color: #6ee7b7;
-  }
-
-  .status-badge.pendente {
-    background: rgba(59, 130, 246, 0.2);
-    color: #93c5fd;
-  }
-
-  .status-badge.concluida {
-    background: rgba(16, 185, 129, 0.2);
-    color: #6ee7b7;
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: 3rem 1rem;
-    color: #94a3b8;
-  }
-
-  .filter-section {
-    background-color: rgba(255, 255, 255, 0.05);
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .filter-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #b0b0b0;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .filter-group input[type="text"] {
-    width: 100%;
-    padding: 10px 16px;
-    background-color: rgba(40, 40, 40, 0.95);
-    border: 1.5px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    font-size: 13px;
-    color: #ffffff;
-    transition: all 0.3s ease;
-  }
-
-  .filter-group input[type="text"]::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-  }
-
-  .filter-group input[type="text"]:hover {
-    border-color: rgba(139, 60, 247, 0.4);
-    background-color: rgba(50, 50, 50, 0.8);
-  }
-
-  .filter-group input[type="text"]:focus {
-    border-color: #9333ea;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(139, 60, 247, 0.1);
-  }
-
-  .filter-button {
-    background-color: #9333ea;
-    color: white;
-    padding: 10px 24px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s;
-    height: fit-content;
-  }
-
-  .filter-button:hover {
-    background-color: #a855f7;
-    box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
-  }
-</style>
+<link href="{% static 'css/ismsapp/lista_auditorias.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -250,22 +23,22 @@
   {% endif %}
 
   <!-- Auditoria e Revisão Section -->
-  <div class="card" style="max-width: 1400px;">
+  <div class="card page-shell-card">
     <!-- Page Title -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div class="page-header">
       <div>
-        <h1 style="margin: 0 0 0.5rem 0; font-size: 2rem; font-weight: 700;">Auditoria e Revisão</h1>
-        <p style="margin: 0; color: #b0b0b0;">Manter um histórico de auditorias, incidentes e não conformidades</p>
+        <h1>Auditoria e Revisão</h1>
+        <p>Manter um histórico de auditorias, incidentes e não conformidades</p>
       </div>
-      <a href="{% url 'registro_auditoria' %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: #8b3cf7; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; white-space: nowrap; height: fit-content;">
+      <a href="{% url 'registro_auditoria' %}" class="primary-action">
         <i class="fas fa-plus"></i> Registrar Auditoria
       </a>
     </div>
 
     <!-- Filter Section -->
-    <div class="filter-section" style="margin-bottom: 1.5rem;">
-      <form method="get" style="display: flex; gap: 15px; width: 100%; flex-wrap: wrap; align-items: flex-end;">
-        <div class="filter-group" style="flex: 2; min-width: 250px;">
+    <div class="filter-section">
+      <form method="get" class="filter-form">
+        <div class="filter-group">
           <label for="search">Buscar</label>
           <input type="text" id="search" name="search" value="{{ search_query }}" placeholder="Ex: Risco, auditoria, incidente ou status">
         </div>
@@ -279,7 +52,7 @@
     <!-- Metrics Cards -->
     <div class="metrics-container">
       <div class="metric-card">
-        <div style="display: flex; align-items: center; gap: 1rem;">
+        <div class="metric-content-row">
           <div class="metric-icon active-risks">
             <i class="fas fa-exclamation-triangle"></i>
           </div>
@@ -291,7 +64,7 @@
       </div>
 
       <div class="metric-card">
-        <div style="display: flex; align-items: center; gap: 1rem;">
+        <div class="metric-content-row">
           <div class="metric-icon controls">
             <i class="fas fa-shield-alt"></i>
           </div>
@@ -303,7 +76,7 @@
       </div>
 
       <div class="metric-card">
-        <div style="display: flex; align-items: center; gap: 1rem;">
+        <div class="metric-content-row">
           <div class="metric-icon incidents">
             <i class="fas fa-bell"></i>
           </div>
@@ -351,7 +124,7 @@
                   <td><strong>RIS-{{ risco.id|stringformat:"03d" }}</strong></td>
                   <td>{{ risco.nome }}</td>
                   <td>
-                    <span style="color: #b0b0b0;">{{ risco.ativo.nome }}</span>
+                    <span class="muted-text">{{ risco.ativo.nome }}</span>
                   </td>
                   <td>
                     {% if risco.nivel_inerente %}
@@ -359,10 +132,10 @@
                         {{ risco.nivel_inerente.categoria }}
                       </span>
                     {% else %}
-                      <span style="color: #808080;">Não avaliado</span>
+                      <span class="not-evaluated">Não avaliado</span>
                     {% endif %}
                   </td>
-                  <td style="text-align: center;">
+                  <td class="center-cell">
                     <a href="{% url 'editar_risco' risco.id %}" class="action-btn action-edit" title="Editar">
                       <i class="fas fa-edit"></i>
                     </a>
@@ -377,7 +150,7 @@
         </div>
       {% else %}
         <div class="empty-state">
-          <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+          <i class="fas fa-inbox empty-state-icon"></i>
           <p>Nenhum risco registrado</p>
         </div>
       {% endif %}
@@ -402,7 +175,7 @@
                 <tr>
                   <td><strong>AUD-{{ auditoria.id|stringformat:"03d" }}</strong></td>
                   <td>
-                    <span style="color: #b0b0b0;">{{ auditoria.get_tipo_auditoria_display }}</span>
+                    <span class="muted-text">{{ auditoria.get_tipo_auditoria_display }}</span>
                   </td>
                   <td>
                     <span class="status-badge status-{{ auditoria.status }}">
@@ -410,7 +183,7 @@
                     </span>
                   </td>
                   <td>{{ auditoria.data_auditoria|date:"d/m/Y" }}</td>
-                  <td style="text-align: center;">
+                  <td class="center-cell">
                     <a href="{% url 'editar_auditoria' auditoria.id %}" class="action-btn action-edit" title="Editar">
                       <i class="fas fa-edit"></i>
                     </a>
@@ -425,7 +198,7 @@
         </div>
       {% else %}
         <div class="empty-state">
-          <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+          <i class="fas fa-inbox empty-state-icon"></i>
           <p>Nenhuma auditoria registrada</p>
         </div>
       {% endif %}
@@ -433,10 +206,44 @@
 
     <!-- Tab Content: Controles -->
     <div id="controles-tab" class="tab-content">
-      <div class="empty-state">
-        <i class="fas fa-shield-alt" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-        <p>Dados de controles implementados serão exibidos aqui</p>
-      </div>
+      {% if controles %}
+        <div class="audits-table-wrapper">
+          <table class="audits-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>NOME</th>
+                <th>CATEGORIAS</th>
+                <th>AÇÃO</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for controle in controles %}
+                <tr>
+                  <td><strong>CTL-{{ controle.id|stringformat:"03d" }}</strong></td>
+                  <td>{{ controle.nome }}</td>
+                  <td>
+                    <span class="muted-text">{{ controle.categorias_display }}</span>
+                  </td>
+                  <td class="center-cell">
+                    <a href="{% url 'editar_controle' controle.id %}" class="action-btn action-edit" title="Editar">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'deletar_controle' controle.id %}" class="action-btn action-delete" title="Deletar">
+                      <i class="fas fa-trash-alt"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <i class="fas fa-shield-alt empty-state-icon"></i>
+          <p>Nenhum controle implementado encontrado</p>
+        </div>
+      {% endif %}
     </div>
 
     <!-- Tab Content: Incidentes -->
@@ -464,7 +271,7 @@
                       {{ incidente.get_status_display }}
                     </span>
                   </td>
-                  <td style="text-align: center;">
+                  <td class="center-cell">
                     <a href="{% url 'visualizar_incidente' incidente.id %}" class="action-btn action-edit" title="Visualizar">
                       <i class="fas fa-edit"></i>
                     </a>
@@ -479,41 +286,12 @@
         </div>
       {% else %}
         <div class="empty-state">
-          <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+          <i class="fas fa-inbox empty-state-icon"></i>
           <p>Nenhum incidente registrado</p>
         </div>
       {% endif %}
     </div>
   </div>
 </div>
-
-<script>
-  // Tab Switching Functionality
-  function switchTab(event, tabName) {
-    event.preventDefault();
-
-    // Hide all tab contents
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabContents.forEach(tab => {
-      tab.classList.remove('active');
-    });
-
-    // Remove active class from all buttons
-    const tabButtons = document.querySelectorAll('.tab-button');
-    tabButtons.forEach(button => {
-      button.classList.remove('active');
-    });
-
-    // Show selected tab content
-    const selectedTab = document.getElementById(tabName);
-    if (selectedTab) {
-      selectedTab.classList.add('active');
-    }
-
-    // Add active class to clicked button
-    event.target.closest('.tab-button').classList.add('active');
-  }
-</script>
-
-<script src="{% static 'js/ismsapp/registro_auditoria.js' %}"></script>
+<script src="{% static 'js/ismsapp/lista_auditorias.js' %}"></script>
 {% endblock %}

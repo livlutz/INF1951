@@ -3632,6 +3632,9 @@ class ReadAuditoriaView(View):
         # Audits
         auditorias = Auditoria.objects.all().order_by('-data_auditoria')
 
+        # Controls
+        controles = Controle.objects.prefetch_related('categorias').all().order_by('nome')
+
         # Incidents - get recent incidents (last 30 days)
         thirty_days_ago = timezone.now() - timedelta(days=30)
         incidentes = Incidente.objects.filter(
@@ -3656,6 +3659,12 @@ class ReadAuditoriaView(View):
                 Q(status__icontains=search_query)
             )
 
+            controles = controles.filter(
+                Q(nome__icontains=search_query) |
+                Q(descricao__icontains=search_query) |
+                Q(categorias__tipo__icontains=search_query)
+            ).distinct()
+
         # Metrics
         # Active risks (all risks with inerente level assigned)
         try:
@@ -3679,6 +3688,7 @@ class ReadAuditoriaView(View):
         contexto = {
             'riscos': riscos,
             'auditorias': auditorias,
+            'controles': controles,
             'incidentes': incidentes,
             'count_pendentes': pendentes,
             'count_concluidas': concluidas,

@@ -27,6 +27,18 @@ body {
     margin-bottom: 40px;
 }
 
+.analise-header .shield-wrap {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 1rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(139, 60, 247, 0.12);
+    border: 1px solid rgba(139, 60, 247, 0.24);
+}
+
 .analise-header h1 {
     color: #ffffff;
     font-size: 2rem;

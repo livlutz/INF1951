@@ -1,0 +1,346 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap');
+
+:root {
+  --form-bg: #07111d;
+  --form-surface: rgba(15, 23, 42, 0.94);
+  --form-surface-soft: rgba(17, 24, 39, 0.78);
+  --form-border: rgba(148, 163, 184, 0.16);
+  --form-border-strong: rgba(167, 139, 250, 0.28);
+  --form-text: #f8fafc;
+  --form-muted: #b6c2d6;
+  --form-accent: #8b5cf6;
+  --form-accent-2: #22d3ee;
+  --form-danger: #f87171;
+  --form-shadow: 0 30px 80px rgba(2, 8, 23, 0.42);
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(139, 92, 246, 0.18), transparent 30%),
+    radial-gradient(circle at 85% 12%, rgba(34, 211, 238, 0.1), transparent 26%),
+    linear-gradient(180deg, #07111d 0%, #0a1320 42%, #060b14 100%);
+  color: var(--form-text);
+  font-family: 'Inter', sans-serif;
+}
+
+.page,
+.cadastro-container {
+  min-height: calc(100vh - 6rem);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2.5rem 1rem 4rem;
+}
+
+.card,
+.cadastro-card {
+  width: 100%;
+  max-width: 760px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(10, 18, 31, 0.9));
+  border: 1px solid var(--form-border);
+  border-radius: 28px;
+  box-shadow: var(--form-shadow);
+  padding: 2rem;
+  backdrop-filter: blur(18px);
+}
+
+.card-header,
+.cadastro-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.6rem;
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid var(--form-border);
+}
+
+.shield-wrap,
+.icon-wrapper {
+  flex-shrink: 0;
+  width: 3.25rem;
+  height: 3.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.18), rgba(34, 211, 238, 0.12));
+  border: 1px solid rgba(139, 92, 246, 0.22);
+}
+
+.card-title,
+.cadastro-header h1 {
+  margin: 0;
+  font-family: 'Manrope', sans-serif;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.card-description,
+.subtitle {
+  margin: 0.45rem 0 0;
+  color: var(--form-muted);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.alerts-container,
+.form-errors {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.alert,
+.form-errors p {
+  margin: 0;
+  padding: 0.95rem 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--form-border);
+  background: rgba(17, 24, 39, 0.8);
+  color: var(--form-text);
+}
+
+.form-group,
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.section {
+  padding: 1.15rem 1.15rem 1.25rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 20px;
+  background: var(--form-surface-soft);
+}
+
+.section-label,
+.form-group label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #dbe3f4;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.s-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.12);
+  color: #d9ccff;
+  flex-shrink: 0;
+}
+
+.section > :not(.section-label) {
+  color: var(--form-muted);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea,
+.section input,
+.section select,
+.section textarea,
+.cadastro-form input,
+.cadastro-form select,
+.cadastro-form textarea,
+.audit-form input,
+.audit-form select,
+.audit-form textarea,
+.vulnerability-form input,
+.vulnerability-form select,
+.vulnerability-form textarea,
+.threat-form input,
+.threat-form select,
+.threat-form textarea,
+.edit-form input,
+.edit-form select,
+.edit-form textarea,
+.criterios-form input,
+.criterios-form select,
+.criterios-form textarea {
+  width: 100%;
+  padding: 0.85rem 0.95rem;
+  border-radius: 14px;
+  border: 1px solid var(--form-border);
+  background: rgba(2, 6, 23, 0.65);
+  color: var(--form-text);
+  font: inherit;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.section input:focus,
+.section select:focus,
+.section textarea:focus,
+.cadastro-form input:focus,
+.cadastro-form select:focus,
+.cadastro-form textarea:focus,
+.audit-form input:focus,
+.audit-form select:focus,
+.audit-form textarea:focus,
+.vulnerability-form input:focus,
+.vulnerability-form select:focus,
+.vulnerability-form textarea:focus,
+.threat-form input:focus,
+.threat-form select:focus,
+.threat-form textarea:focus,
+.edit-form input:focus,
+.edit-form select:focus,
+.edit-form textarea:focus,
+.criterios-form input:focus,
+.criterios-form select:focus,
+.criterios-form textarea:focus {
+  outline: none;
+  border-color: rgba(139, 92, 246, 0.55);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+}
+
+.form-group textarea,
+.section textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.error-message,
+.field-error,
+.form-error {
+  color: var(--form-danger);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.form-buttons,
+.form-actions,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  justify-content: flex-end;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--form-border);
+}
+
+.btn,
+.btn-confirm,
+.btn-cancel,
+.btn-primary,
+.btn-secondary,
+.btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.9rem 1.35rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.btn:hover,
+.btn-confirm:hover,
+.btn-cancel:hover,
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-submit:hover {
+  transform: translateY(-1px);
+}
+
+.btn-confirm,
+.btn-primary,
+.btn-submit {
+  background: linear-gradient(135deg, var(--form-accent), #ec4899);
+  color: #fff;
+  box-shadow: 0 18px 32px rgba(139, 92, 246, 0.24);
+}
+
+.btn-confirm:hover,
+.btn-primary:hover,
+.btn-submit:hover {
+  box-shadow: 0 20px 36px rgba(139, 92, 246, 0.3);
+}
+
+.btn-cancel,
+.btn-secondary {
+  background: rgba(15, 23, 42, 0.78);
+  color: #d9ccff;
+  border-color: rgba(139, 92, 246, 0.26);
+}
+
+.btn-cancel:hover,
+.btn-secondary:hover {
+  border-color: rgba(34, 211, 238, 0.35);
+}
+
+.info-panel {
+  padding: 1.1rem 1.2rem;
+  border-left: 4px solid var(--form-accent);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.info-panel .muted,
+.info-panel p,
+.info-panel small {
+  color: var(--form-muted);
+}
+
+.selector-filter {
+  width: 100%;
+}
+
+.selector-filter input,
+.selector-filter .form-control {
+  width: 100%;
+}
+
+.searchable-select {
+  min-height: 220px;
+}
+
+@media (max-width: 768px) {
+  .page,
+  .cadastro-container {
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
+  }
+
+  .card,
+  .cadastro-card {
+    padding: 1.35rem;
+    border-radius: 22px;
+  }
+
+  .card-header,
+  .cadastro-header {
+    align-items: flex-start;
+  }
+
+  .form-buttons,
+  .form-actions,
+  .actions {
+    justify-content: stretch;
+  }
+
+  .btn,
+  .btn-confirm,
+  .btn-cancel,
+  .btn-primary,
+  .btn-secondary,
+  .btn-submit {
+    width: 100%;
+  }
+}

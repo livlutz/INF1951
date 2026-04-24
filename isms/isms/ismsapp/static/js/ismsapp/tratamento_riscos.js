@@ -20,7 +20,8 @@ document.addEventListener('DOMContentLoaded', function() {
   initializeStrategySelection();
   initializeRiskSelection();
   initializeFormValidation();
-  initializeSelect2();
+  buildControlesCheckboxes();
+  initControlesSearch();
   initializeControlBasedReductions();
 });
 
@@ -550,91 +551,60 @@ function resetTreatmentForm() {
     updateResidualRiskPreview();
   }
 }
-/**
- * Initialize Select2 for searchable controls dropdown with checkboxes
- */
-function initializeSelect2() {
-  const controlesSelect = document.getElementById('id_controles');
+function buildControlesCheckboxes() {
+  const select = document.querySelector('select[name="controles"]');
+  const container = document.getElementById('controles-checkbox-list');
+  if (!select || !container) return;
 
-  if (controlesSelect && typeof jQuery !== 'undefined' && jQuery.fn.select2) {
-    jQuery(controlesSelect).select2({
-      placeholder: 'Buscar e selecionar controles...',
-      allowClear: true,
-      width: '100%',
-      language: 'pt-BR',
-      matcher: matchCustom,
-      templateResult: formatControlOption,
-      templateSelection: formatControlSelection,
-      closeOnSelect: false,
-      escapeMarkup: function(markup) { return markup; }
+  container.innerHTML = '';
+
+  Array.from(select.options).forEach(function (option) {
+    const item = document.createElement('label');
+    item.className = 'checkbox-asset-item';
+    item.dataset.label = option.text.toLowerCase();
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.value = option.value;
+    checkbox.className = 'asset-cb';
+    checkbox.checked = option.selected;
+
+    checkbox.addEventListener('change', function () {
+      option.selected = this.checked;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      updateControlesSummary();
     });
 
-    // Mark checkboxes when options are selected/unselected
-    jQuery(controlesSelect).on('select2:select select2:unselect', function() {
-      updateCheckboxStates();
-    });
+    const label = document.createElement('span');
+    label.className = 'asset-cb-label';
+    label.textContent = option.text;
 
-    // Handle checkbox clicks
-    jQuery(controlesSelect).on('select2:opening', function() {
-      setTimeout(updateCheckboxStates, 50);
-    });
-  }
+    item.appendChild(checkbox);
+    item.appendChild(label);
+    container.appendChild(item);
+  });
+
+  updateControlesSummary();
 }
 
-/**
- * Custom matcher for Select2 search
- */
-function matchCustom(params, data) {
-  if (jQuery.trim(params.term) === '') {
-    return data;
-  }
+function initControlesSearch() {
+  const input = document.getElementById('controles-search');
+  const container = document.getElementById('controles-checkbox-list');
+  if (!input || !container) return;
 
-  if (typeof data.text === 'undefined') {
-    return null;
-  }
-
-  if (data.text.toUpperCase().indexOf(params.term.toUpperCase()) > -1) {
-    return jQuery.extend({}, data, true);
-  }
-
-  return null;
-}
-
-/**
- * Update checkbox states based on selected values
- */
-function updateCheckboxStates() {
-  const selectedValues = jQuery('#id_controles').val() || [];
-
-  jQuery('.select2-results__option').each(function() {
-    const optionElement = jQuery(this);
-
-    if (optionElement.hasClass('select2-results__option--selected')) {
-      optionElement.find('input[type="checkbox"]').prop('checked', true);
-    } else {
-      optionElement.find('input[type="checkbox"]').prop('checked', false);
-    }
+  input.addEventListener('input', function () {
+    const term = this.value.toLowerCase().trim();
+    container.querySelectorAll('.checkbox-asset-item').forEach(function (item) {
+      item.style.display = (!term || item.dataset.label.includes(term)) ? '' : 'none';
+    });
   });
 }
 
-/**
- * Format control option with checkbox for Select2 dropdown
- */
-function formatControlOption(option, container) {
-  if (!option.id) return option.text;
-
-  const isSelected = (jQuery('#id_controles').val() || []).includes(option.id.toString());
-  const checkboxHTML = `<input type="checkbox" ${isSelected ? 'checked' : ''} class="control-checkbox" style="margin-right: 10px; cursor: pointer; width: 18px; height: 18px; vertical-align: middle;">`;
-
-  return `<span style="display: flex; align-items: center;">${checkboxHTML}<span>${option.text}</span></span>`;
-}
-
-/**
- * Format control selection display
- */
-function formatControlSelection(option) {
-  if (!option.id) return option.text;
-  return option.text;
+function updateControlesSummary() {
+  const countEl = document.getElementById('controles-count');
+  if (countEl) {
+    countEl.textContent = document.querySelectorAll('#controles-checkbox-list .asset-cb:checked').length;
+  }
 }
 
 /**
@@ -654,17 +624,8 @@ function initializeControlBasedReductions() {
     return;
   }
 
-  // Listen to Select2 changes
-  if (typeof jQuery !== 'undefined') {
-    jQuery(controlesSelect).on('change', function() {
-      handleControlsChanged();
-    });
-
-    console.log('Control-based reduction listener initialized');
-  } else {
-    // Fallback for non-jQuery environments
-    controlesSelect.addEventListener('change', handleControlsChanged);
-  }
+  controlesSelect.addEventListener('change', handleControlsChanged);
+  console.log('Control-based reduction listener initialized');
 
   // Check if there are already selected controls on page load (editing existing treatment)
   const selectedIds = Array.from(controlesSelect.selectedOptions).map(opt => opt.value);
@@ -677,7 +638,23 @@ function initializeControlBasedReductions() {
     }, 300);
   }
   // Call backend to calculate control reductions
-  calculateControlReductionsFromBackend(risco_id, selectedIds);
+  handleControlsChanged();
+}
+
+function handleControlsChanged() {
+  const controlesSelect = document.getElementById('id_controles');
+  const riscoInput = document.querySelector('input[name="risco_id"]');
+
+  if (!controlesSelect || !riscoInput) {
+    return;
+  }
+
+  const riscoId = riscoInput.value;
+  const selectedIds = Array.from(controlesSelect.selectedOptions).map(function (opt) {
+    return opt.value;
+  });
+
+  calculateControlReductionsFromBackend(riscoId, selectedIds);
 }
 
 /**

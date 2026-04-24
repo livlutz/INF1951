@@ -1,91 +1,59 @@
-document.addEventListener('DOMContentLoaded', function() {
-  initializeAtivosSelect2();
+document.addEventListener('DOMContentLoaded', function () {
+  buildAtivosCheckboxes();
+  initAtivosSearch();
 });
 
-function initializeAtivosSelect2() {
-  const ativosSelect = document.getElementById('id_ativos');
+function buildAtivosCheckboxes() {
+  const select = document.querySelector('select[name="ativos"]');
+  const container = document.getElementById('ativos-checkbox-list');
+  if (!select || !container) return;
 
-  if (!ativosSelect || typeof jQuery === 'undefined' || !jQuery.fn.select2) {
-    return;
-  }
+  container.innerHTML = '';
 
-  jQuery(ativosSelect).select2({
-    placeholder: 'Buscar e selecionar ativos...',
-    allowClear: true,
-    width: '100%',
-    language: 'pt-BR',
-    matcher: matchCustom,
-    templateResult: formatAtivoOption,
-    templateSelection: formatAtivoSelection,
-    closeOnSelect: false,
-    escapeMarkup: function(markup) { return markup; }
+  Array.from(select.options).forEach(function (option) {
+    const item = document.createElement('label');
+    item.className = 'checkbox-asset-item';
+    item.dataset.label = option.text.toLowerCase();
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.value = option.value;
+    checkbox.className = 'asset-cb';
+    checkbox.checked = option.selected;
+
+    checkbox.addEventListener('change', function () {
+      option.selected = this.checked;
+      updateSummary();
+    });
+
+    const label = document.createElement('span');
+    label.className = 'asset-cb-label';
+    label.textContent = option.text;
+
+    item.appendChild(checkbox);
+    item.appendChild(label);
+    container.appendChild(item);
   });
 
-  jQuery(ativosSelect).on('select2:select select2:unselect', function() {
-    updateCheckboxStates();
-  });
-
-  jQuery(ativosSelect).on('select2:opening', function() {
-    setTimeout(updateCheckboxStates, 50);
-  });
-
-  // Keep compatibility with the legacy text filter if present.
-  const legacyFilter = document.querySelector('[data-target-select="ativos"]');
-  if (legacyFilter) {
-    legacyFilter.style.display = 'none';
-  }
+  updateSummary();
 }
 
-function matchCustom(params, data) {
-  if (jQuery.trim(params.term) === '') {
-    return data;
-  }
+function initAtivosSearch() {
+  const input = document.getElementById('ativos-search');
+  const container = document.getElementById('ativos-checkbox-list');
+  if (!input || !container) return;
 
-  if (typeof data.text === 'undefined') {
-    return null;
-  }
-
-  if (data.text.toUpperCase().indexOf(params.term.toUpperCase()) > -1) {
-    return jQuery.extend({}, data, true);
-  }
-
-  return null;
-}
-
-function updateCheckboxStates() {
-  const selectedValues = jQuery('#id_ativos').val() || [];
-
-  jQuery('.select2-results__option').each(function() {
-    const optionElement = jQuery(this);
-    const resultData = optionElement.data('data');
-
-    if (!resultData || !resultData.id) {
-      return;
-    }
-
-    const isSelected = selectedValues.includes(resultData.id.toString());
-    optionElement.find('input[type="checkbox"]').prop('checked', isSelected);
+  input.addEventListener('input', function () {
+    const term = this.value.toLowerCase().trim();
+    container.querySelectorAll('.checkbox-asset-item').forEach(function (item) {
+      item.style.display = (!term || item.dataset.label.includes(term)) ? '' : 'none';
+    });
   });
 }
 
-function formatAtivoOption(option) {
-  if (!option.id) {
-    return option.text;
+function updateSummary() {
+  const countEl = document.getElementById('ativos-count');
+  if (countEl) {
+    countEl.textContent = document.querySelectorAll('#ativos-checkbox-list .asset-cb:checked').length;
   }
-
-  const selectedValues = jQuery('#id_ativos').val() || [];
-  const isSelected = selectedValues.includes(option.id.toString());
-  const checkboxHTML = '<input type="checkbox" ' +
-    (isSelected ? 'checked' : '') +
-    ' class="control-checkbox" style="margin-right: 10px; cursor: pointer; width: 18px; height: 18px; vertical-align: middle;">';
-
-  return '<span style="display: flex; align-items: center;">' + checkboxHTML + '<span>' + option.text + '</span></span>';
-}
-
-function formatAtivoSelection(option) {
-  if (!option.id) {
-    return option.text;
-  }
-
-  return option.text;
 }

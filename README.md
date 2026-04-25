@@ -1,8 +1,4 @@
-# ISMS - Sistema de Gestão de Segurança da Informação
-
-Projeto Final II 2026.1
-
-Lívia Lutz dos Santos - 2211055
+# SmartRisk: Um Sistema Automatizado para Gestão de Riscos em Segurança da Informação
 
 ![Python](https://img.shields.io/badge/python-3670A0?style=plastic&logo=python&logoColor=ffdd54)
 ![Django](https://img.shields.io/badge/django-%23092E20.svg?style=plastic&logo=django&logoColor=white)
@@ -32,9 +28,14 @@ Lívia Lutz dos Santos - 2211055
 ![GitHub User's stars](https://img.shields.io/github/stars/livlutz)
 ![GitHub watchers](https://img.shields.io/github/watchers/livlutz/INF1951)
 
+
+Projeto Final II 2026.1 - Lívia Lutz dos Santos - 2211055
+
 ## Escopo do Projeto
 
-Este repositório contém um sistema web completo para apoio à gestão de segurança da informação (ISMS/SGSI), desenvolvido com Django.
+Este trabalho propõe o desenvolvimento de um sistema automatizado e integrado de apoio à gestão de riscos em um Sistema de Gestão de Segurança da Informação (SGSI/ ISMS). A solução visa modelar o ciclo de vida completo do risco, permitindo o alinhamento contínuo entre ativos e suas vulnerabilidades, bem como a reavaliação do risco residual. A proposta segue o padrão ISO/IEC 27001 e aplica o ciclo PDCA (Plan, Do, Check, Act), buscando reduzir erros manuais, aumentar a precisão das análises e fortalecer a resiliência organizacional frente às ameaças digitais. Espera-se, com isso, promover uma gestão de segurança da informação mais eficiente, automatizada e em conformidade com as melhores práticas internacionais.
+
+Este repositório contém um sistema web completo para apoio à gestão de segurança da informação, desenvolvido com Django.
 
 O sistema cobre o ciclo principal de gestão de risco, incluindo:
 

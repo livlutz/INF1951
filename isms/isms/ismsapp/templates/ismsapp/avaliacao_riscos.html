@@ -11,7 +11,9 @@
 {% block content %}
 <div class="page">
   {% if risco_selecionado %}
-    <!-- Single Risk Evaluation Form -->
+    <!-- ══════════════════════════════════════════════
+         Single Risk Evaluation Form
+    ══════════════════════════════════════════════ -->
     <form method="post" action="{% url 'avaliacao_riscos' %}" class="card">
       {% csrf_token %}
       <input type="hidden" name="risco_id" value="{{ risco_selecionado.id }}">
@@ -29,7 +31,16 @@
         </div>
       </div>
 
-      <!-- Risk Under Evaluation Section -->
+      <!-- Flash messages -->
+      {% if messages %}
+        <div class="alerts-container">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- ── Risk Under Evaluation ── -->
       <div class="section">
         <div class="section-label">
           <span class="s-icon s-warning">
@@ -43,113 +54,146 @@
         </div>
 
         <div class="risk-evaluation-card active">
+          <!-- Risk name / asset -->
           <div class="risk-header-evaluation">
-            <h3 class="risk-name-eval">{{ risco_selecionado.nome }}</h3>
-            <div class="risk-asset-eval">Ativo: <strong>{{ risco_selecionado.ativo.nome }}</strong></div>
+            <div>
+              <h3 class="risk-name-eval">{{ risco_selecionado.nome }}</h3>
+              <div class="risk-asset-eval">Ativo: <strong>{{ risco_selecionado.ativo.nome }}</strong></div>
+            </div>
+            <!-- Back link -->
+            <a href="{% url 'avaliacao_riscos' %}" class="btn-back">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+              Voltar à lista
+            </a>
           </div>
 
-          <!-- Risk Level Display (UC-07) -->
+          <!-- ── Metrics row ── -->
           <div class="risk-metrics-eval">
+            <!-- Risk level -->
             <div class="metric-box">
-              <div class="metric-label">Nível de Risco (UC-07)</div>
+              <span class="metric-label">Nível de Risco</span>
               <div class="metric-value risk-value-display">
                 <span class="value-number">{{ risco_selecionado.valor_risco_inerente|floatformat:0 }}</span>
-                <span class="value-level" style="color: #f59e0b;">{{ risco_selecionado.nivel_inerente.categoria|default:"Não Definido" }}</span>
+                <span class="value-level nivel-{{ risco_selecionado.nivel_inerente.categoria|lower|default:'nd' }}">
+                  {{ risco_selecionado.nivel_inerente.categoria|default:"Não Definido" }}
+                </span>
               </div>
             </div>
 
-            <!-- Acceptance Criteria -->
+            <!-- Acceptance criteria -->
             <div class="metric-box">
-              <div class="metric-label">Critérios de Aceitação</div>
+              <span class="metric-label">Critérios de Aceitação</span>
               <div class="acceptance-criteria">
                 <div class="criteria-item">
-                  <span class="criteria-label">Apetite do Risco:</span>
-                  <span class="criteria-value badge badge-info">Nível {{ acceptance_level }} ({{ apetite_risco }})</span>
+                  <span class="criteria-label">Apetite ao Risco:</span>
+                  <span class="badge badge-info">Nível {{ acceptance_level }} — {{ apetite_risco }}</span>
                 </div>
                 <div class="criteria-item">
                   <span class="criteria-label">Status:</span>
                   {% if risco_selecionado_aceitavel %}
-                    <span class="criteria-value badge badge-success">ACEITÁVEL</span>
+                    <span class="badge badge-success">✓ ACEITÁVEL</span>
+                  {% elif sugestoes.borderline %}
+                    <span class="badge badge-borderline">⚠ No limite </span>
                   {% else %}
-                    <span class="criteria-value badge badge-danger">NÃO ACEITÁVEL</span>
+                    <span class="badge badge-danger">✕ NÃO ACEITÁVEL</span>
                   {% endif %}
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- System Recommendation -->
-          <div class="recommendation-box">
-            {% if risco_selecionado.valor_risco_inerente|floatformat:0|add:0 <= acceptance_level %}
-              <div class="recommendation-acceptable">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="20 6 9 17 4 12"></polyline>
+          <!-- ── System recommendation banner ──
+               Uses the context variable risco_selecionado_aceitavel (set by the view
+               with strict < logic) instead of a template comparison, avoiding the
+               double-counting bug. The borderline case (value == acceptance_level)
+               gets its own distinct banner.
+          -->
+          {% if risco_selecionado_aceitavel %}
+            <div class="recommendation-box recommendation-acceptable">
+              <div class="rec-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"/>
                 </svg>
+              </div>
+              <div class="rec-body">
                 <h4>Risco Aceitável</h4>
-                <p>Este risco está dentro dos limites de apetite ao risco da organização.</p>
+                <p>Este risco está abaixo do limite de apetite ao risco definido pela organização. Nenhuma ação imediata é obrigatória.</p>
               </div>
-            {% else %}
-              <div class="recommendation-treatment">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-
-                <!-- Risk Search -->
-                <div class="section">
-                  <div class="section-label">
-                    <span class="s-icon s-purple">🔎</span>
-                    Riscos Disponíveis para Avaliação
-                  </div>
-                  <div class="risk-search">
-                    <input
-                      type="text"
-                      id="riskSearch"
-                      placeholder="Pesquisar risco por nome ou ativo..."
-                      class="form-control"
-                    />
-                  </div>
-                </div>
-                  <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                  <polyline points="13 2 13 9 20 9"></polyline>
-                  <line x1="12" y1="14" x2="12" y2="20"></line>
-                  <line x1="9" y1="17" x2="15" y2="17"></line>
+            </div>
+          {% elif sugestoes.borderline %}
+            <div class="recommendation-box recommendation-borderline">
+              <div class="rec-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
-                <h4>Tratamento Necessário</h4>
-                <p>Este risco excede os critérios de apetite ao risco. Tratamento é recomendado.</p>
               </div>
-            {% endif %}
-          </div>
+              <div class="rec-body">
+                <h4>Risco No limite </h4>
+                <p>O valor deste risco está <strong>exatamente no limite</strong> do apetite definido ({{ acceptance_level }}). É necessário uma decisão explícita: aceitar com monitoramento reforçado ou iniciar tratamento preventivo.</p>
+              </div>
+            </div>
+          {% else %}
+            <div class="recommendation-box recommendation-treatment">
+              <div class="rec-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
+              <div class="rec-body">
+                <h4>Tratamento Necessário</h4>
+                <p>Este risco excede o limite de apetite ao risco da organização ({{ risco_selecionado.valor_risco_inerente|floatformat:0 }} &gt; {{ acceptance_level }}). O tratamento é obrigatório antes da próxima revisão.</p>
+              </div>
+            </div>
+          {% endif %}
 
-          <!-- Risk Level Suggestions Based on Criteria -->
+          <!-- ── Treatment Suggestions ── -->
           {% if sugestoes %}
             <div class="suggestions-box suggestions-{{ sugestoes.cor_categoria }}">
               <div class="suggestions-header">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   {% if sugestoes.icone == 'check-circle' %}
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
-                    <polyline points="10 16 6 12 7.41 10.59 10 13.17 16.59 6.59 18 8"/>
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
                   {% elif sugestoes.icone == 'alert-circle' %}
                     <circle cx="12" cy="12" r="10"/>
                     <line x1="12" y1="8" x2="12" y2="12"/>
                     <line x1="12" y1="16" x2="12.01" y2="16"/>
-                  {% elif sugestoes.icone == 'alert-triangle' %}
+                  {% else %}{# alert-triangle (alto + critico) #}
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                     <line x1="12" y1="9" x2="12" y2="13"/>
                     <line x1="12" y1="17" x2="12.01" y2="17"/>
                   {% endif %}
                 </svg>
-                <h4>Sugestão de Tratamento</h4>
+                <h4>Sugestões de Tratamento</h4>
+                {% if sugestoes.borderline %}
+                  <span class="borderline-tag">Situação No limite  — decisão necessária</span>
+                {% endif %}
               </div>
+
               <div class="suggestions-content">
                 {% if sugestoes.recomendacoes %}
                   {% for rec in sugestoes.recomendacoes %}
-                    <div class="suggestion-item">
-                      <strong class="suggestion-title">{{ rec.titulo }}</strong>
+                    <div class="suggestion-item suggestion-tipo-{{ rec.tipo }}">
+                      <div class="suggestion-item-header">
+                        <span class="suggestion-tipo-badge tipo-{{ rec.tipo }}">
+                          {% if rec.tipo == 'aceitar' %}✓{% else %}⚡{% endif %}
+                          {{ rec.tipo|capfirst }}
+                        </span>
+                        <strong class="suggestion-title">{{ rec.titulo }}</strong>
+                      </div>
                       <p class="suggestion-desc">{{ rec.descricao }}</p>
                       {% if rec.acoes %}
                         <div class="suggestion-actions">
-                          <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 500; margin-bottom: 0.5rem; display: block;">Estratégias recomendadas:</span>
-                          <ul style="margin: 0; padding-left: 1.25rem; list-style: disc;">
+                          <span class="actions-label">Ações recomendadas:</span>
+                          <ul class="actions-list">
                             {% for acao in rec.acoes %}
-                              <li style="color: #cbd5e1; margin-bottom: 0.25rem;">{{ acao }}</li>
+                              <li>{{ acao }}</li>
                             {% endfor %}
                           </ul>
                         </div>
@@ -157,21 +201,21 @@
                     </div>
                   {% endfor %}
                 {% else %}
-                  <p style="color: #94a3b8; font-size: 0.85rem;">Sem recomendações disponíveis para este nível de risco.</p>
+                  <p class="no-suggestions">Sem recomendações disponíveis para este nível de risco.</p>
                 {% endif %}
               </div>
             </div>
           {% endif %}
 
-          <!-- Risk Description -->
+          <!-- ── Risk Description ── -->
           <div class="risk-description-eval">
-            <div class="description-label">Descrição do Risco</div>
+            <span class="description-label">Descrição do Risco</span>
             <div class="description-content">{{ risco_selecionado.descricao }}</div>
           </div>
-        </div>
-      </div>
+        </div><!-- /.risk-evaluation-card -->
+      </div><!-- /.section -->
 
-      <!-- Decision Section -->
+      <!-- ── Decision Section ── -->
       <div class="section">
         <div class="section-label">
           <span class="s-icon s-purple">
@@ -185,36 +229,41 @@
 
         <div class="decision-options">
           <label class="decision-option">
-            <input type="radio" name="decisao" value="aceitar" required>
+            <input type="radio" name="decisao" value="aceitar" required
+              {% if risco_selecionado_aceitavel %}checked{% endif %}>
             <span class="option-label">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
-                <polyline points="10 16 6 12 7.41 10.59 10 13.17 16.59 6.59 18 8"/>
-              </svg>
+              <span class="option-icon option-icon-accept">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </span>
               <div class="option-text">
                 <strong>Aceitar Risco</strong>
-                <small>O risco será aceito pela organização sem tratamento.</small>
+                <small>O risco será aceito pela organização. Um registro de aceitação é criado automaticamente.</small>
               </div>
             </span>
           </label>
 
           <label class="decision-option">
-            <input type="radio" name="decisao" value="tratar" required>
+            <input type="radio" name="decisao" value="tratar" required
+              {% if not risco_selecionado_aceitavel and not sugestoes.borderline %}checked{% endif %}>
             <span class="option-label">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/>
-                <polyline points="12 6 12 12 16 14"/>
-              </svg>
+              <span class="option-icon option-icon-treat">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                </svg>
+              </span>
               <div class="option-text">
                 <strong>Enviar para Tratamento</strong>
-                <small>Um plano de tratamento será criado para este risco.</small>
+                <small>Um plano de tratamento será criado para reduzir a exposição ao risco.</small>
               </div>
             </span>
           </label>
         </div>
       </div>
 
-      <!-- Observations Section -->
+      <!-- ── Observations ── -->
       <div class="section">
         <div class="section-label">
           <span class="s-icon s-blue">
@@ -222,24 +271,29 @@
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
           </span>
-          Observações (Opcional)
+          Observações <span class="optional-tag">(Opcional)</span>
         </div>
         <textarea name="observacoes" class="form-control" rows="3"
-                  placeholder="Registre observações, justificativas ou notas adicionais sobre esta avaliação..."></textarea>
+          placeholder="Registre justificativas, ressalvas ou notas adicionais sobre esta avaliação..."></textarea>
       </div>
 
-      <!-- Action Buttons -->
+      <!-- ── Action Buttons ── -->
       <div class="button-group">
         <button type="submit" class="btn-primary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="20 6 9 17 4 12"></polyline>
+            <polyline points="20 6 9 17 4 12"/>
           </svg>
           Confirmar Avaliação
         </button>
-        <a href="{% url 'dashboard' %}" class="btn-secondary">
+        <a href="{% url 'avaliacao_riscos' %}" class="btn-secondary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Voltar à Lista
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn-ghost">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
           Cancelar
         </a>
@@ -247,7 +301,9 @@
     </form>
 
   {% else %}
-    <!-- Risk Selection List -->
+    <!-- ══════════════════════════════════════════════
+         Risk Selection List
+    ══════════════════════════════════════════════ -->
     <div class="card">
       <!-- Header -->
       <div class="card-header">
@@ -259,21 +315,20 @@
         </div>
         <div>
           <h1 class="card-title">Avaliação de Riscos</h1>
+          <p class="card-subtitle">Selecione um risco analisado para avaliá-lo contra os critérios de aceitação.</p>
         </div>
       </div>
 
-      <!-- Success Messages -->
+      <!-- Flash messages -->
       {% if messages %}
         <div class="alerts-container">
           {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-              {{ message }}
-            </div>
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
           {% endfor %}
         </div>
       {% endif %}
 
-      <!-- Organizations Risk Criteria -->
+      <!-- ── Organization Risk Criteria ── -->
       {% if criterio_avaliacao %}
       <div class="section">
         <div class="section-label">
@@ -287,45 +342,76 @@
           Critérios de Aceitação da Organização
         </div>
         <div class="criteria-info">
-          <strong>Apetite ao Risco:</strong> {{ criterio_avaliacao.get_apetite_risco_display }}
-          (Nível máximo aceitável: {{ acceptance_level }} pontos)
+          <div class="criteria-info-row">
+            <span class="criteria-info-label">Apetite ao Risco:</span>
+            <span class="badge badge-info">{{ criterio_avaliacao.get_apetite_risco_display }}</span>
+          </div>
+          <div class="criteria-info-row">
+            <span class="criteria-info-label">Nível máximo aceitável:</span>
+            <span class="badge badge-info">{{ acceptance_level }} pontos</span>
+          </div>
+          <p class="criteria-info-note">
+            Riscos com valor <strong>abaixo de {{ acceptance_level }}</strong> são aceitos.
+            Riscos <strong>iguais a {{ acceptance_level }}</strong> são No limite s e requerem decisão explícita.
+            Riscos <strong>acima de {{ acceptance_level }}</strong> devem ser tratados.
+          </p>
         </div>
       </div>
+      {% else %}
+        <div class="alert alert-warning">
+          Nenhum critério de avaliação de risco foi definido. Configure os critérios antes de avaliar riscos.
+        </div>
       {% endif %}
 
-      <!-- Analyzed Risks List -->
+      <!-- ── Analyzed Risks List ── -->
       <div class="section">
         <div class="section-label">
           <span class="s-icon s-purple">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M4 4h16v2H4V4z"/>
-              <path d="M4 9h16v2H4V9z"/>
-              <path d="M4 14h16v2H4v-2z"/>
+              <line x1="8" y1="6" x2="21" y2="6"/>
+              <line x1="8" y1="12" x2="21" y2="12"/>
+              <line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/>
+              <line x1="3" y1="12" x2="3.01" y2="12"/>
+              <line x1="3" y1="18" x2="3.01" y2="18"/>
             </svg>
           </span>
           Riscos Analisados Disponíveis para Avaliação
+          {% if riscos %}
+            <span class="count-badge">{{ riscos|length }}</span>
+          {% endif %}
         </div>
 
+        <!-- Search -->
         <div class="risk-search">
+          <span class="search-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </span>
           <input
             type="text"
             id="riskSearch"
-            placeholder="Pesquisar risco por nome ou ativo..."
-            class="form-control"
+            placeholder="Pesquisar por nome ou ativo..."
+            class="form-control search-input"
           />
         </div>
 
         {% if riscos %}
-          <div class="risks-list">
+          <div class="risks-list" id="risksList">
             {% for risco_item in riscos %}
-            <a href="?risco_id={{ risco_item.risco.id }}" class="risk-list-item{% if risco_selecionado and risco_selecionado.id == risco_item.risco.id %} selected{% endif %}" data-risk-id="{{ risco_item.risco.id }}">
+            <a href="?risco_id={{ risco_item.risco.id }}"
+               class="risk-list-item"
+               data-risk-id="{{ risco_item.risco.id }}">
               <div class="risk-list-header">
                 <h4 class="risk-list-title">{{ risco_item.risco.nome }}</h4>
                 <div class="risk-list-badge">
                   {% if risco_item.aceitavel %}
                     <span class="badge badge-success">Aceitável</span>
+                  {% elif risco_item.valor_risco == acceptance_level %}
+                    <span class="badge badge-borderline">No limite </span>
                   {% else %}
-                    <span class="badge badge-warning">Tratamento Necessário</span>
+                    <span class="badge badge-danger">Tratar</span>
                   {% endif %}
                 </div>
               </div>
@@ -335,20 +421,26 @@
                   <span class="value">{{ risco_item.ativo_nome }}</span>
                 </div>
                 <div class="risk-list-item-col">
-                  <span class="label">Valor de Risco:</span>
-                  <span class="value">{{ risco_item.valor_risco|floatformat:0 }}</span>
+                  <span class="label">Valor:</span>
+                  <span class="value risk-val">{{ risco_item.valor_risco|floatformat:0 }} / {{ acceptance_level }}</span>
                 </div>
                 <div class="risk-list-item-col">
                   <span class="label">Nível:</span>
-                  <span class="value">{{ risco_item.nivel_risco }}</span>
+                  <span class="value nivel-tag nivel-{{ risco_item.nivel_risco|lower }}">
+                    {{ risco_item.nivel_risco }}
+                  </span>
                 </div>
               </div>
               <div class="risk-list-footer">
-                <small>Clique para avaliar este risco</small>
+                <span>Clique para avaliar</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
               </div>
             </a>
             {% endfor %}
           </div>
+          <p id="noResults" class="no-results" style="display:none;">Nenhum risco encontrado para esse termo.</p>
         {% else %}
           <div class="empty-state">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
@@ -356,8 +448,8 @@
               <path d="M12 6v6l4 2"/>
             </svg>
             <h3>Nenhum Risco Analisado</h3>
-            <p>Não há riscos analisados disponíveis para avaliação.
-            Por favor, execute a análise de riscos primeiro.</p>
+            <p>Não há riscos analisados disponíveis para avaliação.<br>
+            Execute a análise de riscos antes de prosseguir.</p>
           </div>
         {% endif %}
       </div>

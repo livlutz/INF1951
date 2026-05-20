@@ -1,167 +1,130 @@
 /**
- * Avaliação de Riscos JavaScript
+ * Avaliação de Riscos — avaliacao_riscos.js
  * Handles interactive features for risk evaluation
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-  // Initialize interactive elements
-  initializeRiskSelection();
+document.addEventListener('DOMContentLoaded', function () {
   initializeRiskSearch();
   initializeDecisionOptions();
   initializeFormValidation();
+  highlightSelectedRisk();
+  autoPreselectDecision();
 });
 
 /**
- * Initialize risk selection functionality
+ * Highlight the currently selected risk in the list view (if any).
+ * Driven by the ?risco_id= query param so it survives a page refresh.
  */
-function initializeRiskSelection() {
-  const riskItems = document.querySelectorAll('.risk-list-item');
+function highlightSelectedRisk() {
   const params = new URLSearchParams(window.location.search);
-  const selectedRiskId = params.get('risco_id');
+  const selectedId = params.get('risco_id');
+  if (!selectedId) return;
 
-  riskItems.forEach(item => {
-    const itemRiskId = item.dataset.riskId;
-    if (selectedRiskId && itemRiskId === selectedRiskId) {
-      item.classList.add('selected');
-    }
-
-    item.addEventListener('click', function(e) {
-      e.preventDefault();
-      const url = this.getAttribute('href');
-      if (url) {
-        window.location.href = url;
-      }
-    });
-  });
+  const item = document.querySelector(`.risk-list-item[data-risk-id="${selectedId}"]`);
+  if (item) {
+    item.classList.add('selected');
+    item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 }
 
 /**
- * Initialize quick search across risk cards
+ * Live search/filter across risk cards in the list view.
+ * Searches both the risk name and asset name.
+ * Shows a "no results" message when nothing matches.
  */
 function initializeRiskSearch() {
   const input = document.getElementById('riskSearch');
   if (!input) return;
 
-  input.addEventListener('input', function() {
-    const query = this.value.toLowerCase();
-    const items = document.querySelectorAll('.risk-list-item');
+  const noResults = document.getElementById('noResults');
 
-    items.forEach(item => {
+  input.addEventListener('input', function () {
+    const query = this.value.toLowerCase().trim();
+    const items = document.querySelectorAll('.risk-list-item');
+    let visible = 0;
+
+    items.forEach(function (item) {
       const text = item.textContent.toLowerCase();
-      item.style.display = text.includes(query) ? 'flex' : 'none';
+      const match = !query || text.includes(query);
+      item.style.display = match ? '' : 'none';
+      if (match) visible++;
     });
+
+    if (noResults) {
+      noResults.style.display = visible === 0 ? 'block' : 'none';
+    }
   });
 }
 
 /**
- * Initialize decision option radio buttons
+ * Visual feedback when a decision radio is selected.
+ * The heavy lifting is done by CSS, but we keep the handler for
+ * any future additional logic (analytics, warnings, etc.).
  */
 function initializeDecisionOptions() {
-  const radioButtons = document.querySelectorAll('input[name="decisao"]');
-
-  radioButtons.forEach(radio => {
-    radio.addEventListener('change', function() {
-      // Visual feedback is handled by CSS, but we can add additional logic here
-      const decisionValue = this.value;
-      console.log('Risk decision selected:', decisionValue);
+  const radios = document.querySelectorAll('input[name="decisao"]');
+  radios.forEach(function (radio) {
+    radio.addEventListener('change', function () {
+      // Future hook: show confirmation prompt for "aceitar" on high-risk items
     });
   });
 }
 
 /**
- * Initialize form validation
+ * Pre-select the recommended decision radio based on the badge already
+ * rendered by the server.  This is a progressive-enhancement fallback:
+ * the template already sets `checked` via Django, but this guards against
+ * edge cases where neither was checked (e.g. borderline risk).
+ */
+function autoPreselectDecision() {
+  const anyChecked = document.querySelector('input[name="decisao"]:checked');
+  if (anyChecked) return; // already set server-side
+
+  // Check whether the status badge says "ACEITÁVEL"
+  const statusBadge = document.querySelector('.criteria-item .badge-success');
+  if (statusBadge) {
+    const radio = document.querySelector('input[name="decisao"][value="aceitar"]');
+    if (radio) radio.checked = true;
+  }
+}
+
+/**
+ * Form validation — prevent submission without a decision.
  */
 function initializeFormValidation() {
   const form = document.querySelector('form');
+  if (!form) return;
 
-  if (form) {
-    form.addEventListener('submit', function(e) {
-      const decisaoInput = this.querySelector('input[name="decisao"]:checked');
+  form.addEventListener('submit', function (e) {
+    const checked = this.querySelector('input[name="decisao"]:checked');
+    if (!checked) {
+      e.preventDefault();
+      showValidationError('Por favor, selecione uma decisão antes de confirmar a avaliação.');
+    }
+  });
+}
 
-      if (!decisaoInput) {
-        e.preventDefault();
-        alert('Selecione uma decisão (Aceitar ou Tratar).');
-        return false;
-      }
+/**
+ * Show an inline validation error rather than a browser alert.
+ * Inserts a dismissible banner above the decision section.
+ */
+function showValidationError(message) {
+  // Remove existing error if any
+  const existing = document.getElementById('validation-error');
+  if (existing) existing.remove();
 
-      return true;
-    });
+  const banner = document.createElement('div');
+  banner.id = 'validation-error';
+  banner.className = 'alert alert-error';
+  banner.style.cssText = 'margin-bottom:1rem; animation: fadeIn .2s ease;';
+  banner.textContent = message;
+
+  const decisionSection = document.querySelector('.decision-options');
+  if (decisionSection) {
+    decisionSection.parentElement.insertBefore(banner, decisionSection);
+    banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
-}
 
-/**
- * Format risk value for display
- * @param {number} value - The risk value
- * @returns {string} Formatted risk value
- */
-function formatRiskValue(value) {
-  return Math.round(value).toString();
-}
-
-/**
- * Get risk level color based on value
- * @param {number} value - The risk value
- * @returns {string} CSS color class
- */
-function getRiskLevelColor(value) {
-  if (value <= 3) return 'green';
-  if (value <= 8) return 'yellow';
-  if (value <= 15) return 'orange';
-  return 'red';
-}
-
-/**
- * Toggle risk details visibility
- * @param {Element} element - The risk element to toggle
- */
-function toggleRiskDetails(element) {
-  element.classList.toggle('active');
-}
-
-/**
- * Handle risk acceptance
- */
-function handleRiskAcceptance() {
-  const decisaoInput = document.querySelector('input[name="decisao"][value="aceitar"]');
-  if (decisaoInput) {
-    decisaoInput.checked = true;
-    decisaoInput.dispatchEvent(new Event('change', { bubbles: true }));
-  }
-}
-
-/**
- * Handle risk treatment
- */
-function handleRiskTreatment() {
-  const decisaoInput = document.querySelector('input[name="decisao"][value="tratar"]');
-  if (decisaoInput) {
-    decisaoInput.checked = true;
-    decisaoInput.dispatchEvent(new Event('change', { bubbles: true }));
-  }
-}
-
-/**
- * Export risk evaluation for reporting
- */
-function exportRiskEvaluation() {
-  const riskName = document.querySelector('.risk-name-eval') ? document.querySelector('.risk-name-eval').textContent : 'Risk';
-  const riskValue = document.querySelector('.value-number') ? document.querySelector('.value-number').textContent : '0';
-  const decision = document.querySelector('input[name="decisao"]:checked') ? document.querySelector('input[name="decisao"]:checked').value : 'Not selected';
-
-  const data = {
-    riskName: riskName,
-    riskValue: riskValue,
-    decision: decision,
-    timestamp: new Date().toISOString()
-  };
-
-  console.log('Risk Evaluation Data:', data);
-  return data;
-}
-
-/**
- * Print risk evaluation report
- */
-function printRiskEvaluation() {
-  window.print();
+  // Auto-dismiss after 5 s
+  setTimeout(function () { banner.remove(); }, 5000);
 }

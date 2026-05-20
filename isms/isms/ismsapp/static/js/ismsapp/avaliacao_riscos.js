@@ -6,6 +6,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize interactive elements
   initializeRiskSelection();
+  initializeRiskSearch();
   initializeDecisionOptions();
   initializeFormValidation();
 });
@@ -15,14 +16,39 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function initializeRiskSelection() {
   const riskItems = document.querySelectorAll('.risk-list-item');
+  const params = new URLSearchParams(window.location.search);
+  const selectedRiskId = params.get('risco_id');
 
   riskItems.forEach(item => {
+    const itemRiskId = item.dataset.riskId;
+    if (selectedRiskId && itemRiskId === selectedRiskId) {
+      item.classList.add('selected');
+    }
+
     item.addEventListener('click', function(e) {
       e.preventDefault();
       const url = this.getAttribute('href');
       if (url) {
         window.location.href = url;
       }
+    });
+  });
+}
+
+/**
+ * Initialize quick search across risk cards
+ */
+function initializeRiskSearch() {
+  const input = document.getElementById('riskSearch');
+  if (!input) return;
+
+  input.addEventListener('input', function() {
+    const query = this.value.toLowerCase();
+    const items = document.querySelectorAll('.risk-list-item');
+
+    items.forEach(item => {
+      const text = item.textContent.toLowerCase();
+      item.style.display = text.includes(query) ? 'flex' : 'none';
     });
   });
 }
@@ -50,20 +76,15 @@ function initializeFormValidation() {
 
   if (form) {
     form.addEventListener('submit', function(e) {
-      const riskInput = this.querySelector('input[name="risco_id"]');
       const decisaoInput = this.querySelector('input[name="decisao"]:checked');
 
-      if (riskInput && riskInput.value && decisaoInput) {
-        // Form is valid, proceed with submission
-        return true;
-      } else {
+      if (!decisaoInput) {
         e.preventDefault();
-        // Show validation error
-        if (!decisaoInput) {
-          alert('Por favor, selecione uma decisão sobre o risco (Aceitar ou Enviar para Tratamento).');
-        }
+        alert('Selecione uma decisão (Aceitar ou Tratar).');
         return false;
       }
+
+      return true;
     });
   }
 }

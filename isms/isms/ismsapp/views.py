@@ -105,6 +105,11 @@ class UserLogoutView(View):
         logout(request)
         return render(request, self.template_name)
 
+    def post(self, request, *args, **kwargs):
+        """Allow logout via POST (used by the header logout form)."""
+        logout(request)
+        return render(request, self.template_name)
+
 class UserProfileView(View):
     """User profile view - displays user's profile information.
 
@@ -1844,6 +1849,13 @@ class AvaliacaoRiscoView(View):
                 messages.error(request, "Risco não encontrado ou não foi analisado ainda.")
                 risco_selecionado = None
 
+        risco_selecionado_aceitavel = None
+        if risco_selecionado:
+            risco_selecionado_aceitavel = self._is_risk_acceptable(
+                risco_selecionado.valor_risco_inerente,
+                acceptance_level
+            )
+
         # Prepare risk evaluation data for display
         riscos_para_apresentacao = []
         for risco in riscos_analisados:
@@ -1875,6 +1887,7 @@ class AvaliacaoRiscoView(View):
             'apetite_risco': criterio_avaliacao.get_apetite_risco_display() if criterio_avaliacao else 'Não Definido',
             'acceptance_level': acceptance_level,
             'sugestoes': sugestoes,
+            'risco_selecionado_aceitavel': risco_selecionado_aceitavel,
         }
 
         return render(request, self.template_name, contexto)

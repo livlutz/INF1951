@@ -8,11 +8,8 @@
 {% endblock %}
 
 {% block content %}
-<script id="ativos-data" type="application/json">
-{
-    {% for ativo in ativos %}"{{ ativo.id }}": {"confidencialidade": {{ ativo.confidencialidade }}, "integridade": {{ ativo.integridade }}, "disponibilidade": {{ ativo.disponibilidade }}, "privacidade": {{ ativo.privacidade }}}{% if not forloop.last %},{% endif %}{% endfor %}
-}
-</script>
+
+{{ ativos|json_script:"ativos-data" }}
 
 <div class="analise-container">
     <form method="post" id="cidp-form">
@@ -34,12 +31,11 @@
             <label for="ativo-select" class="section-label">
                 <i class="fas fa-cube"></i> Seleção do Ativo
             </label>
+            <input id="ativo-search" type="text" class="form-control ativo-search" placeholder="Buscar ativo...">
             <select id="ativo-select" name="ativo_id" class="form-control ativo-select" required>
                 <option value="">-- Selecione um ativo para avaliar --</option>
                 {% for ativo in ativos %}
-                    <option value="{{ ativo.id }}">
-                        {{ ativo.nome }}
-                    </option>
+                    <option value="{{ ativo.id }}">{{ ativo.nome }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -52,6 +48,7 @@
 
     <!-- CIDP Valuation Section -->
     <div class="valorizacao-cidp-section" style="display: none;">
+        <!-- Add show/hide via class .show for fade-in -->
         <div class="section-header">
             <i class="fas fa-star"></i>
             <span>Valoração CIDP</span>
@@ -64,11 +61,12 @@
                 <span>Confidencialidade</span>
                 <span class="rating-badge">0</span>
             </div>
-            <div class="rating-display">
+            <div class="rating-display" role="radiogroup" data-dim="confidencialidade">
                 {% for i in "12345" %}
-                    <span class="rating-item">{{ i }}</span>
+                    <button type="button" class="rating-item" data-value="{{ i }}" aria-label="{{ i }}">{{ i }}</button>
                 {% endfor %}
             </div>
+            <p class="hint">Clique para ajustar o nível (1–5)</p>
         </div>
 
         <!-- Integridade -->
@@ -78,11 +76,12 @@
                 <span>Integridade</span>
                 <span class="rating-badge">0</span>
             </div>
-            <div class="rating-display">
+            <div class="rating-display" role="radiogroup" data-dim="integridade">
                 {% for i in "12345" %}
-                    <span class="rating-item">{{ i }}</span>
+                    <button type="button" class="rating-item" data-value="{{ i }}" aria-label="{{ i }}">{{ i }}</button>
                 {% endfor %}
             </div>
+            <p class="hint">Clique para ajustar o nível (1–5)</p>
         </div>
 
         <!-- Disponibilidade -->
@@ -92,11 +91,12 @@
                 <span>Disponibilidade</span>
                 <span class="rating-badge">0</span>
             </div>
-            <div class="rating-display">
+            <div class="rating-display" role="radiogroup" data-dim="disponibilidade">
                 {% for i in "12345" %}
-                    <span class="rating-item">{{ i }}</span>
+                    <button type="button" class="rating-item" data-value="{{ i }}" aria-label="{{ i }}">{{ i }}</button>
                 {% endfor %}
             </div>
+            <p class="hint">Clique para ajustar o nível (1–5)</p>
         </div>
 
         <!-- Privacidade -->
@@ -106,11 +106,12 @@
                 <span>Privacidade</span>
                 <span class="rating-badge">0</span>
             </div>
-            <div class="rating-display">
+            <div class="rating-display" role="radiogroup" data-dim="privacidade">
                 {% for i in "12345" %}
-                    <span class="rating-item">{{ i }}</span>
+                    <button type="button" class="rating-item" data-value="{{ i }}" aria-label="{{ i }}">{{ i }}</button>
                 {% endfor %}
             </div>
+            <p class="hint">Clique para ajustar o nível (1–5)</p>
         </div>
     </div>
 
@@ -121,13 +122,14 @@
             <div class="score-content">
                 <p class="score-label">Valor CIDP Calculado do Ativo</p>
                 <div class="score-display">
-                    <span class="score-value">0.0</span>
+                    <div>
+                        <div class="score-row"><span class="score-title">Partial score</span>: <span class="score-value">0.0</span></div>
+                        <div class="score-row"><span class="score-title">Complete score (all 4)</span>: <span class="score-complete">0.0</span></div>
+                    </div>
                     <span class="score-max">/ 5.0</span>
                 </div>
             </div>
-            <div class="risk-badge muito-baixo">
-                SEM AVALIAÇÃO
-            </div>
+            <div class="risk-badge muito-baixo">SEM AVALIAÇÃO</div>
         </div>
     </div>
 
@@ -137,195 +139,8 @@
         <button type="submit" class="btn btn-confirm">Registrar Avaliação</button>
     </div>
     </form>
-</div>
+    </div>
 
-<!-- Debug inline script to test if JavaScript works -->
-<script>
-console.log('INLINE SCRIPT TEST: JavaScript is working in this page');
-console.log('Page loaded at:', new Date().toLocaleTimeString());
-
-// Catch any JavaScript errors
-window.onerror = function(message, source, lineno, colno, error) {
-    console.error('JAVASCRIPT ERROR:', {message, source, lineno, colno, error});
-};
-
-window.addEventListener('error', function(event) {
-    console.error('RESOURCE LOAD ERROR:', event);
-});
-
-// MAIN APPLICATION LOGIC - Inline to avoid external file issues
-let ativosData = {};
-let currentAtivoId = null;
-let currentValues = {
-    confidencialidade: 0,
-    integridade: 0,
-    disponibilidade: 0,
-    privacidade: 0
-};
-
-function updateHiddenFields() {
-    document.getElementById('cidp-confidencialidade').value = currentValues.confidencialidade;
-    document.getElementById('cidp-integridade').value = currentValues.integridade;
-    document.getElementById('cidp-disponibilidade').value = currentValues.disponibilidade;
-    document.getElementById('cidp-privacidade').value = currentValues.privacidade;
-    console.log('Hidden fields updated with values:', currentValues);
-    updateCIDPScore();
-}
-
-function updateCIDPScore() {
-    // Calculate the average of non-zero CIDP values
-    const values = [currentValues.confidencialidade, currentValues.integridade, currentValues.disponibilidade, currentValues.privacidade];
-    const nonZeroValues = values.filter(v => v > 0);
-
-    let calculatedScore = 0.0;
-    let riskLevel = 'SEM AVALIAÇÃO';
-    let riskClass = 'sem-risco';
-
-    if (nonZeroValues.length > 0) {
-        const sum = nonZeroValues.reduce((a, b) => a + b, 0);
-        calculatedScore = (sum / nonZeroValues.length).toFixed(1);
-
-        // Determine risk level
-        if (calculatedScore >= 4.5) {
-            riskLevel = 'MUITO ALTO';
-            riskClass = 'muito-alto';
-        } else if (calculatedScore >= 3.5) {
-            riskLevel = 'ALTO';
-            riskClass = 'alto';
-        } else if (calculatedScore >= 2.5) {
-            riskLevel = 'MÉDIO';
-            riskClass = 'medio';
-        } else if (calculatedScore >= 1.5) {
-            riskLevel = 'BAIXO';
-            riskClass = 'baixo';
-        } else {
-            riskLevel = 'MUITO BAIXO';
-            riskClass = 'muito-baixo';
-        }
-    }
-
-    // Update the score display
-    const scoreValue = document.querySelector('.score-value');
-    const riskBadge = document.querySelector('.risk-badge');
-
-    if (scoreValue) scoreValue.textContent = calculatedScore;
-    if (riskBadge) {
-        riskBadge.textContent = riskLevel;
-        riskBadge.className = 'risk-badge ' + riskClass;
-    }
-
-    console.log('CIDP Score calculated:', calculatedScore, '- Risk:', riskLevel);
-}
-
-function mostrarValorizacao(ativoId) {
-    if (!ativoId) {
-        document.querySelector('.valorizacao-cidp-section').style.display = 'none';
-        document.querySelector('.valuation-score-section').style.display = 'none';
-        return;
-    }
-
-    currentAtivoId = ativoId;
-    const ativo = ativosData[ativoId];
-    if (ativo) {
-        // Set current values from the asset data
-        currentValues.confidencialidade = ativo.confidencialidade || 0;
-        currentValues.integridade = ativo.integridade || 0;
-        currentValues.disponibilidade = ativo.disponibilidade || 0;
-        currentValues.privacidade = ativo.privacidade || 0;
-
-        console.log('Asset selected:', ativoId, '- Current values:', currentValues);
-        updateHiddenFields();
-
-        // Update badges
-        const badges = document.querySelectorAll('.rating-badge');
-        const dimensoes = ['confidencialidade', 'integridade', 'disponibilidade', 'privacidade'];
-        badges.forEach((badge, index) => {
-            badge.textContent = ativo[dimensoes[index]] || 0;
-        });
-
-        // Update rating displays
-        const sections = document.querySelectorAll('.criterio-section');
-        sections.forEach((section, index) => {
-            const valor = ativo[dimensoes[index]] || 0;
-            const ratingItems = section.querySelectorAll('.rating-item');
-            ratingItems.forEach((item, i) => {
-                item.classList.remove('active');
-                if ((i + 1) === valor) {
-                    item.classList.add('active');
-                }
-
-                // Add click handler
-                item.style.cursor = 'pointer';
-                item.onclick = function(e) {
-                    e.preventDefault();
-                    const newValue = i + 1;
-                    const dimensao = dimensoes[index];
-
-                    currentValues[dimensao] = newValue;
-                    console.log('Rating clicked:', dimensao, '=', newValue);
-                    updateHiddenFields();
-
-                    // Update visual
-                    ratingItems.forEach((it, idx) => {
-                        it.classList.remove('active');
-                        if ((idx + 1) === newValue) {
-                            it.classList.add('active');
-                        }
-                    });
-
-                    section.querySelector('.rating-badge').textContent = newValue;
-                };
-            });
-        });
-
-        document.querySelector('.valorizacao-cidp-section').style.display = 'block';
-        document.querySelector('.valuation-score-section').style.display = 'block';
-    }
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOMContentLoaded event fired');
-
-    // Load asset data
-    const dataElement = document.getElementById('ativos-data');
-    if (dataElement) {
-        ativosData = JSON.parse(dataElement.textContent);
-        console.log('Loaded asset data:', ativosData);
-    }
-
-    // Asset select change handler
-    const selectElement = document.getElementById('ativo-select');
-    if (selectElement) {
-        selectElement.addEventListener('change', function() {
-            mostrarValorizacao(this.value);
-        });
-
-        if (selectElement.value) {
-            mostrarValorizacao(selectElement.value);
-        }
-    }
-
-    // Form submission handler
-    const form = document.getElementById('cidp-form');
-    if (form) {
-        console.log('Form handler attached');
-        form.addEventListener('submit', function(e) {
-            console.log('FORM SUBMITTED - Updating hidden fields before POST');
-            console.log('Current values being sent:', currentValues);
-            updateHiddenFields();
-
-            // Log what will be sent
-            setTimeout(function() {
-                console.log('Hidden field values after update:');
-                console.log('- confidencialidade:', document.getElementById('cidp-confidencialidade').value);
-                console.log('- integridade:', document.getElementById('cidp-integridade').value);
-                console.log('- disponibilidade:', document.getElementById('cidp-disponibilidade').value);
-                console.log('- privacidade:', document.getElementById('cidp-privacidade').value);
-            }, 10);
-        });
-    }
-});
-</script>
+    <script src="{% static 'js/ismsapp/analise_valoracao_ativos.js' %}"></script>
 
 {% endblock %}

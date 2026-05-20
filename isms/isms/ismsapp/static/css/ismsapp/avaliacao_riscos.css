@@ -231,6 +231,19 @@ body {
 }
 
 /* ── Decision Options ─────────────────────────────────────────────── */
+.risk-search {
+  margin: 1rem 0;
+}
+
+.risk-search input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-btn);
+  color: var(--text-primary);
+}
+
 .decision-options {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -255,6 +268,18 @@ body {
   border-radius: 8px;
   transition: all .2s ease;
   align-items: flex-start;
+}
+
+.decision-option input[value="aceitar"]:checked + .option-label {
+  border-color: var(--success);
+  background: rgba(16,185,129,0.08);
+  box-shadow: 0 0 0 1px rgba(16,185,129,0.35);
+}
+
+.decision-option input[value="tratar"]:checked + .option-label {
+  border-color: var(--warning);
+  background: rgba(245,158,11,0.08);
+  box-shadow: 0 0 0 1px rgba(245,158,11,0.35);
 }
 
 .decision-option input[type="radio"]:checked + .option-label {
@@ -368,6 +393,11 @@ body {
   border-color: var(--purple);
   box-shadow: 0 0 0 1px var(--purple), 0 4px 12px rgba(139,60,247,0.2);
   transform: translateY(-2px);
+}
+
+.risk-list-item.selected {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 1px var(--purple);
 }
 
 .risk-list-header {
@@ -510,6 +540,12 @@ body {
 
   .button-group {
     grid-template-columns: 1fr;
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-card);
+    padding: 1rem;
+    border-top: 1px solid var(--border);
+    z-index: 10;
   }
 
   .risks-list {

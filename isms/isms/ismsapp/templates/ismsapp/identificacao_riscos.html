@@ -80,7 +80,30 @@
       </div>
       <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 1rem;">Selecione o ativo correspondente</div>
 
-      {{ form.ativo }}
+      <div class="search-select">
+        <div class="search-select-bar">
+          <input
+            type="text"
+            id="ativo-search"
+            class="search-input"
+            placeholder="Buscar ativo..."
+            autocomplete="off"
+          >
+          <button type="button" class="clear-btn" id="ativo-clear">Limpar</button>
+        </div>
+
+        <div class="hint">Digite para buscar rapidamente o ativo</div>
+
+        <div class="select-dropdown" id="ativo-dropdown">
+          {% for value, label in form.ativo.field.choices %}
+            <div class="option-item{% if form.ativo.value|stringformat:'s' == value|stringformat:'s' %} selected{% endif %}" data-value="{{ value }}">
+              {{ label }}
+            </div>
+          {% endfor %}
+        </div>
+
+        <input type="hidden" name="ativo" id="ativo-hidden" value="{{ form.ativo.value|default:'' }}">
+      </div>
 
       {% if form.ativo.errors %}
         <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.ativo.errors|join:", " }}</p>

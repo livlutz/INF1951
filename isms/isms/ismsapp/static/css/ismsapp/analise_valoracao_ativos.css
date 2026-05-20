@@ -1,5 +1,11 @@
 /* Análise de Valoração de Ativos - Styling */
 
+:root {
+    --cidp-primary: #9333ea;
+    --cidp-border: rgba(147, 51, 234, 0.25);
+    --cidp-glow: rgba(147, 51, 234, 0.35);
+    --cidp-muted: rgba(255,255,255,0.6);
+}
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -111,6 +117,12 @@ body {
     margin-bottom: 30px;
 }
 
+/* Fade-in progressive disclosure */
+.valorizacao-cidp-section { opacity: 0; transform: translateY(8px); transition: all 0.25s ease; }
+.valorizacao-cidp-section.show { opacity: 1; transform: translateY(0); }
+.valuation-score-section { opacity: 0; transform: translateY(8px); transition: all 0.25s ease; }
+.valuation-score-section.show { opacity: 1; transform: translateY(0); }
+
 .valorizacao-cidp-section .section-header {
     display: flex;
     align-items: center;
@@ -175,42 +187,46 @@ body {
 }
 
 /* Rating Display (Read-only) */
+
 .rating-display {
     display: flex;
-    justify-content: flex-start;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
 }
 
 .rating-item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 45px;
-    height: 45px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(147, 51, 234, 0.3);
-    border-radius: 8px;
-    color: rgba(255, 255, 255, 0.5);
-    font-weight: 600;
-    font-size: 1rem;
-    transition: all 0.3s ease;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    display: inline-grid;
+    place-items: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--cidp-border);
+    color: rgba(255,255,255,0.7);
     cursor: pointer;
+    transition: all 0.15s ease;
 }
 
-.rating-item:hover {
-    background: rgba(147, 51, 234, 0.15);
-    border-color: #9333ea;
-    color: rgba(255, 255, 255, 0.8);
+.rating-item:hover,
+.rating-item.preview {
+    background: rgba(147,51,234,0.12);
+    border-color: var(--cidp-primary);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(147, 51, 234, 0.2);
+    box-shadow: 0 6px 14px var(--cidp-glow);
 }
 
 .rating-item.active {
-    background: #9333ea;
+    background: var(--cidp-primary);
     border-color: #b366ff;
-    color: #ffffff;
-    box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
+    color: #fff;
+    box-shadow: 0 0 12px var(--cidp-glow);
+}
+
+.hint {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.85rem;
+    margin-top: 8px;
 }
 
 /* Valuation Score Section */
@@ -232,6 +248,9 @@ body {
     border-radius: 10px;
     border: 1px solid rgba(147, 51, 234, 0.2);
 }
+
+.score-row { margin-bottom: 6px; }
+.score-title { color: rgba(255,255,255,0.7); font-weight: 600; margin-right: 6px; }
 
 .score-box i {
     font-size: 2.5rem;
@@ -371,4 +390,9 @@ body {
     background: linear-gradient(135deg, #a855f7 0%, #c084fc 100%);
     box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
     transform: translateY(-2px);
+}
+
+@media (max-width: 640px) {
+    .rating-item { width: 32px; height: 32px; font-size: 0.75rem; }
+    .rating-display { gap: 4px; }
 }

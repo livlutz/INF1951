@@ -1,8 +1,96 @@
 // Identificacao Riscos JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Form validation
     const form = document.querySelector('form');
+    const searchInput = document.getElementById('ativo-search');
+    const dropdown = document.getElementById('ativo-dropdown');
+    const hiddenInput = document.getElementById('ativo-hidden');
+    const clearButton = document.getElementById('ativo-clear');
+
+    if (searchInput && dropdown && hiddenInput) {
+        const options = Array.from(dropdown.querySelectorAll('.option-item'));
+
+        const renderOptions = (query) => {
+            const normalized = query.toLowerCase().trim();
+
+            options.forEach((option) => {
+                const rawText = option.dataset.label || option.textContent.trim();
+                const text = rawText.toLowerCase();
+                const matches = text.includes(normalized);
+
+                option.style.display = matches ? 'block' : 'none';
+                option.classList.toggle('selected', option.dataset.value === hiddenInput.value);
+
+                if (!normalized) {
+                    option.innerHTML = rawText;
+                } else if (matches) {
+                    const escaped = rawText.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+                    const highlighted = rawText.replace(new RegExp(normalized.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi'), match => `<mark>${match}</mark>`);
+                    option.innerHTML = highlighted || escaped;
+                } else {
+                    option.innerHTML = rawText;
+                }
+            });
+        };
+
+        const openDropdown = () => {
+            dropdown.style.display = 'block';
+            renderOptions(searchInput.value);
+        };
+
+        const closeDropdown = () => {
+            dropdown.style.display = 'none';
+        };
+
+        searchInput.addEventListener('input', function() {
+            renderOptions(this.value);
+            openDropdown();
+        });
+
+        searchInput.addEventListener('focus', openDropdown);
+
+        options.forEach((option) => {
+            const label = option.textContent.trim();
+            option.dataset.label = label;
+
+            option.addEventListener('click', function() {
+                searchInput.value = label;
+                hiddenInput.value = this.dataset.value;
+                options.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                closeDropdown();
+            });
+        });
+
+        if (clearButton) {
+            clearButton.addEventListener('click', function() {
+                searchInput.value = '';
+                hiddenInput.value = '';
+                options.forEach(opt => {
+                    opt.style.display = 'block';
+                    opt.classList.remove('selected');
+                    opt.innerHTML = opt.dataset.label || opt.textContent.trim();
+                });
+                searchInput.focus();
+                openDropdown();
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-select')) {
+                closeDropdown();
+            }
+        });
+
+        // Initialize from hidden value if editing an existing record.
+        if (hiddenInput.value) {
+            const selected = options.find(opt => opt.dataset.value === hiddenInput.value);
+            if (selected) {
+                searchInput.value = selected.dataset.label || selected.textContent.trim();
+                selected.classList.add('selected');
+            }
+        }
+    }
 
     if (form) {
         form.addEventListener('submit', function(e) {
@@ -19,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function validateForm() {
     const nome = document.querySelector('[name="nome"]');
     const descricao = document.querySelector('[name="descricao"]');
-    const ativo = document.querySelector('[name="ativo"]');
+    const ativo = document.getElementById('ativo-hidden') || document.querySelector('[name="ativo"]');
 
     // Check if risk name is filled
     if (!nome || !nome.value.trim()) {

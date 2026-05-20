@@ -39,6 +39,15 @@ body {
     margin-bottom: 40px;
 }
 
+.icon-wrapper {
+    margin-bottom: 30px;
+}
+
+.icon-wrapper i {
+    font-size: 48px;
+    color: #9333ea;
+}
+
 .cadastro-header h1 {
     color: #ffffff;
     font-size: 32px;

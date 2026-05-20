@@ -10,193 +10,202 @@
 {% endblock %}
 
 {% block content %}
-    <div class="report-container">
-        <!-- Report Header -->
-        <div class="report-header">
-            <h1>RELATÓRIO FINAL</h1>
-            <div class="subtitle">Incidente de Segurança {{ incidente.numero_incidente }}</div>
+    <div class="report-shell">
+        <div class="report-topbar">
+            <div>
+                <span class="report-chip">RELATÓRIO FINAL</span>
 
-            <div class="report-details">
-                <div class="detail-item">
-                    <div class="detail-label">Protocolo</div>
-                    <div class="detail-value">{{ relatorio.protocolo }}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Data de Emissão</div>
-                    <div class="detail-value">{{ relatorio.data_emissao|date:"d/m/Y" }}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Status</div>
-                    <div class="detail-value">{{ relatorio.get_status_relatorio_display }}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Incidente</div>
-                    <div class="detail-value">{{ incidente.numero_incidente }}</div>
+                <h1>
+                    Incidente de Segurança {{ incidente.numero_incidente }}
+                </h1>
+
+                <p class="report-meta">
+                    Protocolo: {{ relatorio.protocolo }}
+                    |
+                    Data de Emissão:
+                    {{ relatorio.data_emissao|date:"d/m/Y" }}
+                </p>
+            </div>
+
+            <div class="status-panel">
+                <span class="status-live">
+                    <i class="fas fa-check-circle"></i>
+                    STATUS: {{ relatorio.get_status_relatorio_display }}
+                </span>
+
+                <small>Classificação: Alta Prioridade</small>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h2>
+                <span></span>
+                1. Identificação do Incidente
+            </h2>
+
+            <div class="section-card">
+                <div class="info-grid">
+                    <div class="info-box">
+                        <div class="info-box-label">Número do Incidente</div>
+                        <div class="info-box-value">{{ incidente.numero_incidente }}</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-label">Protocolo do Relatório</div>
+                        <div class="info-box-value">{{ relatorio.protocolo }}</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-label">Data do Incidente</div>
+                        <div class="info-box-value">{{ incidente.data_incidente|date:"d/m/Y" }} às {{ incidente.hora_incidente|time:"H:i" }}</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-label">Data de Emissão</div>
+                        <div class="info-box-value">{{ relatorio.data_emissao|date:"d/m/Y" }}</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="report-content">
-            <!-- Section 1: Incident Identification -->
-            <div class="section">
-                <h3 class="section-title">
-                    <span class="section-number">1</span> Identificação do Incidente
-                </h3>
-                <div class="section-content">
-                    <div class="info-grid">
-                        <div class="info-box">
-                            <div class="info-box-label">Número do Incidente</div>
-                            <div class="info-box-value">{{ incidente.numero_incidente }}</div>
+        <div class="report-section">
+            <h2>
+                <span></span>
+                2. Descrição do Evento
+            </h2>
+
+            <div class="section-card">
+                <p>{{ relatorio.descricao_evento|linebreaks }}</p>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h2>
+                <span></span>
+                3. Ativos Afetados
+            </h2>
+
+            <div class="section-card">
+                {% if incidente.ativos_afetados.all %}
+                <div class="asset-tags">
+                    {% for ativo in incidente.ativos_afetados.all %}
+                        <div class="asset-pill">
+                            <i class="fas fa-server"></i>
+                            {{ ativo.nome }}
                         </div>
-                        <div class="info-box">
-                            <div class="info-box-label">Protocolo do Relatório</div>
-                            <div class="info-box-value">{{ relatorio.protocolo }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if relatorio.ativos_afetados_detalhamento %}
+                <p class="section-paragraph">{{ relatorio.ativos_afetados_detalhamento|linebreaks }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h2>
+                <span></span>
+                4. Ações Realizadas
+            </h2>
+
+            <div class="section-card">
+                <div class="action-timeline">
+                    <div class="action-item">
+                        <div class="action-number">1</div>
+                        <div>
+                            <strong>Remediação</strong>
+                            <p>{{ relatorio.acoes_realizadas|linebreaks }}</p>
                         </div>
-                        <div class="info-box">
-                            <div class="info-box-label">Data do Incidente</div>
-                            <div class="info-box-value">{{ incidente.data_incidente|date:"d/m/Y" }} às {{ incidente.hora_incidente|time:"H:i" }}</div>
-                        </div>
-                        <div class="info-box">
-                            <div class="info-box-label">Data de Emissão</div>
-                            <div class="info-box-value">{{ relatorio.data_emissao|date:"d/m/Y" }}</div>
-                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h2>
+                <span></span>
+                5. Responsável pelo Tratamento
+            </h2>
+
+            <div class="section-card">
+                {% if relatorio.responsavel_tratamento %}
+                <div class="info-box">
+                    <div class="info-box-label">Nome</div>
+                    <div class="info-box-value">
+                        {{ relatorio.responsavel_tratamento.get_full_name|default:relatorio.responsavel_tratamento.username }}
+                    </div>
+                </div>
+                {% else %}
+                <p class="section-paragraph muted">Não atribuído</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h2>
+                <span></span>
+                6. Análise da Causa Raiz
+            </h2>
+
+            <div class="section-card">
+                {% if relatorio.analise_causa_raiz %}
+                <p>{{ relatorio.analise_causa_raiz|linebreaks }}</p>
+                {% else %}
+                <p class="section-paragraph muted"><em>Análise não registrada</em></p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h2>
+                <span></span>
+                7. Impacto Analisado
+            </h2>
+
+            <div class="section-card">
+                <div class="impact-grid">
+                    <div class="impact-card">
+                        <label>FINANCEIRO</label>
+                        <p>{% if relatorio.impacto_financeiro %}R$ {{ relatorio.impacto_financeiro|floatformat:2 }}{% else %}Não informado{% endif %}</p>
+                    </div>
+
+                    <div class="impact-card">
+                        <label>OPERACIONAL</label>
+                        <p>{% if relatorio.impacto_operacional %}{{ relatorio.impacto_operacional|linebreaksbr }}{% else %}Não informado{% endif %}</p>
+                    </div>
+
+                    <div class="impact-card">
+                        <label>IMAGEM</label>
+                        <p>{% if relatorio.impacto_imagem %}{{ relatorio.impacto_imagem|linebreaksbr }}{% else %}Não informado{% endif %}</p>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Section 2: Event Description -->
-            <div class="section">
-                <h3 class="section-title">
-                    <span class="section-number">2</span> Descrição do Evento
-                </h3>
-                <div class="section-content">
-                    <p>{{ relatorio.descricao_evento|linebreaks }}</p>
-                </div>
+        <div class="report-section">
+            <h2>
+                <span></span>
+                8. Lições Aprendidas
+            </h2>
+
+            <div class="section-card">
+                {% if relatorio.licoes_aprendidas %}
+                <p>{{ relatorio.licoes_aprendidas|linebreaks }}</p>
+                {% else %}
+                <p class="section-paragraph muted"><em>Lições não registradas</em></p>
+                {% endif %}
             </div>
+        </div>
 
-            <!-- Section 3: Affected Assets -->
-            <div class="section">
-                <h3 class="section-title">
-                    <span class="section-number">3</span> Ativos Afetados
-                </h3>
-                <div class="section-content">
-                    {% if incidente.ativos_afetados.all %}
-                    <div class="asset-list">
-                        {% for ativo in incidente.ativos_afetados.all %}
-                        <div class="asset-item">
-                            <strong>{{ ativo.nome }}</strong>
-                            {% if ativo.categoria %}
-                            <br><small style="color: #9ca3af;">Categoria: {{ ativo.categoria.nome }}</small>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-
-                    {% if relatorio.ativos_afetados_detalhamento %}
-                    <p>{{ relatorio.ativos_afetados_detalhamento|linebreaks }}</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Section 4: Actions Taken -->
-            <div class="section">
-                <h3 class="section-title">
-                    <span class="section-number">4</span> Ações Realizadas (Remediação)
-                </h3>
-                <div class="section-content">
-                    <p>{{ relatorio.acoes_realizadas|linebreaks }}</p>
-                </div>
-            </div>
-
-            <!-- Section 5: Responsible Person -->
-            <div class="section">
-                <h3 class="section-title">
-                    <span class="section-number">5</span> Responsável pelo Tratamento
-                </h3>
-                <div class="section-content">
-                    {% if relatorio.responsavel_tratamento %}
-                    <div class="info-box">
-                        <div class="info-box-label">Nome</div>
-                        <div class="info-box-value">
-                            {{ relatorio.responsavel_tratamento.get_full_name|default:relatorio.responsavel_tratamento.username }}
-                        </div>
-                    </div>
-                    {% else %}
-                    <p style="color: #9ca3af;">Não atribuído</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Section 6: Root Cause Analysis -->
-            <div class="section">
-                <h3 class="section-title">
-                    <span class="section-number">6</span> Análise da Causa Raiz
-                </h3>
-                <div class="section-content">
-                    {% if relatorio.analise_causa_raiz %}
-                    <p>{{ relatorio.analise_causa_raiz|linebreaks }}</p>
-                    {% else %}
-                    <p style="color: #9ca3af;"><em>Análise não registrada</em></p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Section 7: Impact Analysis -->
-            <div class="section">
-                <h3 class="section-title">
-                    <span class="section-number">7</span> Impacto Analisado
-                </h3>
-                <div class="section-content">
-                    {% if relatorio.impacto_financeiro %}
-                    <div class="info-box">
-                        <div class="info-box-label">Impacto Financeiro</div>
-                        <div class="info-box-value currency">
-                            R$ {{ relatorio.impacto_financeiro|floatformat:2 }}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if relatorio.impacto_operacional %}
-                    <div class="section-content" style="margin-top: 1rem; margin-left: 0;">
-                        <strong>Impacto Operacional:</strong>
-                        <p>{{ relatorio.impacto_operacional|linebreaks }}</p>
-                    </div>
-                    {% endif %}
-
-                    {% if relatorio.impacto_imagem %}
-                    <div class="section-content" style="margin-top: 1rem; margin-left: 0;">
-                        <strong>Impacto à Imagem/Reputação:</strong>
-                        <p>{{ relatorio.impacto_imagem|linebreaks }}</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Section 8: Lessons Learned -->
-            <div class="section">
-                <h3 class="section-title">
-                    <span class="section-number">8</span> Lições Aprendidas
-                </h3>
-                <div class="section-content">
-                    {% if relatorio.licoes_aprendidas %}
-                    <p>{{ relatorio.licoes_aprendidas|linebreaks }}</p>
-                    {% else %}
-                    <p style="color: #9ca3af;"><em>Lições não registradas</em></p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Report Footer -->
-            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #444; text-align: center; color: #9ca3af; font-size: 0.85rem;">
+        <div class="report-section report-summary">
+            <div class="section-card">
                 <p>
                     <strong>Relatório Gerado:</strong> {{ relatorio.data_criacao|date:"d/m/Y H:i" }}<br>
                     <strong>Última Atualização:</strong> {{ relatorio.data_atualizacao|date:"d/m/Y H:i" }}<br>
                     <strong>Status:</strong> {{ relatorio.get_status_relatorio_display }}
                 </p>
             </div>
+        </div>
 
-            <!-- Action Buttons -->
+        <div class="report-footer">
             <div class="action-buttons">
                 <button onclick="window.print(); return false;" class="btn-primary">
                     <i class="fas fa-print"></i> Imprimir/Salvar como PDF

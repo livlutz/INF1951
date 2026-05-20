@@ -58,11 +58,20 @@
                 <!-- Categorias Field -->
                 <div class="form-group">
                     <label>Categorias</label>
+                    <div class="categorias-actions">
+                        <button type="button" id="select-all" class="btn small">Selecionar todos</button>
+                        <button type="button" id="clear-all" class="btn small">Limpar</button>
+                        <input type="text" id="category-search" class="category-search" placeholder="Buscar categoria...">
+                        <div class="selected-count">Selecionadas: <span id="cat-count">0</span></div>
+                    </div>
+
                     <div class="categorias-container">
                         {% for checkbox in form.categorias %}
                             <div class="categoria-checkbox">
-                                {{ checkbox }}
-                                {{ checkbox.label }}
+                                <label>
+                                    {{ checkbox.tag }}
+                                    <span class="checkbox-label-text">{{ checkbox.choice_label }}</span>
+                                </label>
                             </div>
                         {% endfor %}
                     </div>
@@ -81,4 +90,7 @@
             </form>
         </div>
     </div>
+    {% block extra_js %}
+        <script src="{% static 'js/ismsapp/cadastro_controle.js' %}"></script>
+    {% endblock %}
 {% endblock %}

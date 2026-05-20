@@ -24,8 +24,6 @@
 
 ![GitHub stars](https://img.shields.io/github/stars/livlutz/INF1951?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/livlutz/INF1951?style=social)
-![GitHub followers](https://img.shields.io/github/followers/livlutz)
-![GitHub User's stars](https://img.shields.io/github/stars/livlutz)
 ![GitHub watchers](https://img.shields.io/github/watchers/livlutz/INF1951)
 
 

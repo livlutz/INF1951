@@ -7,6 +7,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.decorators import method_decorator
+from django.core.paginator import Paginator
+from urllib.parse import urlencode
 from .forms import *
 from .models import *
 
@@ -312,6 +314,26 @@ class DashboardView(View):
         pode_registrar_auditorias = actor_type in self.gestao_de_auditorias if actor_type else False
         pode_gerenciar_controles = actor_type in self.gestao_de_controles if actor_type else False
 
+        ativos_module_count = sum([
+            pode_cadastrar_categorias_de_ativos,
+            pode_cadastrar_ativos,
+            pode_cadastrar_ativos,
+            pode_criar_criterios_de_valoracao_dos_ativos or pode_analisar_valoracao_dos_ativos,
+        ])
+        controles_module_count = 2 if pode_gerenciar_controles else 0
+        riscos_module_count = sum([
+            pode_criar_criterios_para_avaliacao_dos_riscos,
+            pode_identificar_riscos,
+            pode_identificar_riscos,
+            pode_analisar_riscos,
+            pode_avaliar_riscos,
+            pode_tratar_riscos,
+        ])
+        ameacas_module_count = 2 if pode_detectar_ameacas else 0
+        vulnerabilidades_module_count = 2 if pode_gerenciar_vulnerabilidades else 0
+        incidentes_module_count = 2 if pode_gestionar_incidentes_de_seguranca else 0
+        auditorias_module_count = 2 if pode_registrar_auditorias else 0
+
         # Get monitoring data for UC-12
         from .models import Incidente, Risco, Vulnerabilidade
         from datetime import timedelta
@@ -387,6 +409,13 @@ class DashboardView(View):
             "pode_gerenciar_auditorias": pode_gerenciar_auditorias,
             "pode_registrar_auditorias": pode_registrar_auditorias,
             "pode_gerenciar_controles": pode_gerenciar_controles,
+            "ativos_module_count": ativos_module_count,
+            "controles_module_count": controles_module_count,
+            "riscos_module_count": riscos_module_count,
+            "ameacas_module_count": ameacas_module_count,
+            "vulnerabilidades_module_count": vulnerabilidades_module_count,
+            "incidentes_module_count": incidentes_module_count,
+            "auditorias_module_count": auditorias_module_count,
             # New monitoring data - UC-12 Enhanced
             "tratamento_status": tratamento_status,
             "incident_trend": incident_trend,
@@ -489,6 +518,8 @@ class CadastroCategoriaAtivoView(View):
         form = self.form_class(request.POST)
         if form.is_valid():
             form.save()
+            from django.contrib import messages
+            messages.success(request, 'Ativo cadastrado com sucesso!')
             return redirect('dashboard')
 
         contexto = {'form': form}
@@ -595,13 +626,40 @@ class ReadAtivoView(View):
         from django.db.models import Q
 
         search_query = request.GET.get('search', '').strip()
-        ativos = Ativo.objects.all().order_by('nome')
+        sort = request.GET.get('sort', 'nome')
+        direction = request.GET.get('direction', 'asc')
+
+        sort_map = {
+            'id': 'id',
+            'nome': 'nome',
+            'categoria': 'categoria__nome',
+        }
+        sort_field = sort_map.get(sort, 'nome')
+        ordering = sort_field if direction != 'desc' else f'-{sort_field}'
+
+        ativos = Ativo.objects.select_related('categoria').all().order_by(ordering)
 
         if search_query:
             ativos = ativos.filter(
                 Q(nome__icontains=search_query) |
                 Q(categoria__nome__icontains=search_query)
             )
+
+        paginator = Paginator(ativos, 20)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        query_params = {
+            'search': search_query,
+            'sort': sort,
+            'direction': direction,
+        }
+        query_string = urlencode({key: value for key, value in query_params.items() if value})
+
+        def sort_query(column_name):
+            next_direction = 'desc' if sort == column_name and direction != 'desc' else 'asc'
+            params = query_params | {'sort': column_name, 'direction': next_direction}
+            return urlencode({key: value for key, value in params.items() if value})
 
         # Check edit/delete permissions
         user_profile = getattr(request.user, 'profile', None)
@@ -611,9 +669,18 @@ class ReadAtivoView(View):
         ]
 
         contexto = {
-            'ativos': ativos,
+            'ativos': page_obj,
+            'page_obj': page_obj,
+            'paginator': paginator,
+            'total_ativos': paginator.count,
             'pode_editar_deletar': pode_editar_deletar,
             'search_query': search_query,
+            'sort': sort,
+            'direction': direction,
+            'query_string': query_string,
+            'sort_id_query': sort_query('id'),
+            'sort_nome_query': sort_query('nome'),
+            'sort_categoria_query': sort_query('categoria'),
         }
         return render(request, self.template_name, contexto)
 
@@ -770,6 +837,7 @@ class DeleteAtivoView(View):
         try:
             ativo = Ativo.objects.get(id=ativo_id)
             ativo.delete()
+            messages.success(request, 'Ativo deletado com sucesso!')
             return redirect('lista_ativos')
         except Ativo.DoesNotExist:
             return redirect('lista_ativos')

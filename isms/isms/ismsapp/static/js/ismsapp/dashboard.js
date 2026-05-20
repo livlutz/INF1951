@@ -24,4 +24,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    const searchInput = document.getElementById('dashboardSearch');
+    const moduleCards = document.querySelectorAll('.acc');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim().toLowerCase();
+
+            moduleCards.forEach(card => {
+                const title = (card.dataset.title || card.querySelector('.module-title')?.textContent || '').toLowerCase();
+                card.style.display = title.includes(query) ? '' : 'none';
+            });
+        });
+    }
 });

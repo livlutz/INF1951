@@ -12,83 +12,83 @@
 
 {% block content %}
     <div class="incidents-container">
-        <!-- Header Section -->
-        <div class="header-section">
-            <h1>
-                <i class="fas fa-exclamation-triangle" style="color: #9333ea; margin-right: 0.5rem;"></i>
-                Gestão de Incidentes de Segurança
-            </h1>
-            <a href="{% url 'cadastro_incidente' %}" class="btn btn-register">
-                <i class="fas fa-plus"></i> Registrar Novo Incidente
-            </a>
-        </div>
+        <div class="incidents-card">
+            <!-- Header Section -->
+            <div class="header-section">
+                <h1>
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Gestão de Incidentes de Segurança
+                </h1>
+                <a href="{% url 'cadastro_incidente' %}" class="btn btn-register">
+                    <i class="fas fa-plus"></i> Registrar Novo Incidente
+                </a>
+            </div>
 
-        <!-- Statistics Cards -->
-        <div class="stats-container">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-hourglass-start"></i>
+            <!-- Statistics Cards -->
+            <div class="stats-container">
+                <div class="stat-card primary">
+                    <div class="stat-icon">
+                        <i class="fas fa-hourglass-start"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Registrados</h3>
+                        <p>{{ status_counts.registrado }}</p>
+                    </div>
                 </div>
-                <div class="stat-content">
-                    <h3>Registrados</h3>
-                    <p>{{ status_counts.registrado }}</p>
+
+                <div class="stat-card warning">
+                    <div class="stat-icon">
+                        <i class="fas fa-microscope"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Em Investigação</h3>
+                        <p>{{ status_counts.em_investigacao }}</p>
+                    </div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Resolvidos</h3>
+                        <p>{{ status_counts.resolvido }}</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="stat-card" style="border-left-color: #f57c00;">
-                <div class="stat-icon" style="color: #f57c00;">
-                    <i class="fas fa-microscope"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Em Investigação</h3>
-                    <p>{{ status_counts.em_investigacao }}</p>
-                </div>
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <form method="get" class="filter-form">
+                    <div class="filter-group filter-search-group">
+                        <label for="search">Buscar por Número/Descrição</label>
+                        <input type="text" id="search" name="search" value="{{ search_query }}" placeholder="Ex: INC-2026-0001 ou phishing...">
+                    </div>
+
+                    <div class="filter-group filter-date-group">
+                        <label for="data_incidente">Data do Incidente</label>
+                        <input type="date" id="data_incidente" name="data_incidente" value="{{ selected_date }}">
+                    </div>
+
+                    <button type="submit" class="filter-button">
+                        <i class="fas fa-filter"></i> Filtrar
+                    </button>
+                </form>
             </div>
 
-            <div class="stat-card" style="border-left-color: #27ae60;">
-                <div class="stat-icon" style="color: #27ae60;">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>Resolvidos</h3>
-                    <p>{{ status_counts.resolvido }}</p>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Filter Section -->
-        <div class="filter-section">
-            <form method="get" style="display: flex; gap: 15px; width: 100%; flex-wrap: wrap; align-items: flex-end;">
-                <div class="filter-group" style="flex: 2; min-width: 250px;">
-                    <label for="search">Buscar por Número/Descrição</label>
-                    <input type="text" id="search" name="search" value="{{ search_query }}" placeholder="Ex: INC-2026-0001 ou phishing...">
-                </div>
-
-                <div class="filter-group" style="flex: 1; min-width: 220px;">
-                    <label for="data_incidente">Data do Incidente</label>
-                    <input type="date" id="data_incidente" name="data_incidente" value="{{ selected_date }}">
-                </div>
-
-                <button type="submit" class="filter-button">
-                    <i class="fas fa-filter"></i> Filtrar
-                </button>
-            </form>
-        </div>
-
-        <!-- Incidents Table -->
-        {% if incidentes %}
-        <div class="incidents-table">
-            <table class="table">
+            <!-- Incidents Table -->
+            {% if incidentes %}
+            <div class="incidents-table-wrapper">
+                <table class="incidents-table">
                 <thead>
                     <tr>
-                        <th>Número</th>
-                        <th>Descrição</th>
-                        <th>Data</th>
-                        <th>Status</th>
-                        <th>Responsável</th>
-                        <th>Relatório</th>
-                        <th>Ações</th>
+                        <th scope="col">Número</th>
+                        <th scope="col">Descrição</th>
+                        <th scope="col">Data</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Responsável</th>
+                        <th scope="col">Relatório</th>
+                        <th scope="col">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -115,11 +115,13 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if incidente.relatorio_gerado %}
-                                <i class="fas fa-check" style="color: #27ae60;"></i>
-                            {% else %}
-                                <i class="fas fa-times" style="color: #e74c3c;"></i>
-                            {% endif %}
+                            <div class="report-status">
+                                {% if incidente.relatorio_gerado %}
+                                    <i class="fas fa-check report-yes"></i>
+                                {% else %}
+                                    <i class="fas fa-times report-no"></i>
+                                {% endif %}
+                            </div>
                         </td>
                         <td>
                             <div class="action-buttons">
@@ -143,16 +145,17 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="incidents-table">
+                </table>
+            </div>
+            {% else %}
             <div class="empty-state">
-                <i class="fas fa-inbox"></i>
+                <div class="empty-icon">
+                    <i class="fas fa-inbox"></i>
+                </div>
                 <h3>Nenhum incidente registrado</h3>
                 <p>Comece registrando um novo incidente de segurança.</p>
             </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 {% endblock %}

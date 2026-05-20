@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SmartRisk{% endblock %}</title>
 
+    <!-- Theme & SEO -->
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="SmartRisk risk management platform">
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
 
@@ -14,51 +18,78 @@
 
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <!-- Header Navigation -->
-    <header class="isms-header">
+    <header class="isms-header" role="banner">
         <div class="header-container">
+            <!-- Mobile menu toggle -->
+            <button class="menu-toggle" aria-expanded="false" aria-controls="site-navigation" aria-label="Toggle navigation">
+                ☰
+            </button>
+
             <!-- Logo/Title -->
-            <a href="{% url 'home' %}" class="header-logo">
+            <a href="{% url 'home' %}" class="header-logo" aria-label="SmartRisk home">
                 <span class="logo-text">SmartRisk</span>
             </a>
 
             <!-- Navigation -->
-            <nav class="header-nav">
+            <nav id="site-navigation" class="header-nav" role="navigation" aria-label="Main Navigation">
                 {% if user.is_authenticated %}
                     <!-- User is logged in -->
                     <div class="nav-user">
                         <span class="username">{{ user.username }}</span>
-                        <a href="{% url 'dashboard' %}" class="nav-button dashboard-button">
+                        <a href="{% url 'dashboard' %}" class="nav-button dashboard-button {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" aria-label="Dashboard">
                             Dashboard
                         </a>
-                        <a href="{% url 'profile' %}" class="nav-button profile-button">
+                        <a href="{% url 'profile' %}" class="nav-button profile-button {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" aria-label="Profile">
                             Perfil
                         </a>
-                        <a href="{% url 'logout' %}" class="nav-button logout-button">
-                            Logout
-                        </a>
+                        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-button logout-button" aria-label="Logout">Logout</button>
+                        </form>
                     </div>
                 {% else %}
                     <!-- User is not logged in -->
                     <div class="nav-auth">
-                        <a href="{% url 'login' %}" class="nav-button login-button">
-                            Login
-                        </a>
-                        <a href="{% url 'signup' %}" class="nav-button signup-button">
-                            Cadastro
-                        </a>
+                        <a href="{% url 'login' %}" class="nav-button login-button {% if request.resolver_match.url_name == 'login' %}active{% endif %}" aria-label="Login">Login</a>
+                        <a href="{% url 'signup' %}" class="nav-button signup-button {% if request.resolver_match.url_name == 'signup' %}active{% endif %}" aria-label="Signup">Cadastro</a>
                     </div>
                 {% endif %}
             </nav>
         </div>
     </header>
 
+    <!-- Django messages -->
+    {% if messages %}
+    <div class="messages-container" role="status" aria-live="polite">
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <!-- Main Content -->
-    <main class="main-content">
-        {% block content %}{% endblock %}
+    <main id="main-content" class="main-content">
+        <div class="content-container">
+            {% block content %}{% endblock %}
+        </div>
     </main>
 
     {% block extra_js %}{% endblock %}
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggle = document.querySelector('.menu-toggle');
+        const nav = document.getElementById('site-navigation');
+        if (toggle && nav) {
+            toggle.addEventListener('click', function() {
+                const expanded = this.getAttribute('aria-expanded') === 'true';
+                this.setAttribute('aria-expanded', String(!expanded));
+                nav.classList.toggle('open');
+            });
+        }
+    });
+    </script>
 </body>
 </html>

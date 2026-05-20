@@ -1,19 +1,54 @@
+:root {
+    --bg-input: rgba(255, 255, 255, 0.06);
+    --bg-btn-hover: rgba(255, 255, 255, 0.12);
+    --border: rgba(255, 255, 255, 0.12);
+    --border-soft: rgba(255, 255, 255, 0.08);
+    --text-primary: #ffffff;
+    --text-muted: #808080;
+    --purple: #9333ea;
+}
+
 .selector-filter {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.selector-filter input {
+    background: var(--bg-input);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 12px 16px;
+    color: var(--text-primary);
+    transition: all 0.25s ease;
+    font-size: 0.9rem;
+}
+
+.selector-filter input:hover {
+    background: var(--bg-btn-hover);
+}
+
+.selector-filter input:focus {
+    outline: none;
+    border-color: var(--purple);
+    box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.12);
 }
 
 .checkbox-asset-list {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
   max-height: 260px;
   overflow-y: auto;
-  padding: 0.5rem;
-  background: var(--bg-btn, rgba(255, 255, 255, 0.08));
-  border: 1.5px solid var(--border, rgba(255, 255, 255, 0.15));
+  padding: 0.75rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border-soft);
   border-radius: 10px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(139, 60, 247, 0.4) transparent;
+  scrollbar-color: rgba(147, 51, 234, 0.3) transparent;
+  transition: border-color 0.2s ease;
+}
+
+.checkbox-asset-list:focus-within {
+    border-color: rgba(147, 51, 234, 0.5);
 }
 
 .checkbox-asset-list::-webkit-scrollbar {
@@ -33,47 +68,55 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 7px;
+  padding: 0.75rem;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
   user-select: none;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
 }
 
 .checkbox-asset-item:hover {
-  background: var(--bg-btn-hover, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border);
 }
 
 .checkbox-asset-item:has(.asset-cb:checked) {
-  background: rgba(139, 60, 247, 0.12);
+  background: rgba(147, 51, 234, 0.16);
+  border-color: rgba(147, 51, 234, 0.35);
 }
 
 .asset-cb {
   appearance: none;
   -webkit-appearance: none;
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
-  border: 1.5px solid var(--border, rgba(255, 255, 255, 0.15));
-  border-radius: 4px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
   background: transparent;
   cursor: pointer;
   position: relative;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.asset-cb:hover:not(:checked) {
+    border-color: rgba(147, 51, 234, 0.5);
 }
 
 .asset-cb:checked {
-  background: var(--purple, #9333ea);
-  border-color: var(--purple, #9333ea);
+  background: var(--purple);
+  border-color: var(--purple);
 }
 
 .asset-cb:checked::after {
   content: '';
   position: absolute;
   left: 4px;
-  top: 1px;
+  top: 2px;
   width: 5px;
-  height: 9px;
+  height: 8px;
   border: 2px solid #fff;
   border-top: none;
   border-left: none;
@@ -82,19 +125,25 @@
 
 .asset-cb:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(139, 60, 247, 0.25);
+  box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.25);
+}
+
+.asset-cb:focus-visible {
+    outline: 2px solid rgba(168, 85, 247, 0.9);
+    outline-offset: 2px;
 }
 
 .asset-cb-label {
   font-size: 0.875rem;
-  color: var(--text-primary, #ffffff);
-  line-height: 1.3;
+  color: var(--text-primary);
+  line-height: 1.4;
+  font-weight: 500;
 }
 
 .selection-summary {
-  margin-top: 0.6rem;
-  font-size: 0.75rem;
-  color: var(--text-muted, #808080);
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
   font-style: italic;
   padding-left: 0.25rem;
 }

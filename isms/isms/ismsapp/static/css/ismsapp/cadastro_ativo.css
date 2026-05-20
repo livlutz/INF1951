@@ -10,6 +10,16 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+:root{
+    --bg: #1e1e1e;
+    --card-bg: rgba(30, 30, 30, 0.95);
+    --muted: #a0a0a0;
+    --accent: #9333ea;
+    --accent-strong: #7e22ce;
+    --error: #ff6b6b;
+    --success: #22c55e;
+}
+
 .cadastro-container {
     width: 100%;
     max-width: 700px;
@@ -18,7 +28,7 @@ body {
 }
 
 .cadastro-card {
-    background: rgba(30, 30, 30, 0.95);
+    background: var(--card-bg);
     border-radius: 15px;
     padding: 50px 40px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -38,7 +48,7 @@ body {
 }
 
 .cadastro-header .subtitle {
-    color: #a0a0a0;
+    color: var(--muted);
     font-size: 14px;
     font-weight: 400;
     line-height: 1.6;
@@ -70,8 +80,8 @@ body {
 .form-group textarea {
     width: 100%;
     padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
     color: #ffffff;
     font-size: 14px;
@@ -88,10 +98,10 @@ body {
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: #b366ff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(179, 102, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.12);
     color: #ffffff;
 }
 
@@ -139,19 +149,19 @@ body {
 }
 
 .error-message {
-    color: #ff6b6b;
+    color: var(--error);
     font-size: 14px;
     margin-top: -5px;
     display: block;
 }
 
 .form-errors {
-    background: rgba(255, 107, 107, 0.1);
-    border: 1px solid rgba(255, 107, 107, 0.3);
+    background: rgba(255, 107, 107, 0.06);
+    border: 1px solid rgba(255, 107, 107, 0.2);
     border-radius: 8px;
     padding: 12px;
     margin-bottom: 20px;
-    color: #ff8787;
+    color: var(--error);
     font-size: 13px;
 }
 
@@ -192,13 +202,13 @@ body {
 }
 
 .btn-confirm {
-    background: #9333ea;
+    background: var(--accent);
     color: #ffffff;
 }
 
 .btn-confirm:hover {
     background: #a855f7;
-    box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.35);
 }
 
 .btn-confirm:active {
@@ -364,6 +374,27 @@ body {
     display: block;
     margin-top: 8px;
     font-size: 13px;
+}
+
+/* Spinner for loading state */
+.btn[disabled] {
+    opacity: 0.7;
+}
+.btn.loading::after {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    margin-left: 8px;
+    animation: spin 1s linear infinite;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 /* Empty state message */

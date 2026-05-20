@@ -27,37 +27,33 @@
             {% endif %}
 
             <!-- Form -->
-            <form method="post" class="cadastro-form">
+            <form method="post" class="cadastro-form" novalidate>
                 {% csrf_token %}
 
-                <!-- Nome do Ativo Field -->
-                <div class="form-group">
-                    <label for="{{ form.nome.id_for_label }}">Nome do Ativo</label>
-                    {{ form.nome }}
-                    {% if form.nome.errors %}
-                        {% for error in form.nome.errors %}
-                            <span class="error-message">{{ error }}</span>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-
-                <!-- Categoria Field -->
-                <div class="form-group">
-                    <label for="{{ form.categoria.id_for_label }}">Categoria</label>
-                    {{ form.categoria }}
-                    {% if form.categoria.errors %}
-                        {% for error in form.categoria.errors %}
-                            <span class="error-message">{{ error }}</span>
-                        {% endfor %}
-                    {% endif %}
-                </div>
+                {% include 'ismsapp/components/form_field.html' with field=form.nome label='Nome do Ativo' %}
+                {% include 'ismsapp/components/form_field.html' with field=form.categoria label='Categoria' %}
 
                 <!-- Buttons -->
-                <div class="form-buttons">
+                <div class="d-flex gap-3 mt-4 justify-content-center">
                     <a href="{% url 'dashboard' %}" class="btn btn-cancel">Cancelar</a>
-                    <button type="submit" class="btn btn-confirm">Confirmar Cadastro</button>
+                    <button type="submit" class="btn btn-confirm" id="submit-btn">
+                        <span class="btn-text">Confirmar Cadastro</span>
+                    </button>
                 </div>
             </form>
+
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const form = document.querySelector('.cadastro-form');
+                const btn = document.getElementById('submit-btn');
+                if (form && btn) {
+                    form.addEventListener('submit', function() {
+                        btn.disabled = true;
+                        btn.innerHTML = 'Salvando...';
+                    });
+                }
+            });
+            </script>
         </div>
     </div>
 {% endblock %}

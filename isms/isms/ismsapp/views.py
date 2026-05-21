@@ -2437,7 +2437,7 @@ class TratamentoRiscoView(View):
                         ),
                         'acoes': [
                             'Identificar e implementar controles técnicos ou administrativos',
-                            'Definir responsável (owner) e prazo para implementação',
+                            'Definir responsável e prazo para implementação',
                             'Estabelecer plano de ação com marcos mensuráveis',
                             'Monitorar a eficácia dos controles após implementação',
                         ],
@@ -3464,19 +3464,45 @@ class ReadAmeacaView(View):
 
         search_query = request.GET.get('search', '').strip()
 
-        ameacas = Ameaca.objects.all()
+        from django.core.paginator import Paginator
+
+        ameacas = Ameaca.objects.prefetch_related('ativos', 'vulnerabilidades').all()
         if search_query:
             ameacas = ameacas.filter(
                 Q(nome__icontains=search_query) |
                 Q(ativos__nome__icontains=search_query)
             ).distinct()
 
+        from django.db.models import Count
+
+        # Compute stats before pagination
+        total_ameacas = ameacas.count()
+        ameacas_sem_ativos = ameacas.annotate(num_ativos=Count('ativos')).filter(num_ativos=0).count()
+        ameacas_criticas = ameacas.annotate(num_vulns=Count('vulnerabilidades')).filter(num_vulns__gte=5).count()
+
+        # Pagination
+        try:
+            per_page = int(request.GET.get('per_page', 25))
+        except (TypeError, ValueError):
+            per_page = 25
+
+        paginator = Paginator(ameacas, per_page)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        ameacas_page = page_obj.object_list
+
         pode_editar_deletar = self._check_edit_permission(request.user)
 
         contexto = {
-            'ameacas': ameacas,
+            'ameacas': ameacas_page,
             'pode_editar_deletar': pode_editar_deletar,
             'search_query': search_query,
+            'page_obj': page_obj,
+            'per_page': per_page,
+            'total_ameacas': total_ameacas,
+            'ameacas_sem_ativos': ameacas_sem_ativos,
+            'ameacas_criticas': ameacas_criticas,
         }
         return render(request, self.template_name, contexto)
 

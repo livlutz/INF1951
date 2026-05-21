@@ -1,594 +1,115 @@
 /**
- * Tratamento de Riscos JavaScript
+ * Tratamento de Riscos — tratamento_riscos.js
  *
- * Handles interactive features for risk treatment planning and residual risk visualization.
- * This module implements ISO 27001 risk treatment strategies with real-time matrix preview.
+ * Key improvements over the previous version:
  *
- * Features:
- * - Strategy-based intelligent defaults for risk reduction percentages
- * - Manual adjustment of reduction values with live residual risk preview
- * - Visual risk matrix showing current vs. residual risk positions
- * - Risk level classification (Muito Baixo, Baixo, Médio, Alto, Crítico)
- *
- * Risk Calculation:
- * - Current Risk = Probability Weight × Consequence Weight
- * - Residual Risk = (Prob Weight × (1 - Prob Reduction%)) × (Cons Weight × (1 - Impact Reduction%))
+ * 1. Weights read from data-* attributes on the <form> element —
+ *    no fragile DOM-text scraping with regex.
+ * 2. AJAX endpoint for control reductions is replaced with a pure
+ *    client-side calculation that mirrors the view's
+ *    _CONTROL_EFFECTIVENESS table, so there's no 404 risk and no
+ *    round-trip needed.
+ * 3. The residual-risk preview renders a proper summary panel
+ *    alongside a lightweight matrix, both using CSS classes rather
+ *    than thousands of inline styles.
+ * 4. Form validation uses an inline banner instead of alert().
+ * 5. Strategy-suggested reductions are only applied when the
+ *    reduction inputs are genuinely empty (new treatment), never
+ *    overwriting saved values while editing.
  */
 
-document.addEventListener('DOMContentLoaded', function() {
-  initializeRiskReductionPreview();
-  initializeStrategySelection();
-  initializeRiskSelection();
-  initializeFormValidation();
-  buildControlesCheckboxes();
-  initControlesSearch();
-  initializeControlBasedReductions();
-});
+/*CONSTANTS — mirror the view's _CONTROL_EFFECTIVENESS table */
 
-/**
- * Treatment strategy effectiveness mapping (ISO 27001 Risk Treatment)
- *
- * Each strategy has suggested reduction percentages for probability and impact.
- * These values represent typical effectiveness ranges for each treatment approach.
- * Users can adjust these values based on their specific control implementation.
- *
- * Strategies:
- * - MITIGAR (Mitigate): Implement controls to reduce probability or impact
- *   Example: Install antivirus, implement access controls, employee training
- *   Suggested: 40% probability reduction + 30% impact reduction
- *
- * - EVITAR (Avoid): Eliminate the activity or condition that creates the risk
- *   Example: Stop using vulnerable technology, discontinue risky process
- *   Suggested: 80% probability reduction + 70% impact reduction (highest effectiveness)
- *
- * - COMPARTILHAR (Share): Transfer risk to third party (insurance, outsourcing)
- *   Example: Buy cyber insurance, outsource to managed security provider
- *   Suggested: 30% probability reduction + 50% impact reduction (handles impact better)
- *
- * - ACEITAR (Accept): Accept the risk without additional treatment
- *   Example: Accept low-value risks, document risk acceptance
- *   Suggested: 0% reduction (no controls applied)
- */
-const strategyReductions = {
-  'mitigar': { probabilidade: 40, impacto: 30 },    // Mitigate: implement controls (moderate effectiveness)
-  'evitar': { probabilidade: 80, impacto: 70 },      // Avoid: eliminate activity (highest effectiveness)
-  'compartilhar': { probabilidade: 30, impacto: 50 }, // Share: transfer to third party (risk transfer)
-  'aceitar': { probabilidade: 0, impacto: 0 }        // Accept: accept residual risk (no reduction)
+const STRATEGY_REDUCTIONS = {
+  mitigar:       { prob: 40, cons: 30 },
+  evitar:        { prob: 80, cons: 70 },
+  compartilhar:  { prob: 30, cons: 50 },
+  aceitar:       { prob:  0, cons:  0 },
 };
 
-/**
- * Initialize strategy selection with visual feedback
- */
-function initializeStrategySelection() {
-  const radioButtons = document.querySelectorAll('input[name="tipo_tratamento"]');
+/*CONTROL EFFECTIVENESS — define how different control types reduce probability and consequence */
+// per_control and cap values must stay in sync with view's _CONTROL_EFFECTIVENESS
+const CONTROL_EFFECTIVENESS = {
+  preventivo: {
+    prob_per_control: 20, cons_per_control: 0,
+    prob_cap: 60, cons_cap: 0,
+    label: 'Preventivo',
+    reduces_prob: true, reduces_cons: false,
+  },
+  detectivo: {
+    prob_per_control: 10, cons_per_control: 15,
+    prob_cap: 30, cons_cap: 45,
+    label: 'Detectivo',
+    reduces_prob: true, reduces_cons: true,
+  },
+  corretivo: {
+    prob_per_control: 0, cons_per_control: 25,
+    prob_cap: 0, cons_cap: 60,
+    label: 'Corretivo / Contingência',
+    reduces_prob: false, reduces_cons: true,
+  },
+};
+
+const MAX_REDUCTION = 95;
+
+/*BOOTSTRAP */
+
+document.addEventListener('DOMContentLoaded', function () {
+  buildControlesCheckboxes();
+  initControlesSearch();
+  initStrategySelection();
+  initReductionInputListeners();
+  initFormValidation();
+  triggerInitialPreview();
+});
+
+/* CONTROLS — checkbox list builder */
 
-  radioButtons.forEach(radio => {
-    radio.addEventListener('change', function() {
-      const strategy = this.value;
-      console.log('Treatment strategy selected:', strategy);
-
-      // Set suggested reduction values based on strategy
-      applyStrategyReductions(strategy);
-
-      // Update the preview
-      updateResidualRiskPreview();
-    });
-  });
-
-  // Highlight the selected strategy card on page load (if editing existing treatment)
-  const checkedRadio = document.querySelector('input[name="tipo_tratamento"]:checked');
-  if (checkedRadio) {
-    const strategy = checkedRadio.value;
-    console.log('Selected strategy on page load:', strategy);
-    highlightStrategyCard(strategy);
-
-    // Also apply the strategy's suggested reductions if the form was just loaded
-    // but only if the reductions are still at their default values (empty or 0)
-    // This way, if the user already set custom values, we won't override them
-    const probInput = document.querySelector('input[name="reducao_probabilidade"]');
-    const impactInput = document.querySelector('input[name="reducao_impacto"]');
-
-    // If both values are empty (new treatment), apply defaults
-    if ((probInput && probInput.value === '') || (impactInput && impactInput.value === '')) {
-      console.log('Applying default strategy reductions to empty form');
-      applyStrategyReductions(strategy);
-    } else {
-      console.log('Form already has reduction values, keeping existing values');
-    }
-  }
-}
-
-/**
- * Highlight the strategy card visually for the selected strategy
- */
-function highlightStrategyCard(strategy) {
-  // Find the label containing this strategy's radio button
-  const radioButtons = document.querySelectorAll('input[name="tipo_tratamento"]');
-
-  radioButtons.forEach(radio => {
-    const label = radio.closest('.strategy-option');
-    if (label) {
-      if (radio.value === strategy) {
-        // Ensure this radio is checked
-        radio.checked = true;
-        label.classList.add('selected');
-      } else {
-        label.classList.remove('selected');
-      }
-    }
-  });
-}
-
-/**
- * Apply suggested reduction percentages based on treatment strategy
- */
-function applyStrategyReductions(strategy) {
-  const reductions = strategyReductions[strategy];
-  if (!reductions) return;
-
-  const probInput = document.querySelector('input[name="reducao_probabilidade"]');
-  const impactInput = document.querySelector('input[name="reducao_impacto"]');
-
-  if (probInput) {
-    probInput.value = reductions.probabilidade;
-  }
-  if (impactInput) {
-    impactInput.value = reductions.impacto;
-  }
-
-  console.log(`Strategy "${strategy}" applied - Prob: ${reductions.probabilidade}%, Impact: ${reductions.impacto}%`);
-}
-
-/**
- * Update residual risk preview when reduction values change
- */
-function initializeRiskReductionPreview() {
-  const probInput = document.querySelector('input[name="reducao_probabilidade"]');
-  const impactInput = document.querySelector('input[name="reducao_impacto"]');
-
-  if (probInput && impactInput) {
-    console.log('Risk reduction inputs found, attaching event listeners');
-
-    // Use both 'input' and 'change' events to ensure compatibility
-    probInput.addEventListener('input', function() {
-      console.log('Probability input changed:', this.value);
-      updateResidualRiskPreview();
-    });
-
-    impactInput.addEventListener('input', function() {
-      console.log('Impact input changed:', this.value);
-      updateResidualRiskPreview();
-    });
-
-    // Also add change event listeners
-    probInput.addEventListener('change', updateResidualRiskPreview);
-    impactInput.addEventListener('change', updateResidualRiskPreview);
-
-    // Trigger initial update with default values
-    setTimeout(() => {
-      console.log('Triggering initial preview update');
-      updateResidualRiskPreview();
-    }, 100);
-  } else {
-    console.warn('Risk reduction inputs not found on page load');
-  }
-}
-
-/**
- * Initialize risk selection from list
- */
-function initializeRiskSelection() {
-  const riskItems = document.querySelectorAll('.risk-treatment-item');
-
-  riskItems.forEach(item => {
-    item.addEventListener('click', function(e) {
-      e.preventDefault();
-      const url = this.getAttribute('href');
-      if (url) {
-        window.location.href = url;
-      }
-    });
-  });
-}
-
-/**
- * Update the residual risk preview based on reduction inputs
- * Displays a risk matrix with current and projected residual risk positions
- */
-function updateResidualRiskPreview() {
-  console.log('updateResidualRiskPreview called');
-
-  const previewContent = document.getElementById('residual-preview');
-
-  if (!previewContent) {
-    console.error('Preview element not found with ID: residual-preview');
-    return;
-  }
-
-  const probInput = document.querySelector('input[name="reducao_probabilidade"]');
-  const impactInput = document.querySelector('input[name="reducao_impacto"]');
-
-  if (!probInput || !impactInput) {
-    console.error('Reduction input fields not found');
-    return;
-  }
-
-  const reducaoProbabilidade = parseInt(probInput.value, 10) || 0;
-  const reducaoImpacto = parseInt(impactInput.value, 10) || 0;
-
-  console.log('Reduction values - Prob:', reducaoProbabilidade, 'Impact:', reducaoImpacto);
-
-  // Get current risk value from the impact value span
-  let currentRiskValue = 12; // default fallback
-  const impactValue = document.querySelector('.impact-value');
-  if (impactValue && impactValue.textContent) {
-    const riskText = impactValue.textContent.trim();
-    const riskNum = parseFloat(riskText);
-    if (!isNaN(riskNum)) {
-      currentRiskValue = riskNum;
-    }
-  }
-
-  // Extract probability and consequence weights from the risk overview card
-  let probWeight = 3;
-  let consWeight = 4;
-
-  const riskOverviewCard = document.querySelector('.risk-overview-card');
-  if (riskOverviewCard) {
-    // Get all info items
-    const infoItems = riskOverviewCard.querySelectorAll('.info-item');
-
-    infoItems.forEach(item => {
-      const label = item.querySelector('.label');
-      const value = item.querySelector('.value');
-
-      if (label && value) {
-        const labelText = label.textContent.trim();
-        const valueText = value.textContent.trim();
-
-        // Extract probability weight
-        if (labelText.includes('Probabilidade')) {
-          const probMatch = valueText.match(/peso:\s*([\d.]+)/);
-          if (probMatch) {
-            probWeight = parseFloat(probMatch[1]);
-          }
-        }
-
-        // Extract consequence weight
-        if (labelText.includes('Consequência')) {
-          const consMatch = valueText.match(/peso:\s*([\d.]+)/);
-          if (consMatch) {
-            consWeight = parseFloat(consMatch[1]);
-          }
-        }
-      }
-    });
-  }
-
-  console.log('Current Risk Value:', currentRiskValue, 'Weights extracted - Prob:', probWeight, 'Cons:', consWeight);
-
-  // Calculate residual weights
-  const residualProbWeight = probWeight * (1 - reducaoProbabilidade / 100);
-  const residualConsWeight = consWeight * (1 - reducaoImpacto / 100);
-  const residualRiskValue = residualProbWeight * residualConsWeight;
-
-  console.log('Risk calculations - Current:', currentRiskValue, 'Residual:', residualRiskValue);
-
-  // Determine risk levels
-  const currentLevel = getRiskLevel(currentRiskValue);
-  const residualLevel = getRiskLevel(residualRiskValue);
-
-  // Create risk matrix visualization
-  const matrixHTML = createRiskMatrixVisualization(
-    probWeight, consWeight, currentRiskValue,
-    residualProbWeight, residualConsWeight, residualRiskValue,
-    currentLevel, residualLevel
-  );
-
-  previewContent.innerHTML = matrixHTML;
-}
-
-/**
- * Determine risk level based on value
- */
-function getRiskLevel(value) {
-  if (value <= 3) {
-    return { name: 'Muito Baixo', color: '#10b981', severity: 1, symbol: '●' };
-  } else if (value <= 6) {
-    return { name: 'Baixo', color: '#34d399', severity: 2, symbol: '●' };
-  } else if (value <= 12) {
-    return { name: 'Médio', color: '#f59e0b', severity: 3, symbol: '■' };
-  } else if (value <= 20) {
-    return { name: 'Alto', color: '#ef4444', severity: 4, symbol: '■' };
-  } else {
-    return { name: 'Crítico', color: '#dc2626', severity: 5, symbol: '■' };
-  }
-}
-
-/**
- * Create a visual risk matrix showing current and residual positions
- */
-function createRiskMatrixVisualization(
-  currentProbWeight, currentConsWeight, currentValue,
-  residualProbWeight, residualConsWeight, residualValue,
-  currentLevel, residualLevel
-) {
-  // Find the cell closest to current and residual risk values
-  let currentClosestCell = null;
-  let residualClosestCell = null;
-  let minCurrentDiff = Infinity;
-  let minResidualDiff = Infinity;
-
-  for (let impact = 1; impact <= 5; impact++) {
-    for (let prob = 1; prob <= 5; prob++) {
-      const cellValue = impact * prob;
-
-      // Find closest cell to current risk value
-      const currentDiff = Math.abs(cellValue - currentValue);
-      if (currentDiff < minCurrentDiff) {
-        minCurrentDiff = currentDiff;
-        currentClosestCell = { prob, impact, value: cellValue };
-      }
-
-      // Find closest cell to residual risk value
-      const residualDiff = Math.abs(cellValue - residualValue);
-      if (residualDiff < minResidualDiff) {
-        minResidualDiff = residualDiff;
-        residualClosestCell = { prob, impact, value: cellValue };
-      }
-    }
-  }
-
-  console.log('Matrix positions - Current:', currentClosestCell, 'Residual:', residualClosestCell);
-
-  // Create matrix cells
-  let matrixCells = '';
-
-  for (let impact = 5; impact >= 1; impact--) {
-    for (let prob = 1; prob <= 5; prob++) {
-      const cellValue = impact * prob;
-      const cellLevel = getRiskLevel(cellValue);
-      const cellColor = cellLevel.color;
-
-      let symbol = '';
-      let backgroundColor = cellColor;
-      let opacity = 0.4;
-
-      // Check if this is current position
-      const isCurrent = prob === currentClosestCell.prob && impact === currentClosestCell.impact;
-      // Check if this is residual position
-      const isResidual = prob === residualClosestCell.prob && impact === residualClosestCell.impact;
-
-      if (isCurrent) {
-        symbol = '●';
-        opacity = 0.9;
-      } else if (isResidual) {
-        symbol = '■';
-        opacity = 0.9;
-      }
-
-      matrixCells += `
-        <div style="
-          background-color: ${backgroundColor};
-          opacity: ${opacity};
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          font-weight: bold;
-          color: #fff;
-          position: relative;
-          min-height: 60px;
-          min-width: 60px;
-          border-radius: 4px;
-          border: 2px solid transparent;
-          transition: all 0.3s ease;
-          cursor: pointer;
-        ">
-          ${symbol ? `<div style="font-size: 1.8rem; margin-bottom: 4px;">${symbol}</div>` : ''}
-          <span style="font-size: 0.75rem; opacity: 0.9; font-weight: normal;">${cellValue}</span>
-        </div>
-      `;
-    }
-  }
-
-  return `
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; width: 100%; margin-top: 1rem;">
-      <!-- Risk Matrix -->
-      <div>
-        <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 1rem;">Matriz de Risco 5×5</div>
-        <div style="
-          display: grid;
-          grid-template-columns: repeat(5, 1fr);
-          gap: 6px;
-          background-color: #ffffff10;
-          padding: 1.5rem;
-          border-radius: 6px;
-          border: 1px solid #2a3f5f;
-        ">
-          ${matrixCells}
-        </div>
-        <div style="margin-top: 1.5rem; font-size: 0.8rem; color: #cbd5e1; background-color: #1a1f2e; padding: 1rem; border-radius: 6px; border-left: 4px solid #8b3cf7;">
-          <strong>Legenda da Matriz:</strong>
-          <div style="margin-top: 0.75rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.75rem;">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="font-size: 1.4rem;">●</span> Risco Atual
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="font-size: 1.4rem;">■</span> Risco Residual
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Risk Summary -->
-      <div style="display: flex; flex-direction: column; justify-content: flex-start;">
-        <div style="background-color: #1a1f2e; border: 1px solid #2a3f5f; border-radius: 6px; padding: 1.5rem;">
-          <div style="margin-bottom: 1.5rem;">
-            <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 0.5rem;">📊 Risco Atual</div>
-            <div style="display: flex; align-items: baseline; gap: 0.75rem;">
-              <div style="font-size: 2.5rem; font-weight: 700; color: ${currentLevel.color};">${currentValue.toFixed(1)}</div>
-              <div style="font-size: 0.95rem; font-weight: 600; color: ${currentLevel.color};">${currentLevel.name}</div>
-            </div>
-          </div>
-
-          <div style="margin-bottom: 1.5rem; padding-top: 1rem; border-top: 1px solid #2a3f5f;">
-            <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 0.5rem;">🎯 Risco Residual Projetado</div>
-            <div style="display: flex; align-items: baseline; gap: 0.75rem;">
-              <div style="font-size: 2.5rem; font-weight: 700; color: ${residualLevel.color};">${residualValue.toFixed(1)}</div>
-              <div style="font-size: 0.95rem; font-weight: 600; color: ${residualLevel.color};">${residualLevel.name}</div>
-            </div>
-          </div>
-
-          <div style="padding-top: 1rem; border-top: 1px solid #2a3f5f;">
-            <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 0.75rem;">✓ Redução Esperada</div>
-            <div style="font-size: 2rem; font-weight: 700; color: #10b981;">${((1 - residualValue / currentValue) * 100).toFixed(0)}%</div>
-            <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 1rem; background-color: #0e1019; padding: 0.75rem; border-radius: 4px; border-left: 3px solid #10b981;">
-              Com os controles propostos, você reduzirá o risco de <strong>${currentValue.toFixed(1)}</strong> para <strong>${residualValue.toFixed(1)}</strong>.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-/**
- * Initialize form validation
- */
-function initializeFormValidation() {
-  const form = document.querySelector('form');
-
-  if (form) {
-    form.addEventListener('submit', function(e) {
-      const nome = this.querySelector('input[name="nome"]');
-      const tipoTratamento = this.querySelector('input[name="tipo_tratamento"]:checked');
-      const descricao = this.querySelector('textarea[name="descricao"]');
-      const reducaoProbabilidade = this.querySelector('input[name="reducao_probabilidade"]');
-      const reducaoImpacto = this.querySelector('input[name="reducao_impacto"]');
-
-      const nomeValid = nome && nome.value && nome.value.trim().length > 0;
-      const tipoValid = tipoTratamento !== null;
-      const descricaoValid = descricao && descricao.value && descricao.value.trim().length > 0;
-      const reducaoProbabilidadeValid = reducaoProbabilidade && reducaoProbabilidade.value !== '';
-      const reducaoImpactoValid = reducaoImpacto && reducaoImpacto.value !== '';
-
-      if (!nomeValid || !tipoValid || !descricaoValid || !reducaoProbabilidadeValid || !reducaoImpactoValid) {
-        e.preventDefault();
-
-        // Show specific error message
-        let missingFields = [];
-        if (!nomeValid) missingFields.push('Nome do Plano');
-        if (!tipoValid) missingFields.push('Estratégia de Tratamento');
-        if (!descricaoValid) missingFields.push('Descrição');
-        if (!reducaoProbabilidadeValid) missingFields.push('Redução de Probabilidade');
-        if (!reducaoImpactoValid) missingFields.push('Redução de Impacto');
-
-        alert('Por favor, preencha os campos obrigatórios:\n- ' + missingFields.join('\n- '));
-        return false;
-      }
-
-      return true;
-    });
-  }
-}
-
-/**
- * Get treatment strategy label
- */
-function getStrategyLabel(strategy) {
-  const labels = {
-    'mitigar': 'Mitigar (Modificar)',
-    'evitar': 'Evitar',
-    'compartilhar': 'Compartilhar',
-    'aceitar': 'Aceitar'
-  };
-  return labels[strategy] || 'Desconhecido';
-}
-
-/**
- * Format percentage value for display
- */
-function formatPercentage(value) {
-  return Math.round(value) + '%';
-}
-
-/**
- * Export treatment plan summary
- */
-function exportTreatmentPlan() {
-  const riskName = document.querySelector('.risk-overview-title')?.textContent || 'Risk';
-  const strategy = document.querySelector('input[name="tipo_tratamento"]:checked')?.value || 'Not selected';
-  const description = document.querySelector('textarea[name="descricao"]')?.value || '';
-  const responsible = document.querySelector('input[name="responsavel"]')?.value || '';
-
-  const data = {
-    riskName: riskName,
-    strategy: getStrategyLabel(strategy),
-    description: description,
-    responsible: responsible,
-    timestamp: new Date().toISOString()
-  };
-
-  console.log('Treatment Plan Data:', data);
-  return data;
-}
-
-/**
- * Print treatment plan report
- */
-function printTreatmentPlan() {
-  window.print();
-}
-
-/**
- * Reset form to initial state
- */
-function resetTreatmentForm() {
-  const form = document.querySelector('form');
-  if (form) {
-    form.reset();
-    updateResidualRiskPreview();
-  }
-}
 function buildControlesCheckboxes() {
-  const select = document.querySelector('select[name="controles"]');
+  const select    = document.querySelector('select[name="controles"]');
   const container = document.getElementById('controles-checkbox-list');
   if (!select || !container) return;
 
   container.innerHTML = '';
 
   Array.from(select.options).forEach(function (option) {
-    const item = document.createElement('label');
-    item.className = 'checkbox-asset-item';
-    item.dataset.label = option.text.toLowerCase();
+    const wrapper = document.createElement('label');
+    wrapper.className = 'checkbox-asset-item';
+    wrapper.dataset.label = option.text.toLowerCase();
 
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.value = option.value;
-    checkbox.className = 'asset-cb';
-    checkbox.checked = option.selected;
+    const cb = document.createElement('input');
+    cb.type    = 'checkbox';
+    cb.value   = option.value;
+    cb.className = 'asset-cb';
+    cb.checked = option.selected;
+    cb.dataset.tipo = option.dataset.tipo || '';
 
-    checkbox.addEventListener('change', function () {
+    cb.addEventListener('change', function () {
       option.selected = this.checked;
-      select.dispatchEvent(new Event('change', { bubbles: true }));
       updateControlesSummary();
+      recalculateControlReductions();
     });
 
     const label = document.createElement('span');
-    label.className = 'asset-cb-label';
+    label.className  = 'asset-cb-label';
     label.textContent = option.text;
 
-    item.appendChild(checkbox);
-    item.appendChild(label);
-    container.appendChild(item);
+    wrapper.appendChild(cb);
+    wrapper.appendChild(label);
+    container.appendChild(wrapper);
   });
 
   updateControlesSummary();
+
+  // If there are already-selected controls on load (editing), compute immediately
+  const preselected = Array.from(select.selectedOptions).length;
+  if (preselected > 0) {
+    setTimeout(recalculateControlReductions, 150);
+  }
 }
 
 function initControlesSearch() {
-  const input = document.getElementById('controles-search');
+  const input     = document.getElementById('controles-search');
   const container = document.getElementById('controles-checkbox-list');
   if (!input || !container) return;
 
@@ -601,165 +122,405 @@ function initControlesSearch() {
 }
 
 function updateControlesSummary() {
-  const countEl = document.getElementById('controles-count');
-  if (countEl) {
-    countEl.textContent = document.querySelectorAll('#controles-checkbox-list .asset-cb:checked').length;
+  const el = document.getElementById('controles-count');
+  if (el) {
+    el.textContent = document.querySelectorAll('#controles-checkbox-list .asset-cb:checked').length;
   }
 }
+
+/*CONTROL-BASED REDUCTION — pure client-side */
 
 /**
- * Initialize control-based reduction calculation (HYBRID APPROACH)
- *
- * When controls are selected, automatically calculate and update the expected
- * probability and consequence reduction percentages based on control types:
- * - Preventivo: Reduces Probability
- * - Detectivo: Reduces both Probability and Consequence
- * - Corretivo: Reduces Consequence
+ * Collect the category keywords from the labels of selected controls.
+ * The label text must contain 'preventivo', 'detectivo', or 'corretivo'
+ * (case-insensitive) for the mapping to fire — same keyword matching as
+ * the view's _calculate_control_reductions().
  */
-function initializeControlBasedReductions() {
-  const controlesSelect = document.getElementById('id_controles');
+function recalculateControlReductions() {
+  const checkedBoxes = document.querySelectorAll('#controles-checkbox-list .asset-cb:checked');
+  const buckets = { preventivo: 0, detectivo: 0, corretivo: 0 };
 
-  if (!controlesSelect) {
-    console.warn('Controls select field not found');
-    return;
-  }
-
-  controlesSelect.addEventListener('change', handleControlsChanged);
-  console.log('Control-based reduction listener initialized');
-
-  // Check if there are already selected controls on page load (editing existing treatment)
-  const selectedIds = Array.from(controlesSelect.selectedOptions).map(opt => opt.value);
-  if (selectedIds.length > 0) {
-    console.log('Existing controls found on page load:', selectedIds);
-
-    // Delay slightly to ensure DOM is fully loaded
-    setTimeout(() => {
-      handleControlsChanged();
-    }, 300);
-  }
-  // Call backend to calculate control reductions
-  handleControlsChanged();
-}
-
-function handleControlsChanged() {
-  const controlesSelect = document.getElementById('id_controles');
-  const riscoInput = document.querySelector('input[name="risco_id"]');
-
-  if (!controlesSelect || !riscoInput) {
-    return;
-  }
-
-  const riscoId = riscoInput.value;
-  const selectedIds = Array.from(controlesSelect.selectedOptions).map(function (opt) {
-    return opt.value;
+  checkedBoxes.forEach(function (cb) {
+    const tipo = (cb.dataset.tipo || '').toLowerCase();
+    if (tipo === 'preventivo') buckets.preventivo++;
+    else if (tipo === 'detectivo') buckets.detectivo++;
+    else if (tipo === 'corretivo') buckets.corretivo++;
   });
 
-  calculateControlReductionsFromBackend(riscoId, selectedIds);
-}
-
-/**
- * Calculate control reductions via AJAX call to backend
- *
- * @param {string} risco_id - The risk ID
- * @param {array} controle_ids - Array of selected control IDs
- */
-function calculateControlReductionsFromBackend(risco_id, controle_ids) {
-  const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value;
-
-  // Prepare the request data
-  const requestData = {
-    risco_id: risco_id,
-    controle_ids: controle_ids.join(',')
-  };
-
-  console.log('Sending request for control reductions:', requestData);
-
-  // Make AJAX request to calculate reductions
-  fetch('/api/calculate-control-reductions/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': csrfToken
-    },
-    body: JSON.stringify(requestData)
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+  // Compute with diminishing returns per category (mirrors view logic)
+  function diminishing(perControl, cap, count) {
+    let total = 0;
+    for (let k = 0; k < count; k++) {
+      total += perControl * Math.pow(0.8, k);
     }
-    return response.json();
-  })
-  .then(data => {
-    console.log('Received control reductions:', data);
-    applyControlReductions(data);
-  })
-  .catch(error => {
-    console.warn('Error calculating control reductions:', error);
-    console.log('Falling back to strategy-based approach');
+    return Math.min(total, cap);
+  }
+
+  let probTotal = 0;
+  let consTotal = 0;
+  const breakdown = [];
+  const warnings  = [];
+
+  for (const [key, count] of Object.entries(buckets)) {
+    if (count === 0) continue;
+    const eff = CONTROL_EFFECTIVENESS[key];
+
+    const catProb = diminishing(eff.prob_per_control, eff.prob_cap, count);
+    const catCons = diminishing(eff.cons_per_control, eff.cons_cap, count);
+
+    const rawProb = [...Array(count)].reduce((s, _, k) => s + eff.prob_per_control * Math.pow(0.8, k), 0);
+    const rawCons = [...Array(count)].reduce((s, _, k) => s + eff.cons_per_control * Math.pow(0.8, k), 0);
+
+    if (rawProb > eff.prob_cap && eff.prob_cap > 0) {
+      warnings.push(`${eff.label}: contribuição máxima de ${eff.prob_cap}% de redução de probabilidade atingida.`);
+    }
+    if (rawCons > eff.cons_cap && eff.cons_cap > 0) {
+      warnings.push(`${eff.label}: contribuição máxima de ${eff.cons_cap}% de redução de consequência atingida.`);
+    }
+
+    probTotal += catProb;
+    consTotal += catCons;
+
+    breakdown.push({
+      label: eff.label,
+      count,
+      reduces_prob: eff.reduces_prob,
+      reduces_cons: eff.reduces_cons,
+      prob_contribution: Math.round(catProb * 10) / 10,
+      cons_contribution: Math.round(catCons * 10) / 10,
+    });
+  }
+
+  if (probTotal > MAX_REDUCTION) warnings.push(`Redução total de probabilidade limitada a ${MAX_REDUCTION}%.`);
+  if (consTotal > MAX_REDUCTION) warnings.push(`Redução total de consequência limitada a ${MAX_REDUCTION}%.`);
+
+  const finalProb = Math.round(Math.min(probTotal, MAX_REDUCTION) * 10) / 10;
+  const finalCons = Math.round(Math.min(consTotal, MAX_REDUCTION) * 10) / 10;
+
+  renderControlBreakdown(breakdown, finalProb, finalCons, warnings);
+
+  // Apply to inputs and refresh preview
+  const probInput = document.querySelector('input[name="reducao_probabilidade"]');
+  const consInput = document.querySelector('input[name="reducao_impacto"]');
+
+  if (probInput && breakdown.length > 0) {
+    probInput.value = finalProb;
+    probInput.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  if (consInput && breakdown.length > 0) {
+    consInput.value = finalCons;
+    consInput.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+}
+
+function renderControlBreakdown(breakdown, probTotal, consTotal, warnings) {
+  const wrapper = document.getElementById('control-breakdown');
+  const body    = document.getElementById('cbd-body');
+  const probEl  = document.getElementById('cbd-prob-total');
+  const consEl  = document.getElementById('cbd-cons-total');
+  const warnEl  = document.getElementById('cbd-warnings');
+
+  if (!wrapper) return;
+
+  if (breakdown.length === 0) {
+    wrapper.style.display = 'none';
+    return;
+  }
+
+  wrapper.style.display = '';
+
+  if (body) {
+    body.innerHTML = breakdown.map(function (item) {
+      const probEffect = item.reduces_prob
+        ? `<span class="cbd-effect effect-prob">↓ Prob +${item.prob_contribution}%</span>`
+        : `<span class="cbd-effect effect-no">Prob —</span>`;
+      const consEffect = item.reduces_cons
+        ? `<span class="cbd-effect effect-cons">↓ Cons +${item.cons_contribution}%</span>`
+        : `<span class="cbd-effect effect-no">Cons —</span>`;
+
+      return `
+        <div class="cbd-row">
+          <div class="cbd-row-type">
+            <strong>${item.label}</strong>
+            <span class="cbd-row-qty">${item.count} controle${item.count !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="cbd-row-effects">${probEffect}${consEffect}</div>
+          <div class="cbd-row-example"></div>
+        </div>`;
+    }).join('');
+  }
+
+  if (probEl) probEl.textContent = `${probTotal}%`;
+  if (consEl) consEl.textContent = `${consTotal}%`;
+
+  if (warnEl) {
+    warnEl.innerHTML = warnings.map(w => `<div class="cbd-warning">⚠ ${w}</div>`).join('');
+    warnEl.style.display = warnings.length ? '' : 'none';
+  }
+}
+
+/*STRATEGY SELECTION */
+
+function initStrategySelection() {
+  const radios = document.querySelectorAll('input[name="tipo_tratamento"]');
+
+  radios.forEach(function (radio) {
+    radio.addEventListener('change', function () {
+      const reductions = STRATEGY_REDUCTIONS[this.value];
+      if (!reductions) return;
+
+      const probInput = document.querySelector('input[name="reducao_probabilidade"]');
+      const consInput = document.querySelector('input[name="reducao_impacto"]');
+
+      if (probInput) {
+        probInput.value = reductions.prob;
+        probInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (consInput) {
+        consInput.value = reductions.cons;
+        consInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  });
+
+  // On load: if the form is brand new (both inputs empty), seed values from the
+  // currently checked strategy. If editing, leave the saved values alone.
+  const checked   = document.querySelector('input[name="tipo_tratamento"]:checked');
+  const probInput = document.querySelector('input[name="reducao_probabilidade"]');
+  const consInput = document.querySelector('input[name="reducao_impacto"]');
+  const isNew     = (!probInput?.value && !consInput?.value);
+
+  if (checked && isNew) {
+    const reductions = STRATEGY_REDUCTIONS[checked.value];
+    if (reductions) {
+      if (probInput) {
+        probInput.value = reductions.prob;
+        probInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (consInput) {
+        consInput.value = reductions.cons;
+        consInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+  }
+}
+
+/*RESIDUAL RISK PREVIEW */
+
+function initReductionInputListeners() {
+  ['reducao_probabilidade', 'reducao_impacto'].forEach(function (name) {
+    const input = document.querySelector(`input[name="${name}"]`);
+    if (input) {
+      input.addEventListener('input',  updateResidualRiskPreview);
+      input.addEventListener('change', updateResidualRiskPreview);
+    }
   });
 }
 
+function triggerInitialPreview() {
+  setTimeout(updateResidualRiskPreview, 150);
+}
+
 /**
- * Apply the calculated control reductions to the form fields
- *
- * @param {object} data - Response from backend containing:
- *   - prob_reduction: Probability reduction percentage
- *   - impact_reduction: Consequence reduction percentage
- *   - breakdown: Array of control type impacts
- *   - has_controls: Boolean indicating if controls were found
+ * Read weights safely from data-* attributes on the form element.
+ * Falls back to sensible defaults so the preview never crashes.
  */
-function applyControlReductions(data) {
-  if (!data.has_controls) {
-    console.log('No relevant controls found in selection');
-    return;
-  }
+function getRiskWeights() {
+  const form = document.querySelector('form[data-prob-weight]');
+  if (!form) return { probWeight: 3, consWeight: 4, currentValue: 12, acceptanceLevel: 12 };
+
+  return {
+    probWeight:      parseFloat(form.dataset.probWeight)      || 3,
+    consWeight:      parseFloat(form.dataset.consWeight)      || 4,
+    currentValue:    parseFloat(form.dataset.currentValue)    || 12,
+    acceptanceLevel: parseFloat(form.dataset.acceptanceLevel) || 12,
+  };
+}
+
+function updateResidualRiskPreview() {
+  const container = document.getElementById('residual-preview');
+  if (!container) return;
 
   const probInput = document.querySelector('input[name="reducao_probabilidade"]');
-  const impactInput = document.querySelector('input[name="reducao_impacto"]');
+  const consInput = document.querySelector('input[name="reducao_impacto"]');
+  if (!probInput || !consInput) return;
 
-  if (!probInput || !impactInput) {
-    console.error('Reduction input fields not found');
-    return;
-  }
+  const reducaoProb = Math.min(parseFloat(probInput.value) || 0, MAX_REDUCTION);
+  const reducaoCons = Math.min(parseFloat(consInput.value) || 0, MAX_REDUCTION);
 
-  // Update the reduction fields with calculated values
-  const probReduction = data.prob_reduction || 0;
-  const impactReduction = data.impact_reduction || 0;
+  const { probWeight, consWeight, currentValue, acceptanceLevel } = getRiskWeights();
 
-  console.log(`Applying control reductions: Prob=${probReduction}%, Impact=${impactReduction}%`);
+  const residualProb = probWeight * (1 - reducaoProb / 100);
+  const residualCons = consWeight * (1 - reducaoCons / 100);
+  const residualValue = residualProb * residualCons;
 
-  probInput.value = probReduction;
-  impactInput.value = impactReduction;
+  const currentLevel  = classifyRisk(currentValue);
+  const residualLevel = classifyRisk(residualValue);
+  const reductionPct  = currentValue > 0 ? ((1 - residualValue / currentValue) * 100) : 0;
+  const isAcceptable  = residualValue < acceptanceLevel;
 
-  // Trigger the preview update
-  updateResidualRiskPreview();
-
-  // Display breakdown of which control types contributed
-  displayControlReductionBreakdown(data.breakdown);
+  container.innerHTML = buildPreviewHTML(
+    currentValue, currentLevel,
+    residualValue, residualLevel,
+    reductionPct, isAcceptable, acceptanceLevel,
+    probWeight, consWeight,
+    residualProb, residualCons
+  );
 }
 
-/**
- * Display a breakdown of which control types reduced probability/consequence
- *
- * @param {array} breakdown - Array of objects with control type performance
- */
-function displayControlReductionBreakdown(breakdown) {
-  if (!breakdown || breakdown.length === 0) {
-    console.log('No control breakdown to display');
-    return;
+function classifyRisk(value) {
+  if (value <= 3)  return { name: 'Muito Baixo', color: '#10b981', cls: 'nivel-baixo' };
+  if (value <= 6)  return { name: 'Baixo',       color: '#34d399', cls: 'nivel-baixo' };
+  if (value <= 12) return { name: 'Médio',        color: '#f59e0b', cls: 'nivel-medio' };
+  if (value <= 20) return { name: 'Alto',         color: '#f97316', cls: 'nivel-alto' };
+  return               { name: 'Crítico',         color: '#ef4444', cls: 'nivel-critico' };
+}
+
+function buildPreviewHTML(
+  currentValue, currentLevel,
+  residualValue, residualLevel,
+  reductionPct, isAcceptable, acceptanceLevel,
+  probWeight, consWeight,
+  residualProb, residualCons
+) {
+  const acceptanceBadge = isAcceptable
+    ? `<span class="badge badge-success">✓ Aceitável após tratamento</span>`
+    : `<span class="badge badge-danger">✕ Ainda acima do limite (${acceptanceLevel})</span>`;
+
+  const matrixHTML = buildMatrixHTML(
+    probWeight,
+    consWeight,
+    residualProb,
+    residualCons
+  );
+
+  return `
+    <div class="preview-grid">
+      <div class="preview-summary">
+        <div class="preview-summary-block">
+          <span class="psb-label">📊 Risco Atual</span>
+          <span class="psb-value" style="color:${currentLevel.color}">${currentValue.toFixed(1)}</span>
+          <span class="psb-level" style="color:${currentLevel.color}">${currentLevel.name}</span>
+        </div>
+
+        <div class="preview-summary-block">
+          <span class="psb-label">🎯 Risco Residual Projetado</span>
+          <span class="psb-value" style="color:${residualLevel.color}">${residualValue.toFixed(1)}</span>
+          <span class="psb-level" style="color:${residualLevel.color}">${residualLevel.name}</span>
+          <div class="psb-acceptance">${acceptanceBadge}</div>
+        </div>
+
+        <div class="preview-summary-block">
+          <span class="psb-label">✓ Redução Estimada</span>
+          <span class="psb-reduction">${reductionPct.toFixed(0)}%</span>
+          <div class="psb-note">
+            Com os controles propostos, o risco passará de
+            <strong>${currentValue.toFixed(1)}</strong> para
+            <strong>${residualValue.toFixed(1)}</strong>.
+          </div>
+        </div>
+      </div>
+
+      <div class="matrix-wrap">
+        <div class="matrix-title">Matriz de Risco 5×5</div>
+        ${matrixHTML}
+        <div class="matrix-legend">
+          <div class="legend-item"><span style="font-size:1.1rem">●</span> Risco Atual</div>
+          <div class="legend-item"><span style="font-size:1.1rem">■</span> Risco Residual</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function buildMatrixHTML(currentProb, currentCons, residualProb, residualCons) {
+  const curCell = {
+    prob: Math.max(1, Math.min(5, Math.round(currentProb))),
+    impact: Math.max(1, Math.min(5, Math.round(currentCons)))
+  };
+
+  const resCell = {
+    prob: Math.max(1, Math.min(5, Math.round(residualProb))),
+    impact: Math.max(1, Math.min(5, Math.round(residualCons)))
+  };
+
+  const sameCell = (curCell.prob === resCell.prob && curCell.impact === resCell.impact);
+
+  let cells = '';
+  for (let impact = 5; impact >= 1; impact--) {
+    for (let prob = 1; prob <= 5; prob++) {
+      const cellValue = impact * prob;
+      const { color } = classifyRisk(cellValue);
+      const isCurrent  = prob === curCell.prob  && impact === curCell.impact;
+      const isResidual = prob === resCell.prob && impact === resCell.impact;
+      const opacity    = (isCurrent || isResidual) ? 0.95 : 0.35;
+
+      let symbol = '';
+      if (sameCell && isCurrent) {
+        symbol = '<div style="font-size:1.2rem;font-weight:900;line-height:1">●■</div>';
+      } else if (isCurrent) {
+        symbol = '<div style="font-size:1.4rem;line-height:1">●</div>';
+      } else if (isResidual) {
+        symbol = '<div style="font-size:1.2rem;line-height:1">■</div>';
+      }
+
+      cells += `
+        <div class="matrix-cell" style="background-color:${color};opacity:${opacity}">
+          ${symbol}
+          <span class="matrix-cell-val">${cellValue}</span>
+        </div>`;
+    }
   }
 
-  console.log('Control type breakdown:');
-  breakdown.forEach(item => {
-    const probText = item.reduz_probabilidade ? '✓ Probabilidade' : '—';
-    const consText = item.reduz_consequencia ? '✓ Consequência' : '—';
-    console.log(`  ${item.tipo} (${item.quantidade} controles): ${probText} | ${consText}`);
+  return `<div class="matrix-grid">${cells}</div>`;
+}
+
+/*FORM VALIDATION */
+
+function initFormValidation() {
+  const form = document.querySelector('form[data-prob-weight]');
+  if (!form) return;
+
+  form.addEventListener('submit', function (e) {
+    const missing = [];
+
+    const nome = form.querySelector('input[name="nome"]');
+    if (!nome?.value?.trim()) missing.push('Nome do Plano');
+
+    if (!form.querySelector('input[name="tipo_tratamento"]:checked')) {
+      missing.push('Estratégia de Tratamento');
+    }
+
+    const desc = form.querySelector('textarea[name="descricao"]');
+    if (!desc?.value?.trim()) missing.push('Descrição');
+
+    const prob = form.querySelector('input[name="reducao_probabilidade"]');
+    if (prob?.value === '') missing.push('Redução de Probabilidade');
+
+    const cons = form.querySelector('input[name="reducao_impacto"]');
+    if (cons?.value === '') missing.push('Redução de Impacto');
+
+    if (missing.length > 0) {
+      e.preventDefault();
+      showValidationBanner('Por favor, preencha os campos obrigatórios: ' + missing.join(', ') + '.');
+    }
   });
+}
 
-  // Optionally display in UI using a toast/notification
-  const breakdownText = breakdown
-    .map(item => `${item.tipo} (${item.quantidade}): ${item.reduz_probabilidade ? 'Prob' : ''} ${item.reduz_consequencia ? 'Cons' : ''}`)
-    .join(', ');
+function showValidationBanner(message) {
+  const existing = document.getElementById('validation-banner');
+  if (existing) existing.remove();
 
-  console.log(`Selected controls reduce: ${breakdownText}`);
+  const banner = document.createElement('div');
+  banner.id        = 'validation-banner';
+  banner.className = 'alert alert-error';
+  banner.style.cssText = 'margin-bottom:1rem;animation:fadeIn .2s ease;';
+  banner.textContent   = message;
+
+  const buttons = document.querySelector('.button-group');
+  if (buttons) {
+    buttons.parentElement.insertBefore(banner, buttons);
+    banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  setTimeout(() => banner.remove(), 6000);
 }

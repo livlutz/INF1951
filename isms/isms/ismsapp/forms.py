@@ -3,6 +3,15 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import *
 
+
+class ControleSelectMultiple(forms.SelectMultiple):
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        tipo = getattr(getattr(value, 'instance', None), 'tipo', '')
+        if tipo:
+            option['attrs']['data-tipo'] = tipo
+        return option
+
 class SignUpForm(forms.Form):
     """Sign up form for new users to create an account.
 
@@ -605,7 +614,7 @@ class TratamentoRiscoForm(forms.Form):
         label='Controles/Medidas',
         queryset=Controle.objects.all(),
         required=False,
-        widget=forms.SelectMultiple(attrs={
+        widget=ControleSelectMultiple(attrs={
             'class': 'form-control controles-select',
             'style': 'width: 100%'
         }),

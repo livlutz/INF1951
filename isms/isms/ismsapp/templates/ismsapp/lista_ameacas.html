@@ -4,7 +4,6 @@
 {% block title %}Lista de Ameaças{% endblock %}
 
 {% block extra_css %}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="{% static 'css/ismsapp/lista_ameacas.css' %}" rel="stylesheet">
 {% endblock %}
@@ -14,10 +13,13 @@
         <div class="lista-card">
             <!-- Header with Title and Add Button -->
             <div class="lista-header">
-                <div class="header-content">
-                    <h1>Ameaças Identificadas</h1>
-                    <p class="subtitle">Gerenciar e visualizar todas as ameaças do sistema</p>
-                </div>
+                                <div class="header-content">
+                                        <div class="title-icon" aria-hidden="true"><i class="fas fa-shield-virus"></i></div>
+                                        <div>
+                                            <h1>Ameaças Identificadas</h1>
+                                            <p class="subtitle">Gerenciar e visualizar todas as ameaças do sistema</p>
+                                        </div>
+                                </div>
                 {% if pode_editar_deletar %}
                 <a href="{% url 'deteccao_ameaca' %}" class="btn-add-threat">
                     <i class="fas fa-plus"></i> Nova Ameaça
@@ -27,16 +29,29 @@
 
             <!-- Filter Section -->
             <div class="filter-section">
-                <form method="get" style="display: flex; gap: 15px; width: 100%; flex-wrap: wrap; align-items: flex-end;">
-                    <div class="filter-group" style="flex: 2; min-width: 250px;">
+                <form method="get" class="filter-form">
+                    <div class="filter-group">
                         <label for="search">Buscar</label>
-                        <input type="text" id="search" name="search" value="{{ search_query }}" placeholder="Ex: Nome da ameaça, origem ou ativo">
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <input autocomplete="off" type="text" id="search" name="search" value="{{ search_query }}" placeholder="Ex: Nome da ameaça, origem ou ativo">
+                        </div>
                     </div>
 
                     <button type="submit" class="filter-button">
-                        <i class="fas fa-filter"></i> Filtrar
+                        <i class="fas fa-filter" aria-hidden="true"></i> Filtrar
                     </button>
                 </form>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="stats-grid" role="region" aria-label="Estatísticas de ameaças">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="stat-value">{{ total_ameacas }}</div>
+                    <div class="stat-label">Ameaças</div>
+                </div>
+
             </div>
 
             <!-- Threats List/Table -->
@@ -47,6 +62,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Nome da Ameaça</th>
+                                <th>Severidade</th>
                                 <th>Ativos Afetados</th>
                                 <th>Ações</th>
                             </tr>
@@ -54,13 +70,28 @@
                         <tbody>
                             {% for ameaca in ameacas %}
                                 <tr>
-                                    <td class="threat-id-cell">
+                                    <td class="threat-id-cell" data-label="ID">
                                         <span class="id-badge">{{ ameaca.id }}</span>
                                     </td>
-                                    <td class="threat-name-cell">
+                                    <td class="threat-name-cell" data-label="Ameaça">
                                         {{ ameaca.nome }}
                                     </td>
-                                    <td class="threat-assets-cell">
+                                    <td class="threat-severity-cell" data-label="Severidade">
+                                        {% with vc=ameaca.vulnerabilidades.count %}
+                                            {% if vc >= 5 %}
+                                                <span class="severity-badge severity-critical">Crítico</span>
+                                            {% elif vc >= 3 %}
+                                                <span class="severity-badge severity-high">Alta</span>
+                                            {% elif vc == 2 %}
+                                                <span class="severity-badge severity-medium">Média</span>
+                                            {% elif vc == 1 %}
+                                                <span class="severity-badge severity-low">Baixa</span>
+                                            {% else %}
+                                                <span class="severity-badge severity-none">Sem avaliação</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    <td class="threat-assets-cell" data-label="Ativos">
                                         {% if ameaca.ativos.all %}
                                             {% for ativo in ameaca.ativos.all %}
                                                 <span class="asset-badge">{{ ativo.nome }}</span>
@@ -69,15 +100,17 @@
                                             <span class="asset-badge empty">Nenhum ativo</span>
                                         {% endif %}
                                     </td>
-                                    <td class="threat-actions-cell">
+                                    <td class="threat-actions-cell" data-label="Ações">
+                                        <div class="action-buttons">
                                         {% if pode_editar_deletar %}
-                                            <a href="{% url 'editar_ameaca' ameaca.id %}" class="action-btn edit-btn" title="Editar">
-                                                <i class="fas fa-edit"></i>
+                                            <a href="{% url 'editar_ameaca' ameaca.id %}" class="action-btn edit-btn" title="Editar" aria-label="Editar ameaça {{ ameaca.nome }}">
+                                                <i class="fas fa-edit" aria-hidden="true"></i>
                                             </a>
-                                            <a href="{% url 'deletar_ameaca' ameaca.id %}" class="action-btn delete-btn" title="Deletar">
-                                                <i class="fas fa-trash"></i>
+                                            <a href="{% url 'deletar_ameaca' ameaca.id %}" class="action-btn delete-btn" title="Deletar" aria-label="Deletar ameaça {{ ameaca.nome }}" onclick="return confirm('Tem certeza que deseja deletar esta ameaça?')">
+                                                <i class="fas fa-trash" aria-hidden="true"></i>
                                             </a>
                                         {% endif %}
+                                        </div>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -88,7 +121,31 @@
                 <div class="empty-state">
                     <i class="fas fa-shield-alt"></i>
                     <h2>Nenhuma ameaça registrada</h2>
-                    <p>Comece registrando uma nova ameaça ao clicar no botão "Nova Ameaça"</p>
+                    <p>Comece registrando uma nova ameaça ao clicar no botão abaixo.</p>
+                    {% if pode_editar_deletar %}
+                    <a href="{% url 'deteccao_ameaca' %}" class="btn-add-threat">
+                        <i class="fas fa-plus"></i>
+                        Registrar Primeira Ameaça
+                    </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {# Pagination controls #}
+            {% if page_obj and page_obj.paginator.num_pages > 1 %}
+                <div class="table-info">
+                    <div class="table-info-flex">
+                        <div>Exibindo {{ page_obj.start_index }}–{{ page_obj.end_index }} de {{ page_obj.paginator.count }} itens</div>
+                        <div class="pagination-controls">
+                            {% if page_obj.has_previous %}
+                                <a href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}" class="filter-button">Anterior</a>
+                            {% endif %}
+                            <span>Página {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}" class="filter-button">Próxima</a>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             {% endif %}
         </div>

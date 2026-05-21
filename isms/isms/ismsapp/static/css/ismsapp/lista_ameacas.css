@@ -11,6 +11,12 @@
 }
 
 :root {
+  /* Spacing design tokens */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
   --bg-page: #1a1a1a;
   --bg-card: #1e1e1e;
   --bg-btn: rgba(255, 255, 255, 0.08);
@@ -74,6 +80,19 @@ html, body {
   margin: 0 0 0.5rem 0;
 }
 
+.title-icon {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:48px;
+  height:48px;
+  border-radius:8px;
+  background: rgba(255,255,255,0.02);
+  color: var(--purple);
+  margin-right: 0.75rem;
+  font-size:1.2rem;
+}
+
 .header-content .subtitle {
   font-size: 0.95rem;
   color: var(--text-secondary);
@@ -115,6 +134,30 @@ html, body {
   border-radius: 8px;
   margin-bottom: 25px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.filter-form {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.search-input-wrapper {
+  position: relative;
+}
+
+.search-input-wrapper i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.search-input-wrapper input {
+  padding-left: 40px;
 }
 
 .filter-group label {
@@ -203,12 +246,15 @@ html, body {
 }
 
 .threats-table tbody tr {
-  border-bottom: 1px solid var(--border-soft);
-  transition: background-color 0.2s ease;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  will-change: transform, box-shadow, background-color;
 }
 
 .threats-table tbody tr:hover {
   background-color: rgba(147, 51, 234, 0.05);
+  transform: scale(1.002);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
 }
 
 .threats-table tbody tr:last-child {
@@ -238,7 +284,8 @@ html, body {
 }
 
 .threat-name-cell {
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 0.96rem;
   color: var(--text-primary);
   word-break: break-word;
 }
@@ -277,7 +324,7 @@ html, body {
 
 .asset-badge {
   display: inline-block;
-  background: rgba(59, 130, 246, 0.15);
+  background: rgba(59, 130, 246, 0.10);
   color: #93c5fd;
   padding: 0.4rem 0.8rem;
   border-radius: 4px;
@@ -342,6 +389,70 @@ html, body {
   color: #fca5a5;
   border-color: rgba(239, 68, 68, 0.5);
   transform: translateY(-2px);
+}
+
+/* Focus visibility for accessibility */
+.action-btn:focus-visible,
+.btn-add-threat:focus-visible,
+.filter-button:focus-visible {
+  outline: 2px solid #c084fc;
+  outline-offset: 2px;
+}
+
+/* Severity badges */
+.severity-badge {
+  display: inline-block;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #0f172a;
+}
+.severity-critical { background: #ef4444; color: white; }
+.severity-high { background: #f97316; color: white; }
+.severity-medium { background: #f59e0b; color: #08121a; }
+.severity-low { background: #60a5fa; color: #021124; }
+.severity-none { background: rgba(255,255,255,0.03); color: var(--text-secondary); font-weight:600; }
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-sm);
+  margin: 1rem 0 1.5rem 0;
+}
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0.6rem 0.9rem;
+  background: rgba(255,255,255,0.02);
+  border-radius: 8px;
+  height: 72px;
+}
+.stat-icon { font-size: 1.25rem; color: var(--text-secondary); }
+.stat-value { font-weight: 700; font-size: 1.1rem; color: var(--text-primary); }
+.stat-label { font-size: 0.8rem; color: var(--text-secondary); }
+
+.table-info-flex {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:1rem;
+  flex-wrap:wrap;
+}
+
+.pagination-controls {
+  display:flex;
+  gap:0.5rem;
+  align-items:center;
+}
+
+/* Sticky header */
+.threats-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 /* ── Table Info ───────────────────────────────────────────────────────────── */
@@ -418,7 +529,7 @@ html, body {
 
   .threat-origin-cell,
   .threat-assets-cell {
-    display: none;
+    /* will be handled in the stacked mobile layout */
   }
 
   .threat-actions-cell {
@@ -449,13 +560,11 @@ html, body {
   .threats-table {
     font-size: 0.8rem;
   }
-
-  .threat-id-cell {
-    width: 60px;
-  }
-
-  .id-badge {
-    padding: 0.2rem 0.5rem;
-    font-size: 0.75rem;
-  }
+  /* Mobile stacked card layout for rows */
+  .threats-table thead { display: none; }
+  .threats-table, .threats-table tbody, .threats-table tr, .threats-table td { display: block; width: 100%; }
+  .threats-table tr { margin-bottom: 0.75rem; border: 1px solid rgba(255,255,255,0.03); border-radius: 8px; padding: 0.6rem; }
+  .threats-table td { padding: 0.5rem 0.35rem; }
+  .threats-table td[data-label]::before { content: attr(data-label) ": "; font-weight: 700; color: var(--text-secondary); display: inline-block; width: 110px; }
+  .id-badge { padding: 0.2rem 0.5rem; font-size: 0.75rem; }
 }

@@ -1,304 +1,363 @@
-/* Edit Profile Page Styles */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
-.edit-profile-container {
-    min-height: 100vh;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Manrope', sans-serif;
+}
+
+.edit-profile-sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.wrap {
+    width: 100%;
+    min-height: calc(100vh - 120px);
+    padding: 2rem 2.5rem 3rem;
+    background:
+        linear-gradient(
+            180deg,
+            #0a0a0a 0%,
+            #111111 100%
+        );
+}
+
+.card {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    background: #171717;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+
+.card-top {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 2px solid rgba(139, 92, 246, 0.22);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.avatar {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: rgba(139, 92, 246, 0.12);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
-    background: #0a0a0a;
-}
-
-.edit-profile-card {
-    background: #1a1a1a;
-    border-radius: 15px;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    width: 100%;
-    max-width: 600px;
-}
-
-/* Header */
-.profile-header {
-    padding: 3rem 2rem;
-    text-align: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.profile-title {
-    color: #ffffff;
-    font-size: 2rem;
+    font-size: 26px;
     font-weight: 700;
-    margin: 0;
-    letter-spacing: 0.5px;
+    color: #d8b4fe;
+    flex-shrink: 0;
+    border: 1px solid rgba(139, 92, 246, 0.18);
 }
 
-/* Content */
-.profile-content {
-    padding: 3rem 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem;
+.card-top-text h1 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 4px;
+    line-height: 1.2;
 }
 
-/* Alerts */
-.alert {
-    border-radius: 8px;
-    padding: 1rem;
-    margin: 0;
-    margin-bottom: 1.5rem;
-    border: 1px solid;
-    display: flex;
+.role-badge {
+    display: inline-flex;
     align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #d1d5db;
+    font-weight: 700;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.role-badge i {
+    font-size: 12px;
+    color: #a855f7;
+}
+
+.alert {
+    margin: 1.25rem 2rem 0;
+    padding: 1rem 1.1rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: flex-start;
     gap: 0.8rem;
     font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 .alert-success {
-    background: rgba(39, 174, 96, 0.1);
-    border-color: rgba(39, 174, 96, 0.3);
-    color: #7ed321;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.18);
+    color: #a7f3d0;
 }
 
 .alert-danger {
-    background: rgba(231, 76, 60, 0.1);
-    border-color: rgba(231, 76, 60, 0.3);
-    color: #ff8787;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.18);
+    color: #fecaca;
 }
 
-/* Form */
-.edit-form {
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem;
+.profile-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-.form-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
+.profile-summary div {
+    min-width: 0;
 }
 
-.form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.7rem;
-}
-
-.form-field label {
-    color: #b0b0b0;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-}
-
-.form-field label i {
-    color: #9333ea;
-    font-size: 1.1rem;
-}
-
-.form-control {
-    width: 100%;
-    padding: 0.85rem 1rem;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-    color: #ffffff;
-    font-size: 0.95rem;
-    transition: all 0.3s ease;
-}
-
-.form-control::placeholder {
-    color: rgba(255, 255, 255, 0.3);
-}
-
-.form-control:focus {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: #9333ea;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
-    color: #ffffff;
-}
-
-.form-control:disabled {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #808080;
-    cursor: not-allowed;
-}
-
-.form-text {
+.profile-summary span {
     display: block;
-    color: #808080;
-    font-size: 0.8rem;
-    margin-top: 0.3rem;
+    margin-bottom: 0.35rem;
+    color: #94a3b8;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
-.error-message {
-    color: #ff6b6b;
-    font-size: 0.85rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+.profile-summary strong {
+    display: block;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.4;
+    word-break: break-word;
 }
 
-/* Action Buttons */
-.action-buttons {
+.profile-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 2rem;
+    padding: 1.5rem 2rem 2rem;
+}
+
+.profile-main {
+    min-width: 0;
+}
+
+.profile-sidebar {
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 1.5rem 0 1.5rem 2rem;
+    height: fit-content;
+}
+
+.edit-form {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.btn-action {
-    padding: 0.95rem 1.5rem;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 0.95rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    border: 2px solid;
-    display: inline-flex;
+.form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-field {
+    background: #1d1d1d;
+    border: none;
+    border-radius: 10px;
+    padding: 1.15rem 1.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.form-field label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #94a3b8;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.form-field label i {
+    width: 18px;
+    text-align: center;
+    color: #8b3cf7;
+    font-size: 16px;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+    width: 100%;
+    padding: 0.95rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #121212;
+    color: #ffffff;
+    font: inherit;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+    border-color: rgba(139, 92, 246, 0.35);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.08);
+}
+
+.form-field input:disabled {
+    color: #cbd5e1;
+    background: rgba(255, 255, 255, 0.04);
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: #fca5a5;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn {
+    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.8rem;
-    transition: all 0.3s ease;
-    text-transform: capitalize;
-    width: 100%;
-}
-
-.btn-action.primary {
-    background: #b366ff;
-    color: white;
-    border-color: #b366ff;
-}
-
-.btn-action.primary:hover {
-    background: #a355e8;
-    border-color: #a355e8;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(179, 102, 255, 0.3);
+    gap: 8px;
+    min-height: 48px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 0.5px solid;
+    font-family: inherit;
     text-decoration: none;
-    color: white;
+    transition: all 0.2s ease;
 }
 
-.btn-action.primary:active {
-    transform: translateY(0);
+.btn i {
+    font-size: 15px;
 }
 
-.btn-action.secondary {
-    background: #4a4a4a;
-    color: white;
-    border-color: #4a4a4a;
-}
-
-.btn-action.secondary:hover {
-    background: #585858;
-    border-color: #585858;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(74, 74, 74, 0.3);
+.btn:hover {
+    transform: translateY(-1px);
     text-decoration: none;
-    color: white;
 }
 
-.btn-action.secondary:active {
-    transform: translateY(0);
+.btn-edit {
+    background: linear-gradient(135deg, #8b3cf7, #7c3aed);
+    color: #ffffff;
+    border-color: rgba(139, 60, 247, 0.24);
 }
 
-/* Responsive Design */
+.btn-edit:hover {
+    background: linear-gradient(135deg, #9d5ef8, #8b3cf7);
+    border-color: rgba(139, 60, 247, 0.32);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.btn-cancel {
+    background: rgba(255, 255, 255, 0.025);
+    color: #e5e7eb;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+.btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
 @media (max-width: 768px) {
-    .edit-profile-container {
+    .wrap {
         padding: 1rem;
     }
 
-    .edit-profile-card {
-        border-radius: 12px;
+    .card {
+        border-radius: 16px;
     }
 
-    .profile-header {
-        padding: 2rem 1.5rem;
+    .card-top,
+    .profile-summary,
+    .profile-grid,
+    .alert {
+        padding-left: 1rem;
+        padding-right: 1rem;
     }
 
-    .profile-title {
-        font-size: 1.5rem;
+    .card-top {
+        padding: 1.15rem 1rem;
     }
 
-    .profile-content {
-        padding: 2rem 1.5rem;
-        gap: 2rem;
+    .profile-summary {
+        grid-template-columns: 1fr;
+        padding-top: 1.2rem;
+        padding-bottom: 1.2rem;
     }
 
-    .form-fields {
-        gap: 1.5rem;
+    .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
     }
 
-    .btn-action {
-        padding: 0.85rem 1rem;
-        font-size: 0.9rem;
+    .profile-sidebar {
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 1.1rem 0 0;
+    }
+
+    .btn {
+        width: 100%;
     }
 }
 
-@media (max-width: 480px) {
-    .edit-profile-container {
-        padding: 1rem;
+@media (min-width: 769px) and (max-width: 1024px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
     }
 
-    .profile-header {
-        padding: 1.5rem 1rem;
+    .profile-summary {
+        grid-template-columns: 1fr;
     }
 
-    .profile-title {
-        font-size: 1.3rem;
-    }
-
-    .profile-content {
-        padding: 1.5rem 1rem;
-        gap: 1.5rem;
-    }
-
-    .form-fields {
-        gap: 1.2rem;
-    }
-
-    .form-field label {
-        font-size: 0.8rem;
-    }
-
-    .form-control {
-        font-size: 0.9rem;
-    }
-
-    .btn-action {
-        padding: 0.8rem 1rem;
-        font-size: 0.85rem;
+    .profile-sidebar {
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 1.25rem 0 0;
     }
 }
-
-    .form-group label {
-        font-size: 0.85rem;
-    }
-
-    .form-control {
-        padding: 0.7rem 0.8rem 0.7rem 2.2rem;
-        font-size: 0.9rem;
-    }
-
-    .form-text {
-        font-size: 0.8rem;
-    }
-
-    .button-section {
-        flex-direction: column;
-    }
-
-    .btn-update,
-    .btn-cancel {
-        padding: 0.7rem;
-        font-size: 0.85rem;
-    }

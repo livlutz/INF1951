@@ -210,11 +210,15 @@
   flex-direction: column;
   align-items: center;
   gap: 0.15rem;
-  padding: 0.65rem 1rem;
-  border-radius: 8px;
-  border: 1px solid;
+  padding: 0.85rem 1.2rem;
+  border-radius: 12px;
+
+  border: none;
+
+  background: rgba(239, 68, 68, 0.12);
+
   flex-shrink: 0;
-  min-width: 90px;
+  min-width: 120px;
   text-align: center;
 }
 

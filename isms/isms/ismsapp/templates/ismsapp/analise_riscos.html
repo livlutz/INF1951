@@ -50,6 +50,10 @@
       </div>
       <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 1rem;">Selecione o risco para análise</div>
 
+      <div style="margin-bottom:0.75rem; display:flex; gap:8px; align-items:center;">
+        <input id="risco-search" type="text" class="form-control" placeholder="Buscar risco..." aria-label="Buscar risco">
+      </div>
+
       <select name="risco_id" id="risco-select" class="form-control" required>
         <option value="">-- Selecione um risco para analisar --</option>
         {% for risco in riscos %}

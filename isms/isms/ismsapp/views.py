@@ -136,11 +136,9 @@ class UserDeleteView(View):
 
     Requires user to be logged in. Deletes user and associated profile, then redirects to home.
     """
-    template_name = "ismsapp/delete_account.html"
-
     @method_decorator(login_required(login_url="login"))
     def get(self, request, *args, **kwargs):
-        return render(request, self.template_name)
+        return redirect("profile")
 
     @method_decorator(login_required(login_url="login"))
     def post(self, request, *args, **kwargs):
@@ -786,8 +784,6 @@ class DeleteAtivoView(View):
     - Administrador do sistema (SISTEMA_ADMIN)
     - Auditor de Segurança (AUDITOR)
     """
-    template_name = "ismsapp/deletar_ativo.html"
-
     def _check_permission(self, user):
         """Check if user has permission to delete assets.
 
@@ -813,21 +809,7 @@ class DeleteAtivoView(View):
         if not self._check_permission(request.user):
             return redirect('dashboard')
 
-        from .models import Ativo
-
-        if not ativo_id:
-            return redirect('lista_ativos')
-
-        try:
-            ativo = Ativo.objects.get(id=ativo_id)
-        except Ativo.DoesNotExist:
-            return redirect('lista_ativos')
-
-        contexto = {
-            'ativo': ativo,
-            'ativo_id': ativo_id,
-        }
-        return render(request, self.template_name, contexto)
+        return redirect('lista_ativos')
 
     @method_decorator(login_required(login_url="login"))
     def post(self, request, ativo_id=None, *args, **kwargs):
@@ -1447,8 +1429,6 @@ class DeleteRiscoView(View):
     - Auditor de Segurança (AUDITOR)
     - Analista de Segurança (ANALISTA)
     """
-    template_name = "ismsapp/deletar_risco.html"
-
     def _check_permission(self, user):
         """Check if user has permission to delete risks."""
         if not user.is_authenticated:
@@ -1469,21 +1449,7 @@ class DeleteRiscoView(View):
         if not self._check_permission(request.user):
             return redirect('dashboard')
 
-        from .models import Risco
-
-        if not risco_id:
-            return redirect('lista_riscos')
-
-        try:
-            risco = Risco.objects.get(id=risco_id)
-        except Risco.DoesNotExist:
-            return redirect('lista_riscos')
-
-        contexto = {
-            'risco': risco,
-            'risco_id': risco_id,
-        }
-        return render(request, self.template_name, contexto)
+        return redirect('lista_riscos')
 
     @method_decorator(login_required(login_url="login"))
     def post(self, request, risco_id=None, *args, **kwargs):
@@ -3240,8 +3206,6 @@ class DeleteIncidenteView(View):
     - Information Security Auditor (AUDITOR)
     - Security Analyst (ANALISTA)
     """
-    template_name = "ismsapp/deletar_incidente.html"
-
     def _check_permission(self, user):
         """Check if user has permission to delete incidents."""
         if not user.is_authenticated:
@@ -3265,17 +3229,7 @@ class DeleteIncidenteView(View):
             messages.error(request, "Você não tem permissão para acessar esta página.")
             return redirect('dashboard')
 
-        try:
-            from .models import Incidente
-            incidente = Incidente.objects.prefetch_related('ativos_afetados').get(id=incidente_id)
-        except:
-            messages.error(request, "Incidente não encontrado.")
-            return redirect('gestao_incidentes')
-
-        contexto = {
-            'incidente': incidente,
-        }
-        return render(request, self.template_name, contexto)
+        return redirect('gestao_incidentes')
 
     @method_decorator(login_required(login_url="login"))
     def post(self, request, incidente_id, *args, **kwargs):
@@ -3601,8 +3555,6 @@ class DeleteAmeacaView(View):
     - Auditor de Segurança (AUDITOR)
     - Analista de Segurança (ANALISTA)
     """
-    template_name = "ismsapp/deletar_ameaca.html"
-
     def _check_permission(self, user):
         """Check if user has permission to delete threats."""
         if not user.is_authenticated:
@@ -3623,21 +3575,7 @@ class DeleteAmeacaView(View):
         if not self._check_permission(request.user):
             return redirect('dashboard')
 
-        from .models import Ameaca
-
-        if not ameaca_id:
-            return redirect('lista_ameacas')
-
-        try:
-            ameaca = Ameaca.objects.get(id=ameaca_id)
-        except Ameaca.DoesNotExist:
-            return redirect('lista_ameacas')
-
-        contexto = {
-            'ameaca': ameaca,
-            'ameaca_id': ameaca_id,
-        }
-        return render(request, self.template_name, contexto)
+        return redirect('lista_ameacas')
 
     @method_decorator(login_required(login_url="login"))
     def post(self, request, ameaca_id=None, *args, **kwargs):
@@ -3919,8 +3857,6 @@ class DeleteVulnerabilidadeView(View):
 
     Requires user authentication and appropriate permissions.
     """
-    template_name = "ismsapp/deletar_vulnerabilidade.html"
-
     def _check_permission(self, user):
         """Check if user has permission to delete vulnerabilities."""
         if not user.is_authenticated:
@@ -3942,22 +3878,7 @@ class DeleteVulnerabilidadeView(View):
         if not self._check_permission(request.user):
             return redirect('dashboard')
 
-        from .models import Vulnerabilidade
-
-        if not vulnerabilidade_id:
-            return redirect('lista_vulnerabilidades')
-
-        try:
-            vulnerabilidade = Vulnerabilidade.objects.select_related('ativo').prefetch_related('ameacas').get(id=vulnerabilidade_id)
-        except Vulnerabilidade.DoesNotExist:
-            messages.error(request, "Vulnerabilidade não encontrada.")
-            return redirect('lista_vulnerabilidades')
-
-        contexto = {
-            'vulnerabilidade': vulnerabilidade,
-            'vulnerabilidade_id': vulnerabilidade_id,
-        }
-        return render(request, self.template_name, contexto)
+        return redirect('lista_vulnerabilidades')
 
     @method_decorator(login_required(login_url="login"))
     def post(self, request, vulnerabilidade_id=None, *args, **kwargs):
@@ -4254,8 +4175,6 @@ class DeleteAuditoriaView(View):
 
     Requires user authentication and appropriate permissions.
     """
-    template_name = "ismsapp/deletar_auditoria.html"
-
     def _check_permission(self, user):
         """Check if user has permission to delete audits."""
         if not user.is_authenticated:
@@ -4273,22 +4192,7 @@ class DeleteAuditoriaView(View):
         if not self._check_permission(request.user):
             return redirect('dashboard')
 
-        from .models import Auditoria
-
-        if not auditoria_id:
-            return redirect('lista_auditorias')
-
-        try:
-            auditoria = Auditoria.objects.get(id=auditoria_id)
-        except Auditoria.DoesNotExist:
-            messages.error(request, "Auditoria não encontrada.")
-            return redirect('lista_auditorias')
-
-        contexto = {
-            'auditoria': auditoria,
-            'auditoria_id': auditoria_id,
-        }
-        return render(request, self.template_name, contexto)
+        return redirect('lista_auditorias')
 
     @method_decorator(login_required(login_url="login"))
     def post(self, request, auditoria_id=None, *args, **kwargs):
@@ -4582,8 +4486,6 @@ class DeleteControleView(View):
 
     Only SISTEMA_ADMIN and AUDITOR roles can delete controls.
     """
-    template_name = "ismsapp/deletar_controle.html"
-
     def _check_permission(self, user):
         """Check if user has permission to delete controls."""
         if not user.is_authenticated:
@@ -4605,27 +4507,7 @@ class DeleteControleView(View):
         if not self._check_permission(request.user):
             return redirect('dashboard')
 
-        from .models import Controle
-
-        if not controle_id:
-            return redirect('lista_controles')
-
-        try:
-            controle = Controle.objects.get(id=controle_id)
-        except Controle.DoesNotExist:
-            messages.error(request, "Controle não encontrado.")
-            return redirect('lista_controles')
-
-        # Get treatments using this control
-        tratamentos = controle.tratamentos.all()
-
-        contexto = {
-            'controle': controle,
-            'controle_id': controle_id,
-            'tratamentos': tratamentos,
-            'page_title': f'Deletar Controle: {controle.nome}',
-        }
-        return render(request, self.template_name, contexto)
+        return redirect('lista_controles')
 
     @method_decorator(login_required(login_url="login"))
     def post(self, request, controle_id=None, *args, **kwargs):

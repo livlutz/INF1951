@@ -483,21 +483,24 @@ function initFormValidation() {
   form.addEventListener('submit', function (e) {
     const missing = [];
 
-    const nome = form.querySelector('input[name="nome"]');
-    if (!nome?.value?.trim()) missing.push('Nome do Plano');
+    // Read values from the form payload itself so validation stays correct
+    // even if widgets or element types change.
+    const data = new FormData(form);
 
-    if (!form.querySelector('input[name="tipo_tratamento"]:checked')) {
-      missing.push('Estratégia de Tratamento');
-    }
+    const nome = String(data.get('nome') || '').trim();
+    if (!nome) missing.push('Nome do Plano');
 
-    const desc = form.querySelector('textarea[name="descricao"]');
-    if (!desc?.value?.trim()) missing.push('Descrição');
+    const tipoTratamento = String(data.get('tipo_tratamento') || '').trim();
+    if (!tipoTratamento) missing.push('Estratégia de Tratamento');
 
-    const prob = form.querySelector('input[name="reducao_probabilidade"]');
-    if (prob?.value === '') missing.push('Redução de Probabilidade');
+    const descricao = String(data.get('descricao') || '').trim();
+    if (!descricao) missing.push('Descrição');
 
-    const cons = form.querySelector('input[name="reducao_impacto"]');
-    if (cons?.value === '') missing.push('Redução de Impacto');
+    const prob = String(data.get('reducao_probabilidade') ?? '').trim();
+    if (prob === '') missing.push('Redução de Probabilidade');
+
+    const cons = String(data.get('reducao_impacto') ?? '').trim();
+    if (cons === '') missing.push('Redução de Impacto');
 
     if (missing.length > 0) {
       e.preventDefault();

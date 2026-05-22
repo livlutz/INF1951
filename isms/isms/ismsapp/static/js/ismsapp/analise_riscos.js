@@ -77,3 +77,18 @@ function updateRiskValue() {
 // Initialize on page load
 highlightCell();
 updateRiskValue();
+
+// Client-side search for riscos (filters the select options)
+document.addEventListener('DOMContentLoaded', function() {
+  const search = document.getElementById('risco-search');
+  const select = document.getElementById('risco-select');
+  if (search && select) {
+    search.addEventListener('input', function() {
+      const term = this.value.toLowerCase().trim();
+      Array.from(select.options).forEach(opt => {
+        if (!opt.value) return; // keep placeholder
+        opt.hidden = term ? !opt.text.toLowerCase().includes(term) : false;
+      });
+    });
+  }
+});

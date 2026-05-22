@@ -6,6 +6,7 @@
 {% block extra_css %}
     <link href="{% static 'css/ismsapp/identificacao_riscos.css' %}" rel="stylesheet">
     <link href="{% static 'css/ismsapp/multi_select_checklist.css' %}" rel="stylesheet">
+    <link href="{% static 'css/ismsapp/editar_vulnerabilidade.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -28,10 +29,10 @@
             </div>
 
             <!-- Vulnerability Info Display (Read-only) -->
-            <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border-left: 4px solid #8b3cf7;">
+            <div class="info-box">
                 <div>
-                    <p style="color: #64748b; font-size: 0.875rem; margin-bottom: 0.25rem;">ID da Vulnerabilidade</p>
-                    <p style="color: #1e293b; font-weight: 500;">VUL-{{ vulnerabilidade.id|stringformat:"04d" }}</p>
+                    <p class="info-box-label">ID da Vulnerabilidade</p>
+                    <p class="info-box-value">VUL-{{ vulnerabilidade.id|stringformat:"04d" }}</p>
                 </div>
             </div>
 
@@ -47,17 +48,19 @@
                     </span>
                     {{ form.ativo.label }}
                 </div>
-                <div class="selector-filter" style="margin-bottom: 0.75rem;">
+                <div class="selector-filter">
                     <input
                         type="text"
-                        class="form-control"
-                        data-target-select="ativo"
+                        class="form-control searchable-filter"
+                        data-target-select="id_ativo"
                         placeholder="Buscar ativo na lista..."
+                        aria-label="Buscar ativo"
+                        autocomplete="off"
                     >
                 </div>
                 {{ form.ativo }}
                 {% if form.ativo.errors %}
-                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.ativo.errors|join:", " }}</p>
+                    <p class="form-error">{{ form.ativo.errors|join:", " }}</p>
                 {% endif %}
             </div>
 
@@ -75,7 +78,7 @@
                 </div>
                 {{ form.nome }}
                 {% if form.nome.errors %}
-                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.nome.errors|join:", " }}</p>
+                    <p class="form-error">{{ form.nome.errors|join:", " }}</p>
                 {% endif %}
             </div>
 
@@ -100,7 +103,7 @@
                     >
                 </div>
 
-                <div style="display:none;">
+                <div class="hidden-select">
                     {{ form.ameacas }}
                 </div>
 
@@ -108,7 +111,7 @@
                 <div class="selection-summary">Ameaças selecionadas: <span id="ameacas-count">0</span></div>
 
                 {% if form.ameacas.errors %}
-                    <p style="color:#f87171;font-size:.73rem;margin-top:.4rem">{{ form.ameacas.errors|join:", " }}</p>
+                    <p class="form-error">{{ form.ameacas.errors|join:", " }}</p>
                 {% endif %}
             </div>
             {% endif %}
@@ -124,59 +127,6 @@
             </div>
         </form>
     </div>
-
-    <style>
-        .searchable-select {
-            min-height: 220px;
-        }
-
-        .searchable-select option {
-            padding: 0.4rem 0.5rem;
-        }
-
-        .form-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            border: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-
-        .btn-cancel {
-            background: #f1f5f9;
-            color: #64748b;
-            border: 1px solid #e2e8f0;
-        }
-
-        .btn-cancel:hover {
-            background: #e2e8f0;
-            color: #475569;
-        }
-
-        .btn-confirm {
-            background: #8b3cf7;
-            color: white;
-        }
-
-        .btn-confirm:hover {
-            background: #7c3aed;
-        }
-    </style>
 
 {% endblock %}
 

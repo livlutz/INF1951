@@ -1,27 +1,3 @@
-function switchTab(event, tabName) {
-  if (event) {
-    event.preventDefault();
-  }
-
-  document.querySelectorAll('.tab-content').forEach(function (tab) {
-    tab.classList.remove('active');
-  });
-
-  document.querySelectorAll('.tab-button').forEach(function (button) {
-    button.classList.remove('active');
-  });
-
-  const selectedTab = document.getElementById(tabName);
-  if (selectedTab) {
-    selectedTab.classList.add('active');
-  }
-
-  const trigger = event && event.currentTarget ? event.currentTarget : null;
-  if (trigger) {
-    trigger.classList.add('active');
-  }
-}
-
 document.addEventListener('DOMContentLoaded', function () {
   const deleteModal = document.getElementById('delete-modal');
   const deleteModalText = document.getElementById('delete-modal-text');
@@ -32,8 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (deleteModal && deleteConfirmForm && deleteModalText) {
     const openModal = function (action, name) {
       deleteConfirmForm.action = action;
-      deleteModalText.textContent = name ? `Tem certeza que deseja excluir "${name}"?` : 'Tem certeza que deseja excluir este item?';
-      deleteModal.hidden = false;
+      deleteModalText.textContent = name ? `Tem certeza que deseja excluir "${name}"?` : 'Tem certeza que deseja excluir esta vulnerabilidade?';
       deleteModal.classList.add('open');
       deleteModal.setAttribute('aria-hidden', 'false');
     };
@@ -41,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const closeModal = function () {
       deleteModal.classList.remove('open');
       deleteModal.setAttribute('aria-hidden', 'true');
-      deleteModal.hidden = true;
       deleteConfirmForm.action = '';
     };
 

@@ -842,7 +842,7 @@ class DeleteAtivoView(View):
         try:
             ativo = Ativo.objects.get(id=ativo_id)
             ativo.delete()
-            messages.success(request, 'Ativo deletado com sucesso!')
+            messages.error(request, 'Ativo deletado com sucesso!')
             return redirect('lista_ativos')
         except Ativo.DoesNotExist:
             return redirect('lista_ativos')
@@ -1498,6 +1498,7 @@ class DeleteRiscoView(View):
         try:
             risco = Risco.objects.get(id=risco_id)
             risco.delete()
+            messages.error(request, f"Risco '{risco.nome}' deletado com sucesso!")
             return redirect('lista_riscos')
         except Risco.DoesNotExist:
             return redirect('lista_riscos')
@@ -2840,6 +2841,7 @@ class GestaoIncidentesView(View):
 
         # Get reports generated
         relatorios_gerados = incidentes.filter(relatorio_gerado=True).count()
+        pode_editar_deletar = self._check_permission(request.user)
 
         contexto = {
             'incidentes': incidentes,
@@ -2847,6 +2849,7 @@ class GestaoIncidentesView(View):
             'relatorios_gerados': relatorios_gerados,
             'search_query': search_query,
             'selected_date': selected_date,
+            'pode_editar_deletar': pode_editar_deletar,
         }
 
         return render(request, self.template_name, contexto)
@@ -3649,6 +3652,7 @@ class DeleteAmeacaView(View):
         try:
             ameaca = Ameaca.objects.get(id=ameaca_id)
             ameaca.delete()
+            messages.success(request, f"Ameaça '{ameaca.nome}' deletada com sucesso!")
             return redirect('lista_ameacas')
         except Ameaca.DoesNotExist:
             return redirect('lista_ameacas')
@@ -3814,11 +3818,13 @@ class ReadVulnerabilidadeView(View):
             ).distinct()
 
         total = vulnerabilidades.count()
+        pode_editar_deletar = self._check_permission(request.user)
 
         contexto = {
             'vulnerabilidades': vulnerabilidades,
             'total_vulnerabilidades': total,
             'search_query': search_query,
+            'pode_editar_deletar': pode_editar_deletar,
         }
         return render(request, self.template_name, contexto)
 
@@ -3968,7 +3974,7 @@ class DeleteVulnerabilidadeView(View):
             vulnerabilidade = Vulnerabilidade.objects.get(id=vulnerabilidade_id)
             vuln_id = vulnerabilidade.id
             vulnerabilidade.delete()
-            messages.success(request, f"Vulnerabilidade VUL-{vuln_id:04d} deletada com sucesso!")
+            messages.error(request, f"Vulnerabilidade VUL-{vuln_id:04d} deletada com sucesso!")
             return redirect('lista_vulnerabilidades')
         except Vulnerabilidade.DoesNotExist:
             messages.error(request, "Vulnerabilidade não encontrada.")
@@ -4112,34 +4118,21 @@ class ReadAuditoriaView(View):
             messages.error(request, "Você não tem permissão para acessar esta página.")
             return redirect('dashboard')
 
-        from .models import Auditoria, Incidente, Risco, Controle
-        from datetime import timedelta
-        from django.utils import timezone
+        from .models import Auditoria, Incidente
         from django.db.models import Q
 
         search_query = request.GET.get('search', '').strip()
 
-        # Risks
-        riscos = Risco.objects.filter(nivel_inerente__isnull=False).order_by('-id')
-
         # Audits
         auditorias = Auditoria.objects.all().order_by('-data_auditoria')
 
-        # Controls
-        controles = Controle.objects.prefetch_related('categorias').all().order_by('nome')
-
-        # Incidents - get recent incidents (last 30 days)
-        thirty_days_ago = timezone.now() - timedelta(days=30)
-        incidentes = Incidente.objects.filter(
-            data_registro__gte=thirty_days_ago
-        ).order_by('-data_incidente')
+        # Incidents
+        incidentes = Incidente.objects.select_related(
+            'responsavel_tratamento',
+            'registrado_por'
+        ).prefetch_related('ativos_afetados').order_by('-data_incidente', '-hora_incidente')
 
         if search_query:
-            riscos = riscos.filter(
-                Q(nome__icontains=search_query) |
-                Q(ativo__nome__icontains=search_query)
-            )
-
             auditorias = auditorias.filter(
                 Q(nome__icontains=search_query) |
                 Q(tipo_auditoria__icontains=search_query) |
@@ -4152,42 +4145,24 @@ class ReadAuditoriaView(View):
                 Q(status__icontains=search_query)
             )
 
-            controles = controles.filter(
-                Q(nome__icontains=search_query) |
-                Q(descricao__icontains=search_query) |
-                Q(categorias__tipo__icontains=search_query)
-            ).distinct()
-
         # Metrics
-        # Active risks (all risks with inerente level assigned)
-        try:
-            count_active_risks = Risco.objects.filter(nivel_inerente__isnull=False).count()
-        except:
-            count_active_risks = 0
-
-        # Implemented controls (all controls)
-        try:
-            count_controls = Controle.objects.count()
-        except:
-            count_controls = 0
-
-        # Recent incidents
-        count_recent_incidents = incidentes.count()
+        count_audits = auditorias.count()
+        count_incidents = incidentes.count()
 
         # Status counts
         pendentes = auditorias.filter(status='pendente').count()
         concluidas = auditorias.filter(status='concluida').count()
 
+        pode_editar_deletar = self._check_permission(request.user)
+
         contexto = {
-            'riscos': riscos,
             'auditorias': auditorias,
-            'controles': controles,
             'incidentes': incidentes,
             'count_pendentes': pendentes,
             'count_concluidas': concluidas,
-            'count_active_risks': count_active_risks,
-            'count_controls': count_controls,
-            'count_recent_incidents': count_recent_incidents,
+            'count_audits': count_audits,
+            'count_incidents': count_incidents,
+            'pode_editar_deletar': pode_editar_deletar,
             'search_query': search_query,
         }
         return render(request, self.template_name, contexto)
@@ -4452,6 +4427,12 @@ class ReadControleView(View):
         from .models import Controle, CategoriaControle
         from django.core.paginator import Paginator
 
+        user_profile = getattr(request.user, 'profile', None)
+        pode_editar_deletar = user_profile and user_profile.actor_type in [
+            UserProfile.Actor.SISTEMA_ADMIN,
+            UserProfile.Actor.AUDITOR,
+        ]
+
         # Get filter parameters
         categoria_filter = request.GET.get('categoria')
         search_query = request.GET.get('search', '')
@@ -4489,6 +4470,7 @@ class ReadControleView(View):
             'selected_categoria': categoria_filter,
             'search_query': search_query,
             'page_title': 'Lista de Controles',
+            'pode_editar_deletar': pode_editar_deletar,
         }
         return render(request, self.template_name, contexto)
 
@@ -4660,7 +4642,7 @@ class DeleteControleView(View):
             controle = Controle.objects.get(id=controle_id)
             controle_name = controle.nome
             controle.delete()
-            messages.success(
+            messages.error(
                 request,
                 f"Controle '{controle_name}' deletado com sucesso!"
             )

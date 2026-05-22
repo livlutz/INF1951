@@ -28,7 +28,7 @@
     <div class="page-header">
       <div>
         <h1>Auditoria e Revisão</h1>
-        <p>Manter um histórico de auditorias, incidentes e não conformidades</p>
+        <p>Manter um histórico de auditorias e incidentes</p>
       </div>
       <a href="{% url 'registro_auditoria' %}" class="primary-action">
         <i class="fas fa-plus"></i> Registrar Auditoria
@@ -53,24 +53,12 @@
     <div class="metrics-container">
       <div class="metric-card">
         <div class="metric-content-row">
-          <div class="metric-icon active-risks">
-            <i class="fas fa-exclamation-triangle"></i>
+          <div class="metric-icon auditorias">
+            <i class="fas fa-clipboard-check"></i>
           </div>
           <div>
-            <div class="metric-label">Riscos Ativos</div>
-            <div class="metric-value">{{ count_active_risks|default:"0" }}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="metric-card">
-        <div class="metric-content-row">
-          <div class="metric-icon controls">
-            <i class="fas fa-shield-alt"></i>
-          </div>
-          <div>
-            <div class="metric-label">Controles Implementados</div>
-            <div class="metric-value">{{ count_controls|default:"0" }}</div>
+            <div class="metric-label">Auditorias</div>
+            <div class="metric-value">{{ count_audits|default:"0" }}</div>
           </div>
         </div>
       </div>
@@ -81,8 +69,8 @@
             <i class="fas fa-bell"></i>
           </div>
           <div>
-            <div class="metric-label">Incidentes Recentes</div>
-            <div class="metric-value">{{ count_recent_incidents|default:"0" }}</div>
+            <div class="metric-label">Incidentes</div>
+            <div class="metric-value">{{ count_incidents|default:"0" }}</div>
           </div>
         </div>
       </div>
@@ -90,74 +78,16 @@
 
     <!-- Tabs Navigation -->
     <div class="tabs-header">
-      <button class="tab-button active" onclick="switchTab(event, 'riscos-tab')">
-        <i class="fas fa-warning"></i> Riscos
-      </button>
-      <button class="tab-button" onclick="switchTab(event, 'auditorias-tab')">
+      <button class="tab-button active" onclick="switchTab(event, 'auditorias-tab')">
         <i class="fas fa-clipboard-check"></i> Auditorias
-      </button>
-      <button class="tab-button" onclick="switchTab(event, 'controles-tab')">
-        <i class="fas fa-check-circle"></i> Controles
       </button>
       <button class="tab-button" onclick="switchTab(event, 'incidentes-tab')">
         <i class="fas fa-exclamation-circle"></i> Incidentes
       </button>
     </div>
 
-    <!-- Tab Content: Riscos -->
-    <div id="riscos-tab" class="tab-content active">
-      {% if riscos %}
-        <div class="audits-table-wrapper">
-          <table class="audits-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>NOME</th>
-                <th>ATIVO</th>
-                <th>NÍVEL</th>
-                <th>AÇÃO</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for risco in riscos %}
-                <tr>
-                  <td><strong>RIS-{{ risco.id|stringformat:"03d" }}</strong></td>
-                  <td>{{ risco.nome }}</td>
-                  <td>
-                    <span class="muted-text">{{ risco.ativo.nome }}</span>
-                  </td>
-                  <td>
-                    {% if risco.nivel_inerente %}
-                      <span class="status-badge status-{{ risco.nivel_inerente.categoria|lower }}">
-                        {{ risco.nivel_inerente.categoria }}
-                      </span>
-                    {% else %}
-                      <span class="not-evaluated">Não avaliado</span>
-                    {% endif %}
-                  </td>
-                  <td class="center-cell">
-                    <a href="{% url 'editar_risco' risco.id %}" class="action-btn action-edit" title="Editar">
-                      <i class="fas fa-edit"></i>
-                    </a>
-                    <a href="{% url 'deletar_risco' risco.id %}" class="action-btn action-delete" title="Deletar">
-                      <i class="fas fa-trash-alt"></i>
-                    </a>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <div class="empty-state">
-          <i class="fas fa-inbox empty-state-icon"></i>
-          <p>Nenhum risco registrado</p>
-        </div>
-      {% endif %}
-    </div>
-
     <!-- Tab Content: Auditorias -->
-    <div id="auditorias-tab" class="tab-content">
+    <div id="auditorias-tab" class="tab-content active">
       {% if auditorias %}
         <div class="audits-table-wrapper">
           <table class="audits-table">
@@ -187,9 +117,11 @@
                     <a href="{% url 'editar_auditoria' auditoria.id %}" class="action-btn action-edit" title="Editar">
                       <i class="fas fa-edit"></i>
                     </a>
-                    <a href="{% url 'deletar_auditoria' auditoria.id %}" class="action-btn action-delete" title="Deletar">
+                    {% if pode_editar_deletar %}
+                    <button type="button" class="action-btn action-delete js-delete-trigger" title="Deletar" data-delete-url="{% url 'deletar_auditoria' auditoria.id %}" data-delete-name="{{ auditoria.nome }}">
                       <i class="fas fa-trash-alt"></i>
-                    </a>
+                    </button>
+                    {% endif %}
                   </td>
                 </tr>
               {% endfor %}
@@ -200,48 +132,6 @@
         <div class="empty-state">
           <i class="fas fa-inbox empty-state-icon"></i>
           <p>Nenhuma auditoria registrada</p>
-        </div>
-      {% endif %}
-    </div>
-
-    <!-- Tab Content: Controles -->
-    <div id="controles-tab" class="tab-content">
-      {% if controles %}
-        <div class="audits-table-wrapper">
-          <table class="audits-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>NOME</th>
-                <th>CATEGORIAS</th>
-                <th>AÇÃO</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for controle in controles %}
-                <tr>
-                  <td><strong>CTL-{{ controle.id|stringformat:"03d" }}</strong></td>
-                  <td>{{ controle.nome }}</td>
-                  <td>
-                    <span class="muted-text">{{ controle.categorias_display }}</span>
-                  </td>
-                  <td class="center-cell">
-                    <a href="{% url 'editar_controle' controle.id %}" class="action-btn action-edit" title="Editar">
-                      <i class="fas fa-edit"></i>
-                    </a>
-                    <a href="{% url 'deletar_controle' controle.id %}" class="action-btn action-delete" title="Deletar">
-                      <i class="fas fa-trash-alt"></i>
-                    </a>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <div class="empty-state">
-          <i class="fas fa-shield-alt empty-state-icon"></i>
-          <p>Nenhum controle implementado encontrado</p>
         </div>
       {% endif %}
     </div>
@@ -275,9 +165,11 @@
                     <a href="{% url 'visualizar_incidente' incidente.id %}" class="action-btn action-edit" title="Visualizar">
                       <i class="fas fa-edit"></i>
                     </a>
-                    <a href="{% url 'deletar_incidente' incidente.id %}" class="action-btn action-delete" title="Deletar">
+                    {% if pode_editar_deletar %}
+                    <button type="button" class="action-btn action-delete js-delete-trigger" title="Deletar" data-delete-url="{% url 'deletar_incidente' incidente.id %}" data-delete-name="{{ incidente.numero_incidente }}">
                       <i class="fas fa-trash-alt"></i>
-                    </a>
+                    </button>
+                    {% endif %}
                   </td>
                 </tr>
               {% endfor %}
@@ -293,5 +185,25 @@
     </div>
   </div>
 </div>
+
+{% if pode_editar_deletar %}
+<div class="delete-modal" id="delete-modal" aria-hidden="true" hidden>
+  <div class="delete-modal-backdrop" data-delete-cancel></div>
+  <div class="delete-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+    <h3 id="delete-modal-title">Confirmar exclusão</h3>
+    <p id="delete-modal-text">Tem certeza que deseja excluir este item?</p>
+    <div class="delete-modal-actions">
+      <button type="button" class="btn btn-cancel" data-delete-cancel>Cancelar</button>
+      <form method="post" action="" id="delete-confirm-form" class="delete-confirm-form">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Excluir</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
 <script src="{% static 'js/ismsapp/lista_auditorias.js' %}"></script>
 {% endblock %}

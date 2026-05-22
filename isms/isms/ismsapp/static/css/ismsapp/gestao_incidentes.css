@@ -407,6 +407,135 @@ body {
     transform: translateY(-2px);
 }
 
+.btn-action {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.btn-action:focus,
+.btn-action:active,
+.btn-action.btn-delete:focus,
+.btn-action.btn-delete:active {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+/* ── Delete Confirmation Modal ─────────────────────────────────────────── */
+.delete-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    padding: 1rem;
+}
+
+.delete-modal.open {
+    display: flex;
+}
+
+.delete-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+}
+
+.delete-modal-dialog {
+    position: relative;
+    width: min(100%, 460px);
+    background: linear-gradient(180deg, rgba(31, 41, 55, 0.98), rgba(17, 24, 39, 0.98));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+.delete-modal-dialog h3 {
+    margin-bottom: 0.75rem;
+    font-size: 1.2rem;
+}
+
+.delete-modal-dialog p {
+    margin-bottom: 1.25rem;
+    color: var(--text-secondary);
+}
+
+.delete-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.delete-confirm-form {
+    margin: 0;
+}
+
+.delete-confirm-form .btn-danger {
+    min-width: 120px;
+}
+
+/* ── Delete Confirmation Modal ─────────────────────────────────────────── */
+.delete-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    padding: 1rem;
+}
+
+.delete-modal.open {
+    display: flex;
+}
+
+.delete-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+}
+
+.delete-modal-dialog {
+    position: relative;
+    width: min(100%, 460px);
+    background: linear-gradient(180deg, rgba(31, 41, 55, 0.98), rgba(17, 24, 39, 0.98));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+.delete-modal-dialog h3 {
+    margin-bottom: 0.75rem;
+    font-size: 1.2rem;
+}
+
+.delete-modal-dialog p {
+    margin-bottom: 1.25rem;
+    color: var(--text-secondary);
+}
+
+.delete-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.delete-confirm-form {
+    margin: 0;
+}
+
+.delete-confirm-form .btn-danger {
+    min-width: 120px;
+}
+
 /* ── Empty State ────────────────────────────────────────────────────────– */
 .empty-state {
     display: flex;
@@ -513,6 +642,10 @@ body {
 
     .btn-action {
         width: 100%;
+    }
+
+    .delete-modal-actions {
+        flex-direction: column;
     }
 }
 

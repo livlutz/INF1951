@@ -1,0 +1,103 @@
+.info-box {
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    border-left: 4px solid #8b3cf7;
+}
+
+.info-box-label {
+    color: #64748b;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+}
+
+.info-box-value {
+    color: #1e293b;
+    font-weight: 500;
+}
+
+.hidden-select {
+    display: none;
+}
+
+.selector-filter {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: white;
+    padding-bottom: .5rem;
+}
+
+.searchable-select {
+    min-height: 220px;
+    border: 1px solid #dbe3ec;
+    border-radius: 10px;
+    padding: .5rem;
+    background: white;
+    transition: border-color .2s ease;
+}
+
+.searchable-select:focus,
+#id_ativo:focus {
+    border-color: #8b3cf7;
+    outline: none;
+}
+
+.searchable-select option {
+    padding: 0.4rem 0.5rem;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-cancel {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-cancel:hover {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.btn-confirm {
+    background: #8b3cf7;
+    color: white;
+}
+
+.btn-confirm:hover {
+    background: #7c3aed;
+}
+
+.btn-confirm[disabled] {
+    opacity: 0.75;
+    cursor: wait;
+}
+
+.form-error {
+    color: #f87171;
+    font-size: .73rem;
+    margin-top: .4rem;
+}

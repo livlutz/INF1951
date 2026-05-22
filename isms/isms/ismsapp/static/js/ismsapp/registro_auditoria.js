@@ -20,18 +20,28 @@ function updateFieldsVisibility() {
     const actionPlanTextarea = document.querySelector('textarea[name="plano_acao"]');
 
     if (checkbox && nonConformityTextarea && actionPlanTextarea) {
+
         const nonConformityField = nonConformityTextarea.closest('.form-group');
         const actionPlanField = actionPlanTextarea.closest('.form-group');
 
         if (nonConformityField && actionPlanField) {
+
             if (checkbox.checked) {
-                // Non-conformities were NOT found, hide the fields
-                nonConformityField.style.display = 'none';
-                actionPlanField.style.display = 'none';
-            } else {
-                // Non-conformities WERE found, show the fields
+
+                // Non-conformities identified -> show fields
                 nonConformityField.style.display = 'block';
                 actionPlanField.style.display = 'block';
+
+            } else {
+
+                // No non-conformities -> hide fields
+                nonConformityField.style.display = 'none';
+                actionPlanField.style.display = 'none';
+
+                // Clear hidden values
+                nonConformityTextarea.value = '';
+                actionPlanTextarea.value = '';
             }
         }
     }
+}

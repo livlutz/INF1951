@@ -906,7 +906,6 @@ class AmeacaForm(forms.ModelForm):
         # Make 'ativos' required
         self.fields['ativos'].required = True
 
-
 class AuditoriaForm(forms.ModelForm):
     """Form for registering audits (Auditorias).
 
@@ -922,47 +921,66 @@ class AuditoriaForm(forms.ModelForm):
 
     class Meta:
         model = Auditoria
-        fields = ['tipo_auditoria', 'nome', 'data_auditoria', 'nao_conformidades_identificadas', 'nao_conformidades', 'plano_acao', 'status']
+
+        # REMOVE status from the form
+        fields = [
+            'tipo_auditoria',
+            'nome',
+            'data_auditoria',
+            'nao_conformidades_identificadas',
+            'nao_conformidades',
+            'plano_acao',
+        ]
+
         labels = {
             'tipo_auditoria': 'Tipo de Auditoria',
             'nome': 'Nome da Auditoria',
             'data_auditoria': 'Data da Auditoria',
             'nao_conformidades_identificadas': 'Não foram identificadas não conformidades',
-            'nao_conformidades': 'Não Conformidades (Achados)',
-            'plano_acao': 'Planos de Ação (Remediação)',
-            'status': 'Status da Auditoria'
+            'nao_conformidades': 'Não Conformidades',
+            'plano_acao': 'Planos de Ação',
         }
+
         widgets = {
             'tipo_auditoria': forms.Select(attrs={
                 'placeholder': 'Selecione o tipo'
             }),
+
             'nome': forms.TextInput(attrs={
                 'placeholder': 'Ex: Auditoria de Segurança'
             }),
+
             'data_auditoria': forms.DateInput(attrs={
                 'type': 'date',
             }),
+
             'nao_conformidades_identificadas': forms.CheckboxInput(attrs={}),
+
             'nao_conformidades': forms.Textarea(attrs={
                 'placeholder': 'Descreva as evidências e não conformidades encontradas...',
                 'rows': 5
             }),
+
             'plano_acao': forms.Textarea(attrs={
                 'placeholder': 'Defina os passos para mitigação e correção das falhas...',
                 'rows': 5
             }),
-            'status': forms.Select(attrs={
-                'placeholder': 'Selecione o status'
-            })
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Make all required fields
+
+        # Required fields
         self.fields['tipo_auditoria'].required = True
         self.fields['nome'].required = True
         self.fields['data_auditoria'].required = True
 
+        # Checkbox should NOT be required
+        self.fields['nao_conformidades_identificadas'].required = False
+
+        # Conditionally optional fields
+        self.fields['nao_conformidades'].required = False
+        self.fields['plano_acao'].required = False
 
 class CadastroControleForm(forms.ModelForm):
     """Form for registering and managing security controls (Controles).

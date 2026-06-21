@@ -7,9 +7,18 @@ from .models import *
 class ControleSelectMultiple(forms.SelectMultiple):
     def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
         option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
-        tipo = getattr(getattr(value, 'instance', None), 'tipo', '')
-        if tipo:
-            option['attrs']['data-tipo'] = tipo
+        instance = getattr(value, 'instance', None)
+        categorias = []
+
+        if instance is not None:
+            try:
+                categorias = [cat.tipo for cat in instance.categorias.all()]
+            except Exception:
+                categorias = []
+
+        if categorias:
+            option['attrs']['data-tipo'] = categorias[0]
+            option['attrs']['data-tipos'] = ','.join(categorias)
         return option
 
 class SignUpForm(forms.Form):
@@ -587,12 +596,13 @@ class TratamentoRiscoForm(forms.Form):
         required=True,
         min_value=0,
         max_value=100,
-        help_text='Estimativa de quanto o controle reduzirá a probabilidade de ocorrência. Considere a efetividade dos controles implementados.',
+        help_text='Calculada automaticamente a partir dos controles selecionados.',
         widget=forms.NumberInput(attrs={
             'class': 'form-control',
             'type': 'number',
             'placeholder': '0-100',
-            'value': '30'
+            'value': '0',
+            'readonly': 'readonly'
         })
     )
 
@@ -601,12 +611,13 @@ class TratamentoRiscoForm(forms.Form):
         required=True,
         min_value=0,
         max_value=100,
-        help_text='Estimativa de quanto o controle reduzirá o impacto se o risco ocorrer. Ex: 40% reduz o dano potencial. Para mitigação, ambos os valores precisam ser definidos.',
+        help_text='Calculada automaticamente a partir dos controles selecionados.',
         widget=forms.NumberInput(attrs={
             'class': 'form-control',
             'type': 'number',
             'placeholder': '0-100',
-            'value': '30'
+            'value': '0',
+            'readonly': 'readonly'
         })
     )
 

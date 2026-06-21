@@ -187,7 +187,7 @@
           </span>
           Estratégia de Tratamento
         </div>
-        <p class="section-hint">Os valores de redução sugeridos serão ajustados automaticamente ao selecionar uma estratégia.</p>
+        <p class="section-hint">A estratégia de tratamento define a abordagem do plano, mas não altera os valores de redução. As reduções vêm apenas dos controles selecionados.</p>
 
         <div class="strategy-options">
           {% for choice_value, choice_label in form.tipo_tratamento.field.choices %}
@@ -269,7 +269,7 @@
           </span>
           Controles de Segurança
         </div>
-        <p class="section-hint">Os controles selecionados determinam automaticamente as reduções de probabilidade e consequência com base em seus tipos, usando modelo de retornos decrescentes.</p>
+        <p class="section-hint">Cada controle selecionado adiciona 10% de redução ao(s) eixo(s) aplicável(is). Controles preventivos reduzem probabilidade, detectivos reduzem probabilidade e consequência, e corretivos reduzem consequência. O tipo de tratamento não altera esse cálculo.</p>
 
         <!-- Control type reference table -->
         <div class="control-type-table">
@@ -304,7 +304,7 @@
               </tr>
             </tbody>
           </table>
-          <p class="ctt-note">💡 Controles adicionais do mesmo tipo contribuem progressivamente menos (retornos decrescentes). O sistema usa esses tipos para calcular as reduções automaticamente.</p>
+          <p class="ctt-note">💡 Cada controle conta 10% para o(s) eixo(s) correspondente(s). Os detectivos contam em ambos os eixos e a redução é cumulativa conforme mais controles são selecionados.</p>
         </div>
 
         <!-- Controls search + checkbox list -->
@@ -362,7 +362,7 @@
           </span>
           Redução Esperada de Risco
         </div>
-        <p class="section-hint">Calculado automaticamente a partir dos controles e da estratégia. Ajuste conforme a efetividade real estimada. Máximo: 95%.</p>
+        <p class="section-hint">Calculado automaticamente a partir dos controles selecionados. O tipo de tratamento não altera a redução. Máximo: 95%.</p>
 
         <div class="reduction-inputs">
           <div class="form-group">

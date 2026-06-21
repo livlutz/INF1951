@@ -285,7 +285,8 @@ class DashboardView(View):
     #gestao de controles de seguranca
     gestao_de_controles = [
         UserProfile.Actor.SISTEMA_ADMIN,
-        UserProfile.Actor.AUDITOR
+        UserProfile.Actor.AUDITOR,
+        UserProfile.Actor.ANALISTA
     ]
 
     @method_decorator(login_required(login_url="login"))
@@ -500,7 +501,8 @@ class CadastroCategoriaAtivoView(View):
         # Only System Admin and Information Security Auditor can register categories
         allowed_actors = [
             UserProfile.Actor.SISTEMA_ADMIN,
-            UserProfile.Actor.AUDITOR
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
         ]
         return user_profile.actor_type in allowed_actors
 
@@ -2148,36 +2150,23 @@ class TratamentoRiscoView(View):
     # Control-based reduction estimation
 
     # Control effectiveness table.
-    # Each entry defines per-control probability and consequence reduction
-    # percentages and a diminishing-returns cap for the whole category.
-    # Values are conservative by design — over-estimating residual risk is
-    # safer than under-estimating it.
+    # Each entry defines whether the control contributes to probability,
+    # consequence, or both. The reduction amount is fixed at 10% per
+    # applicable control.
     _CONTROL_EFFECTIVENESS = {
         'preventivo': {
-            'prob_per_control': 20,     # reduces probability only
-            'cons_per_control': 0,
-            'prob_cap': 60,             # max contribution from this category
-            'cons_cap': 0,
             'label': 'Preventivo',
             'reduces_prob': True,
             'reduces_cons': False,
             'exemplo': 'Ex: controle de acesso, firewall, autenticação MFA',
         },
         'detectivo': {
-            'prob_per_control': 10,     # catches threats early → less probability
-            'cons_per_control': 15,     # early detection limits impact
-            'prob_cap': 30,
-            'cons_cap': 45,
             'label': 'Detectivo',
             'reduces_prob': True,
             'reduces_cons': True,
             'exemplo': 'Ex: IDS/IPS, monitoramento SIEM, auditoria contínua',
         },
         'corretivo': {
-            'prob_per_control': 0,      # does not prevent occurrence
-            'cons_per_control': 25,     # limits damage after the fact
-            'prob_cap': 0,
-            'cons_cap': 60,
             'label': 'Corretivo / Contingência',
             'reduces_prob': False,
             'reduces_cons': True,
@@ -2186,19 +2175,22 @@ class TratamentoRiscoView(View):
     }
 
     def _calculate_control_reductions(self, controles):
-        """Estimate probability and consequence reductions from a set of controls.
+        """Estimate probability and consequence reductions from selected controls.
 
-        Uses a diminishing-returns model per category: each additional control
-        of the same type adds progressively less until the category cap is
-        reached.  Combined reductions across categories are bounded at 95% to
-        preserve the principle that residual risk is never zero.
+        Each selected control contributes a fixed 10% to the applicable axes:
+        - preventive controls reduce probability
+        - detective controls reduce probability and consequence
+        - corrective controls reduce consequence
+
+        Reductions are cumulative across selected controls and capped at 95%
+        per axis so the residual risk never collapses to zero.
 
         Returns a dict with:
             prob_reduction (float): aggregate probability reduction %
             impact_reduction (float): aggregate consequence reduction %
             breakdown (list): per-category contribution details
             has_controls (bool): whether any contributing controls were found
-            warnings (list): advisory messages (e.g. capped categories)
+            warnings (list): advisory messages (e.g. capped reductions)
         """
         if not controles:
             return {
@@ -2209,66 +2201,45 @@ class TratamentoRiscoView(View):
                 'warnings': [],
             }
 
-        # Bucket controls by category keyword
-        buckets = {k: [] for k in self._CONTROL_EFFECTIVENESS}
+        # Bucket controls by category keyword.
+        buckets = {k: 0 for k in self._CONTROL_EFFECTIVENESS}
 
         for controle in controles:
-            matched = False
+            tipos = set()
             for categoria in controle.categorias.all():
-                tipo_lower = categoria.tipo.lower()
-                for key in self._CONTROL_EFFECTIVENESS:
-                    if key in tipo_lower:
-                        buckets[key].append(controle)
-                        matched = True
-                        break
-                if matched:
-                    break
+                tipos.add(str(categoria.tipo).strip().lower())
+
+            if 'preventivo' in tipos:
+                buckets['preventivo'] += 1
+            if 'detectivo' in tipos:
+                buckets['detectivo'] += 1
+            if 'corretivo' in tipos:
+                buckets['corretivo'] += 1
 
         prob_total = 0.0
         cons_total = 0.0
+        raw_prob_total = 0.0
+        raw_cons_total = 0.0
         breakdown = []
         warnings = []
 
-        for key, controls_in_bucket in buckets.items():
-            if not controls_in_bucket:
+        for key, count in buckets.items():
+            if not count:
                 continue
 
             eff = self._CONTROL_EFFECTIVENESS[key]
-            n = len(controls_in_bucket)
+            cat_prob = count * 10 if eff['reduces_prob'] else 0
+            cat_cons = count * 10 if eff['reduces_cons'] else 0
 
-            # Diminishing returns: contribution of the k-th control is
-            # per_control * (0.8 ** (k-1))  →  roughly geometric decay.
-            def _diminishing(per_control, cap):
-                total = 0.0
-                for k in range(n):
-                    total += per_control * (0.8 ** k)
-                return min(total, float(cap))
-
-            cat_prob = _diminishing(eff['prob_per_control'], eff['prob_cap'])
-            cat_cons = _diminishing(eff['cons_per_control'], eff['cons_cap'])
-
-            # Warn when the category cap was the binding constraint
-            raw_prob = sum(eff['prob_per_control'] * (0.8 ** k) for k in range(n))
-            raw_cons = sum(eff['cons_per_control'] * (0.8 ** k) for k in range(n))
-            if raw_prob > eff['prob_cap'] and eff['prob_cap'] > 0:
-                warnings.append(
-                    f"Controles {eff['label']}: contribuição máxima de "
-                    f"{eff['prob_cap']}% de redução de probabilidade atingida "
-                    f"({n} controles). Controles adicionais deste tipo não aumentam "
-                    f"a redução estimada."
-                )
-            if raw_cons > eff['cons_cap'] and eff['cons_cap'] > 0:
-                warnings.append(
-                    f"Controles {eff['label']}: contribuição máxima de "
-                    f"{eff['cons_cap']}% de redução de consequência atingida."
-                )
+            raw_prob_total += cat_prob
+            raw_cons_total += cat_cons
 
             prob_total += cat_prob
             cons_total += cat_cons
 
             breakdown.append({
                 'tipo': eff['label'],
-                'quantidade': n,
+                'quantidade': count,
                 'reduces_prob': eff['reduces_prob'],
                 'reduces_cons': eff['reduces_cons'],
                 'prob_contribution': round(cat_prob, 1),
@@ -2278,20 +2249,20 @@ class TratamentoRiscoView(View):
 
         # Global cap — residual risk can never be reduced to zero
         _MAX = 95.0
-        if prob_total > _MAX:
+        if raw_prob_total > _MAX:
             warnings.append(
                 f"Redução total de probabilidade limitada a {_MAX}% "
-                f"(valor calculado: {prob_total:.1f}%)."
+                f"(valor calculado: {raw_prob_total:.1f}%)."
             )
-        if cons_total > _MAX:
+        if raw_cons_total > _MAX:
             warnings.append(
                 f"Redução total de consequência limitada a {_MAX}% "
-                f"(valor calculado: {cons_total:.1f}%)."
+                f"(valor calculado: {raw_cons_total:.1f}%)."
             )
 
         return {
-            'prob_reduction': round(min(prob_total, _MAX), 1),
-            'impact_reduction': round(min(cons_total, _MAX), 1),
+            'prob_reduction': int(min(prob_total, _MAX)),
+            'impact_reduction': int(min(cons_total, _MAX)),
             'breakdown': breakdown,
             'has_controls': bool(breakdown),
             'warnings': warnings,
@@ -2556,32 +2527,31 @@ class TratamentoRiscoView(View):
             tratamentos = risco_selecionado.tratamentos.order_by('-id')
             if tratamentos.exists():
                 tratamento_existente = tratamentos.first()
+                controles = tratamento_existente.controles.all()
+                control_reductions = self._calculate_control_reductions(controles)
+
                 form_initial = {
                     'nome': tratamento_existente.nome,
                     'tipo_tratamento': tratamento_existente.tipo_tratamento,
                     'descricao': tratamento_existente.descricao,
-                    'reducao_probabilidade': tratamento_existente.reducao_probabilidade,
-                    'reducao_impacto': tratamento_existente.reducao_impacto,
-                    'controles': tratamento_existente.controles.all(),
+                    'reducao_probabilidade': int(control_reductions['prob_reduction']),
+                    'reducao_impacto': int(control_reductions['impact_reduction']),
+                    'controles': controles,
                 }
 
-                controles = tratamento_existente.controles.all()
-                if controles.exists():
-                    control_reductions = self._calculate_control_reductions(controles)
-
-                    # Show a live residual preview based on existing treatment
-                    valor_res, nivel_res, breakdown = self._calculate_residual_risk(
-                        risco_selecionado,
-                        tratamento_existente.reducao_probabilidade,
-                        tratamento_existente.reducao_impacto,
-                    )
-                    if valor_res is not None:
-                        residual_preview = {
-                            'valor': valor_res,
-                            'nivel': nivel_res,
-                            'breakdown': breakdown,
-                            'aceitavel': float(valor_res) < acceptance_level,
-                        }
+                # Show a live residual preview based on the selected controls.
+                valor_res, nivel_res, breakdown = self._calculate_residual_risk(
+                    risco_selecionado,
+                    control_reductions['prob_reduction'],
+                    control_reductions['impact_reduction'],
+                )
+                if valor_res is not None:
+                    residual_preview = {
+                        'valor': valor_res,
+                        'nivel': nivel_res,
+                        'breakdown': breakdown,
+                        'aceitavel': float(valor_res) < acceptance_level,
+                    }
 
         contexto = {
             'riscos_para_tratar': riscos_para_tratar,
@@ -2632,9 +2602,10 @@ class TratamentoRiscoView(View):
             nome = form.cleaned_data['nome']
             tipo_tratamento = form.cleaned_data['tipo_tratamento']
             descricao = form.cleaned_data['descricao']
-            reducao_prob = float(form.cleaned_data.get('reducao_probabilidade') or 0)
-            reducao_impacto = float(form.cleaned_data.get('reducao_impacto') or 0)
             controles = form.cleaned_data.get('controles', [])
+            control_reductions = self._calculate_control_reductions(controles)
+            reducao_prob = int(control_reductions['prob_reduction'])
+            reducao_impacto = int(control_reductions['impact_reduction'])
 
             # Upsert treatment
             tratamentos_existentes = risco.tratamentos.order_by('-id')
@@ -2662,7 +2633,7 @@ class TratamentoRiscoView(View):
                 risco.tratamentos.add(tratamento)
                 action_message = "criado"
 
-            # Calculate and persist residual risk
+            # Calculate and persist residual risk from the selected controls only.
             valor_residual, nivel_residual, breakdown = self._calculate_residual_risk(
                 risco, reducao_prob, reducao_impacto
             )
@@ -4223,13 +4194,14 @@ class DeleteAuditoriaView(View):
 class CadastroControleView(View):
     """View for creating new security controls (Controles).
 
-    This view allows authorized users (System Administrators and Security Auditors)
+    This view allows authorized users (System Administrators, Security Auditors,
+    and Analysts)
     to register new security controls with:
     - Control name/ID (e.g., "5.1 - Políticas de segurança")
     - Detailed description
     - One or more control categories (Preventivo, Detectivo, Corretivo)
 
-    Only SISTEMA_ADMIN and AUDITOR roles can create controls.
+    Only SISTEMA_ADMIN, AUDITOR, and ANALISTA roles can create controls.
     Requires user authentication.
     """
     template_name = "ismsapp/cadastro_controle.html"
@@ -4245,7 +4217,8 @@ class CadastroControleView(View):
 
         allowed_actors = [
             UserProfile.Actor.SISTEMA_ADMIN,
-            UserProfile.Actor.AUDITOR
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
         ]
         return user_profile.actor_type in allowed_actors
 
@@ -4303,7 +4276,7 @@ class ReadControleView(View):
     with their categories and descriptions. Includes pagination and
     optional filtering by control category.
 
-    Only SISTEMA_ADMIN and AUDITOR roles can view controls.
+    Only SISTEMA_ADMIN, AUDITOR, and ANALISTA roles can view controls.
     """
     template_name = "ismsapp/lista_controles.html"
 
@@ -4318,7 +4291,8 @@ class ReadControleView(View):
 
         allowed_actors = [
             UserProfile.Actor.SISTEMA_ADMIN,
-            UserProfile.Actor.AUDITOR
+            UserProfile.Actor.AUDITOR,
+            UserProfile.Actor.ANALISTA
         ]
         return user_profile.actor_type in allowed_actors
 
@@ -4535,12 +4509,11 @@ class DeleteControleView(View):
 
 
 class CalculateControlReductionsView(View):
-    """AJAX endpoint for calculating risk reductions based on selected control types.
+    """AJAX endpoint for calculating risk reductions based on selected controls.
 
-    This view implements the HYBRID approach for risk reduction calculation.
-    It receives selected control IDs and returns the expected probability and
-    consequence reduction percentages based on the control categories
-    (Preventivo, Detectivo, Corretivo).
+    This view returns the probability and consequence reductions derived from
+    the selected controls. Each control contributes 10% to the applicable
+    axes based on its categories.
 
     Request:
     - POST to /api/calculate-control-reductions/

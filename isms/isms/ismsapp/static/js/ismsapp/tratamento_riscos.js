@@ -1,50 +1,17 @@
-/**
- * Tratamento de Riscos — tratamento_riscos.js
- *
- * Key improvements over the previous version:
- *
- * 1. Weights read from data-* attributes on the <form> element —
- *    no fragile DOM-text scraping with regex.
- * 2. AJAX endpoint for control reductions is replaced with a pure
- *    client-side calculation that mirrors the view's
- *    _CONTROL_EFFECTIVENESS table, so there's no 404 risk and no
- *    round-trip needed.
- * 3. The residual-risk preview renders a proper summary panel
- *    alongside a lightweight matrix, both using CSS classes rather
- *    than thousands of inline styles.
- * 4. Form validation uses an inline banner instead of alert().
- * 5. Strategy-suggested reductions are only applied when the
- *    reduction inputs are genuinely empty (new treatment), never
- *    overwriting saved values while editing.
- */
 
-/*CONSTANTS — mirror the view's _CONTROL_EFFECTIVENESS table */
+/*CONSTANTS — keep the frontend aligned with the backend */
 
-const STRATEGY_REDUCTIONS = {
-  mitigar:       { prob: 40, cons: 30 },
-  evitar:        { prob: 80, cons: 70 },
-  compartilhar:  { prob: 30, cons: 50 },
-  aceitar:       { prob:  0, cons:  0 },
-};
-
-/*CONTROL EFFECTIVENESS — define how different control types reduce probability and consequence */
-// per_control and cap values must stay in sync with view's _CONTROL_EFFECTIVENESS
+const CONTROL_REDUCTION_STEP = 10;
 const CONTROL_EFFECTIVENESS = {
   preventivo: {
-    prob_per_control: 20, cons_per_control: 0,
-    prob_cap: 60, cons_cap: 0,
     label: 'Preventivo',
     reduces_prob: true, reduces_cons: false,
   },
   detectivo: {
-    prob_per_control: 10, cons_per_control: 15,
-    prob_cap: 30, cons_cap: 45,
     label: 'Detectivo',
     reduces_prob: true, reduces_cons: true,
   },
   corretivo: {
-    prob_per_control: 0, cons_per_control: 25,
-    prob_cap: 0, cons_cap: 60,
     label: 'Corretivo / Contingência',
     reduces_prob: false, reduces_cons: true,
   },
@@ -83,6 +50,7 @@ function buildControlesCheckboxes() {
     cb.className = 'asset-cb';
     cb.checked = option.selected;
     cb.dataset.tipo = option.dataset.tipo || '';
+    cb.dataset.tipos = option.dataset.tipos || option.dataset.tipo || '';
 
     cb.addEventListener('change', function () {
       option.selected = this.checked;
@@ -101,11 +69,8 @@ function buildControlesCheckboxes() {
 
   updateControlesSummary();
 
-  // If there are already-selected controls on load (editing), compute immediately
-  const preselected = Array.from(select.selectedOptions).length;
-  if (preselected > 0) {
-    setTimeout(recalculateControlReductions, 150);
-  }
+  // Recompute immediately so the inputs always reflect only the controls.
+  setTimeout(recalculateControlReductions, 150);
 }
 
 function initControlesSearch() {
@@ -130,34 +95,25 @@ function updateControlesSummary() {
 
 /*CONTROL-BASED REDUCTION — pure client-side */
 
-/**
- * Collect the category keywords from the labels of selected controls.
- * The label text must contain 'preventivo', 'detectivo', or 'corretivo'
- * (case-insensitive) for the mapping to fire — same keyword matching as
- * the view's _calculate_control_reductions().
- */
 function recalculateControlReductions() {
   const checkedBoxes = document.querySelectorAll('#controles-checkbox-list .asset-cb:checked');
   const buckets = { preventivo: 0, detectivo: 0, corretivo: 0 };
 
   checkedBoxes.forEach(function (cb) {
-    const tipo = (cb.dataset.tipo || '').toLowerCase();
-    if (tipo === 'preventivo') buckets.preventivo++;
-    else if (tipo === 'detectivo') buckets.detectivo++;
-    else if (tipo === 'corretivo') buckets.corretivo++;
+    const tipos = String(cb.dataset.tipos || cb.dataset.tipo || '')
+      .split(',')
+      .map(function (tipo) { return tipo.trim().toLowerCase(); })
+      .filter(Boolean);
+
+    tipos.forEach(function (tipo) {
+      if (Object.prototype.hasOwnProperty.call(buckets, tipo)) {
+        buckets[tipo] += 1;
+      }
+    });
   });
 
-  // Compute with diminishing returns per category (mirrors view logic)
-  function diminishing(perControl, cap, count) {
-    let total = 0;
-    for (let k = 0; k < count; k++) {
-      total += perControl * Math.pow(0.8, k);
-    }
-    return Math.min(total, cap);
-  }
-
-  let probTotal = 0;
-  let consTotal = 0;
+  const rawProbTotal = (buckets.preventivo + buckets.detectivo) * CONTROL_REDUCTION_STEP;
+  const rawConsTotal = (buckets.detectivo + buckets.corretivo) * CONTROL_REDUCTION_STEP;
   const breakdown = [];
   const warnings  = [];
 
@@ -165,37 +121,21 @@ function recalculateControlReductions() {
     if (count === 0) continue;
     const eff = CONTROL_EFFECTIVENESS[key];
 
-    const catProb = diminishing(eff.prob_per_control, eff.prob_cap, count);
-    const catCons = diminishing(eff.cons_per_control, eff.cons_cap, count);
-
-    const rawProb = [...Array(count)].reduce((s, _, k) => s + eff.prob_per_control * Math.pow(0.8, k), 0);
-    const rawCons = [...Array(count)].reduce((s, _, k) => s + eff.cons_per_control * Math.pow(0.8, k), 0);
-
-    if (rawProb > eff.prob_cap && eff.prob_cap > 0) {
-      warnings.push(`${eff.label}: contribuição máxima de ${eff.prob_cap}% de redução de probabilidade atingida.`);
-    }
-    if (rawCons > eff.cons_cap && eff.cons_cap > 0) {
-      warnings.push(`${eff.label}: contribuição máxima de ${eff.cons_cap}% de redução de consequência atingida.`);
-    }
-
-    probTotal += catProb;
-    consTotal += catCons;
-
     breakdown.push({
       label: eff.label,
       count,
       reduces_prob: eff.reduces_prob,
       reduces_cons: eff.reduces_cons,
-      prob_contribution: Math.round(catProb * 10) / 10,
-      cons_contribution: Math.round(catCons * 10) / 10,
+      prob_contribution: eff.reduces_prob ? count * CONTROL_REDUCTION_STEP : 0,
+      cons_contribution: eff.reduces_cons ? count * CONTROL_REDUCTION_STEP : 0,
     });
   }
 
-  if (probTotal > MAX_REDUCTION) warnings.push(`Redução total de probabilidade limitada a ${MAX_REDUCTION}%.`);
-  if (consTotal > MAX_REDUCTION) warnings.push(`Redução total de consequência limitada a ${MAX_REDUCTION}%.`);
+  if (rawProbTotal > MAX_REDUCTION) warnings.push(`Redução total de probabilidade limitada a ${MAX_REDUCTION}%.`);
+  if (rawConsTotal > MAX_REDUCTION) warnings.push(`Redução total de consequência limitada a ${MAX_REDUCTION}%.`);
 
-  const finalProb = Math.round(Math.min(probTotal, MAX_REDUCTION) * 10) / 10;
-  const finalCons = Math.round(Math.min(consTotal, MAX_REDUCTION) * 10) / 10;
+  const finalProb = Math.min(rawProbTotal, MAX_REDUCTION);
+  const finalCons = Math.min(rawConsTotal, MAX_REDUCTION);
 
   renderControlBreakdown(breakdown, finalProb, finalCons, warnings);
 
@@ -203,11 +143,11 @@ function recalculateControlReductions() {
   const probInput = document.querySelector('input[name="reducao_probabilidade"]');
   const consInput = document.querySelector('input[name="reducao_impacto"]');
 
-  if (probInput && breakdown.length > 0) {
+  if (probInput) {
     probInput.value = finalProb;
     probInput.dispatchEvent(new Event('input', { bubbles: true }));
   }
-  if (consInput && breakdown.length > 0) {
+  if (consInput) {
     consInput.value = finalCons;
     consInput.dispatchEvent(new Event('input', { bubbles: true }));
   }
@@ -224,6 +164,13 @@ function renderControlBreakdown(breakdown, probTotal, consTotal, warnings) {
 
   if (breakdown.length === 0) {
     wrapper.style.display = 'none';
+    if (body) body.innerHTML = '';
+    if (probEl) probEl.textContent = '0%';
+    if (consEl) consEl.textContent = '0%';
+    if (warnEl) {
+      warnEl.innerHTML = '';
+      warnEl.style.display = 'none';
+    }
     return;
   }
 
@@ -254,7 +201,9 @@ function renderControlBreakdown(breakdown, probTotal, consTotal, warnings) {
   if (consEl) consEl.textContent = `${consTotal}%`;
 
   if (warnEl) {
-    warnEl.innerHTML = warnings.map(w => `<div class="cbd-warning">⚠ ${w}</div>`).join('');
+    warnEl.innerHTML = warnings.map(function (w) {
+      return `<div class="cbd-warning">⚠ ${w}</div>`;
+    }).join('');
     warnEl.style.display = warnings.length ? '' : 'none';
   }
 }
@@ -266,43 +215,9 @@ function initStrategySelection() {
 
   radios.forEach(function (radio) {
     radio.addEventListener('change', function () {
-      const reductions = STRATEGY_REDUCTIONS[this.value];
-      if (!reductions) return;
-
-      const probInput = document.querySelector('input[name="reducao_probabilidade"]');
-      const consInput = document.querySelector('input[name="reducao_impacto"]');
-
-      if (probInput) {
-        probInput.value = reductions.prob;
-        probInput.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-      if (consInput) {
-        consInput.value = reductions.cons;
-        consInput.dispatchEvent(new Event('input', { bubbles: true }));
-      }
+      recalculateControlReductions();
     });
   });
-
-  // On load: if the form is brand new (both inputs empty), seed values from the
-  // currently checked strategy. If editing, leave the saved values alone.
-  const checked   = document.querySelector('input[name="tipo_tratamento"]:checked');
-  const probInput = document.querySelector('input[name="reducao_probabilidade"]');
-  const consInput = document.querySelector('input[name="reducao_impacto"]');
-  const isNew     = (!probInput?.value && !consInput?.value);
-
-  if (checked && isNew) {
-    const reductions = STRATEGY_REDUCTIONS[checked.value];
-    if (reductions) {
-      if (probInput) {
-        probInput.value = reductions.prob;
-        probInput.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-      if (consInput) {
-        consInput.value = reductions.cons;
-        consInput.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-    }
-  }
 }
 
 /*RESIDUAL RISK PREVIEW */

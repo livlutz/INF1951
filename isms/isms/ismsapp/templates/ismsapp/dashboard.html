@@ -183,6 +183,120 @@
             </div>
             {% endif %}
 
+            <!-- AMEACA MODULE -->
+            {% if pode_detectar_ameacas %}
+            <div class="module-card acc module-card--ameacas" data-title="Ameaças">
+                <div class="module-card-header" onclick="toggleModule(this)">
+                    <div class="module-header-content">
+                        <div class="module-title-container">
+                            <span class="module-icon-chip module-icon-chip--ameacas">
+                                <i class="fas fa-virus module-icon"></i>
+                            </span>
+                            <div class="module-title-copy">
+                                <h2 class="module-title">Ameaças</h2>
+                                <p class="module-description">Detectar e registrar ameaças aos ativos</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="module-header-meta">
+                        <span class="module-count">{{ ameacas_module_count }} itens</span>
+                        <div class="module-toggle">
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="module-content">
+                    <div class="dashboard-grid">
+                <!-- Detecção de Ameaças -->
+                <a href="{% url 'deteccao_ameaca' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Detecção de Ameaças</h3>
+                        <p>Identifique e registre novas ameaças aos ativos</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Gestão de Ameaças -->
+                <a href="{% url 'lista_ameacas' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <h3>Gestão de Ameaças</h3>
+                        <p>Visualize, edite e delete ameaças</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- VULNERABILIDADE MODULE -->
+            {% if pode_gerenciar_vulnerabilidades %}
+            <div class="module-card acc module-card--vulnerabilidades" data-title="Vulnerabilidades">
+                <div class="module-card-header" onclick="toggleModule(this)">
+                    <div class="module-header-content">
+                        <div class="module-title-container">
+                            <span class="module-icon-chip module-icon-chip--vulnerabilidades">
+                                <i class="fas fa-bug module-icon"></i>
+                            </span>
+                            <div class="module-title-copy">
+                                <h2 class="module-title">Vulnerabilidades</h2>
+                                <p class="module-description">Registrar e acompanhar vulnerabilidades</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="module-header-meta">
+                        <span class="module-count">{{ vulnerabilidades_module_count }} itens</span>
+                        <div class="module-toggle">
+                            <i class="fas fa-chevron-down toggle-icon"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="module-content">
+                    <div class="dashboard-grid">
+                <!-- Gestão de Vulnerabilidades -->
+                <a href="{% url 'gestao_vulnerabilidades' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <h3>Registrar Vulnerabilidade</h3>
+                        <p>Registre novas vulnerabilidades identificadas</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Lista de Vulnerabilidades -->
+                <a href="{% url 'lista_vulnerabilidades' %}" class="dashboard-card-link">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <h3>Gestão de Vulnerabilidades</h3>
+                        <p>Visualize, edite e delete vulnerabilidades</p>
+                        <div class="card-footer">
+                            <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
+                        </div>
+                    </div>
+                </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- RISCO MODULE -->
             {% if pode_criar_criterios_para_avaliacao_dos_riscos or pode_identificar_riscos or pode_analisar_riscos or pode_avaliar_riscos or pode_tratar_riscos %}
             <div class="module-card acc module-card--riscos" data-title="Riscos">
@@ -293,10 +407,10 @@
                 <a href="{% url 'tratamento_riscos' %}" class="dashboard-card-link">
                     <div class="dashboard-card">
                         <div class="card-icon">
-                            <i class="fas fa-tools"></i>
+                            <i class="fas fa-toolbox"></i>
                         </div>
                         <h3>Tratamento de Riscos</h3>
-                        <p>Trate os riscos identificados</p>
+                        <p>Defina ações de tratamento para os riscos</p>
                         <div class="card-footer">
                             <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
                         </div>
@@ -308,23 +422,23 @@
             </div>
             {% endif %}
 
-            <!-- AMEACA MODULE -->
-            {% if pode_detectar_ameacas %}
-            <div class="module-card acc module-card--ameacas" data-title="Ameaças">
+            <!-- INCIDENTE MODULE -->
+            {% if pode_gestionar_incidentes_de_seguranca %}
+            <div class="module-card acc module-card--incidentes" data-title="Incidentes">
                 <div class="module-card-header" onclick="toggleModule(this)">
                     <div class="module-header-content">
                         <div class="module-title-container">
-                            <span class="module-icon-chip module-icon-chip--ameacas">
-                                <i class="fas fa-virus module-icon"></i>
+                            <span class="module-icon-chip module-icon-chip--incidentes">
+                                <i class="fas fa-fire module-icon"></i>
                             </span>
                             <div class="module-title-copy">
-                                <h2 class="module-title">Ameaças</h2>
-                                <p class="module-description">Detectar e registrar ameaças aos ativos</p>
+                                <h2 class="module-title">Incidentes</h2>
+                                <p class="module-description">Registrar e acompanhar incidentes de segurança</p>
                             </div>
                         </div>
                     </div>
                     <div class="module-header-meta">
-                        <span class="module-count">{{ ameacas_module_count }} itens</span>
+                        <span class="module-count">{{ incidentes_module_count }} itens</span>
                         <div class="module-toggle">
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </div>
@@ -333,28 +447,28 @@
 
                 <div class="module-content">
                     <div class="dashboard-grid">
-                <!-- Detecção de Ameaças -->
-                <a href="{% url 'deteccao_ameaca' %}" class="dashboard-card-link">
+                <!-- Gestão de Incidentes de Segurança -->
+                <a href="{% url 'gestao_incidentes' %}" class="dashboard-card-link">
                     <div class="dashboard-card">
                         <div class="card-icon">
-                            <i class="fas fa-shield-alt"></i>
+                            <i class="fas fa-exclamation-triangle"></i>
                         </div>
-                        <h3>Detecção de Ameaças</h3>
-                        <p>Identifique e registre novas ameaças aos ativos</p>
+                        <h3>Gestão de Incidentes</h3>
+                        <p>Registre e acompanhe incidentes de segurança</p>
                         <div class="card-footer">
                             <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
                         </div>
                     </div>
                 </a>
 
-                <!-- Gestão de Ameaças -->
-                <a href="{% url 'lista_ameacas' %}" class="dashboard-card-link">
+                <!-- Registrar Incidente -->
+                <a href="{% url 'cadastro_incidente' %}" class="dashboard-card-link">
                     <div class="dashboard-card">
                         <div class="card-icon">
-                            <i class="fas fa-list"></i>
+                            <i class="fas fa-plus-circle"></i>
                         </div>
-                        <h3>Gestão de Ameaças</h3>
-                        <p>Visualize, edite e delete ameaças</p>
+                        <h3>Registrar Incidente</h3>
+                        <p>Registre novos incidentes de segurança</p>
                         <div class="card-footer">
                             <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
                         </div>
@@ -365,23 +479,23 @@
             </div>
             {% endif %}
 
-            <!-- VULNERABILIDADE MODULE -->
-            {% if pode_gerenciar_vulnerabilidades %}
-            <div class="module-card acc module-card--vulnerabilidades" data-title="Vulnerabilidades">
+            <!-- AUDITORIA MODULE -->
+            {% if pode_registrar_auditorias %}
+            <div class="module-card acc module-card--auditorias" data-title="Auditorias">
                 <div class="module-card-header" onclick="toggleModule(this)">
                     <div class="module-header-content">
                         <div class="module-title-container">
-                            <span class="module-icon-chip module-icon-chip--vulnerabilidades">
-                                <i class="fas fa-bug module-icon"></i>
+                            <span class="module-icon-chip module-icon-chip--auditorias">
+                                <i class="fas fa-clipboard-check module-icon"></i>
                             </span>
                             <div class="module-title-copy">
-                                <h2 class="module-title">Vulnerabilidades</h2>
-                                <p class="module-description">Registrar e acompanhar vulnerabilidades</p>
+                                <h2 class="module-title">Auditorias</h2>
+                                <p class="module-description">Registrar auditorias e acompanhar conformidades</p>
                             </div>
                         </div>
                     </div>
                     <div class="module-header-meta">
-                        <span class="module-count">{{ vulnerabilidades_module_count }} itens</span>
+                        <span class="module-count">{{ auditorias_module_count }} itens</span>
                         <div class="module-toggle">
                             <i class="fas fa-chevron-down toggle-icon"></i>
                         </div>
@@ -390,28 +504,28 @@
 
                 <div class="module-content">
                     <div class="dashboard-grid">
-                <!-- Gestão de Vulnerabilidades -->
-                <a href="{% url 'gestao_vulnerabilidades' %}" class="dashboard-card-link">
+                <!-- Registrar Auditoria -->
+                <a href="{% url 'registro_auditoria' %}" class="dashboard-card-link">
                     <div class="dashboard-card">
                         <div class="card-icon">
                             <i class="fas fa-plus-circle"></i>
                         </div>
-                        <h3>Registrar Vulnerabilidade</h3>
-                        <p>Registre novas vulnerabilidades identificadas</p>
+                        <h3>Registrar Auditoria</h3>
+                        <p>Registre novas auditorias e avaliações de conformidade</p>
                         <div class="card-footer">
                             <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
                         </div>
                     </div>
                 </a>
 
-                <!-- Lista de Vulnerabilidades -->
-                <a href="{% url 'lista_vulnerabilidades' %}" class="dashboard-card-link">
+                <!-- Gestão de Auditorias -->
+                <a href="{% url 'lista_auditorias' %}" class="dashboard-card-link">
                     <div class="dashboard-card">
                         <div class="card-icon">
                             <i class="fas fa-list"></i>
                         </div>
-                        <h3>Gestão de Vulnerabilidades</h3>
-                        <p>Visualize, edite e delete vulnerabilidades</p>
+                        <h3>Gestão de Auditorias</h3>
+                        <p>Acompanhamento de auditorias,riscos,controles e incidentes</p>
                         <div class="card-footer">
                             <span class="icon-arrow"><i class="fas fa-arrow-right"></i></span>
                         </div>
